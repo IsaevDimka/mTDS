@@ -42,31 +42,35 @@ func (ClickData) generateCID() string {
 /*
 	saving click to redis
 */
-//func (ClickData) save(Click ClickData) bool {
+
 func (Click ClickData) save() bool {
-	err := redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "FlowID", Click.FlowID).Err()
-	err = redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "LandingID", Click.LandingID).Err()
-	err = redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "PrelandingID", Click.PrelandingID).Err()
-	err = redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "WebMasterID", Click.WebMasterID).Err()
-	err = redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "WebMasterCurrencyID", Click.WebMasterCurrencyID).Err()
-	err = redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "OfferID", Click.OfferID).Err()
+	errFlowID := redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "FlowID", Click.FlowID).Err()
+	errLandingID := redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "LandingID", Click.LandingID).Err()
+	errPrelandingID := redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "PrelandingID", Click.PrelandingID).Err()
+	errWebMasterID := redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "WebMasterID", Click.WebMasterID).Err()
+	errWebMasterCurrencyID := redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "WebMasterCurrencyID", Click.WebMasterCurrencyID).Err()
+	errOfferID := redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "OfferID", Click.OfferID).Err()
 
-	err = redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "FlowHash", Click.FlowHash).Err()
-	err = redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "Hash", Click.Hash).Err()
-	err = redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "Referer", Click.Referer).Err()
-	err = redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "Time", Click.Time).Err()
-	err = redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "IP", Click.IP).Err()
-	err = redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "UserAgent", Click.UserAgent).Err()
-	err = redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "URL", Click.URL).Err()
-	err = redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "Location", Click.Location).Err()
+	errFlowHash := redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "FlowHash", Click.FlowHash).Err()
+	errHash := redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "Hash", Click.Hash).Err()
+	errReferer := redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "Referer", Click.Referer).Err()
+	errTime := redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "Time", Click.Time).Err()
+	errIP := redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "IP", Click.IP).Err()
+	errUserAgent := redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "UserAgent", Click.UserAgent).Err()
+	errURL := redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "URL", Click.URL).Err()
+	errLocation := redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "Location", Click.Location).Err()
 
-	err = redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "Sub1", Click.Sub1).Err()
-	err = redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "Sub2", Click.Sub2).Err()
-	err = redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "Sub3", Click.Sub3).Err()
-	err = redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "Sub4", Click.Sub4).Err()
-	err = redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "Sub5", Click.Sub5).Err()
+	errSub1 := redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "Sub1", Click.Sub1).Err()
+	errSub2 := redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "Sub2", Click.Sub2).Err()
+	errSub3 := redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "Sub3", Click.Sub3).Err()
+	errSub4 := redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "Sub4", Click.Sub4).Err()
+	errSub5 := redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "Sub5", Click.Sub5).Err()
 
-	if err != nil {
+	// TODO: надо придумать повеселее
+	if errFlowID != nil || errLandingID != nil || errPrelandingID != nil || errWebMasterID != nil ||
+		errWebMasterCurrencyID != nil || errOfferID != nil || errFlowHash != nil || errHash != nil ||
+		errReferer != nil || errTime != nil || errIP != nil || errUserAgent != nil || errURL != nil ||
+		errLocation != nil || errSub1 != nil || errSub2 != nil || errSub3 != nil || errSub4 != nil || errSub5 != nil {
 		return false
 	} else {
 		return true

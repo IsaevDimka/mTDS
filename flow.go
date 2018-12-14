@@ -39,7 +39,6 @@ type FlowData struct {
 }
 
 func (Flow FlowData) getInfo(FlowHash string) FlowData {
-	//var Flow FlowData
 	//Фллоу хеш, если он есть в базе значит все пучком
 	FlowID, _ := redisdb.Get(FlowHash + ":ID").Result()
 

@@ -242,9 +242,7 @@ func flowHandler(c echo.Context) error {
 			Info.Click.PrelandingID = 0
 			Info.Click.Location = LandingTemplate
 
-			//defer Info.Click.save(Info.Click)
 			defer Info.Click.save()
-
 			return c.Redirect(302, LandingTemplate)
 		}
 
@@ -271,9 +269,7 @@ func flowHandler(c echo.Context) error {
 			Info.Click.PrelandingID = convertedID
 			Info.Click.Location = PrelandingTemplate
 
-			//defer Info.Click.save(Info.Click)
 			defer Info.Click.save()
-
 			return c.Redirect(302, PrelandingTemplate)
 		}
 
@@ -297,7 +293,7 @@ func flowHandler(c echo.Context) error {
 			}
 
 			s := JSONPretty(Info)
-			//defer Info.Click.save(Info.Click)
+
 			defer Info.Click.save()
 			return c.String(200, s)
 
@@ -315,9 +311,7 @@ func flowHandler(c echo.Context) error {
 			Info.Click.PrelandingID = convertedID
 			Info.Click.Location = LandingTemplate
 
-			//defer Info.Click.save(Info.Click)
 			defer Info.Click.save()
-
 			return c.Redirect(302, LandingTemplate)
 		}
 	} else {
