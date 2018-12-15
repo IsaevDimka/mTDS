@@ -132,7 +132,7 @@ func allClickHandler(c echo.Context) error {
 	s := JSONPretty(Clicks)
 
 	//
-	// TODO: Think about removing
+	// TODO: Think about removing items
 	//
 
 	if cfg.Debug.Level > 0 {
@@ -321,8 +321,8 @@ func flowHandler(c echo.Context) error {
 	}
 
 	// должны возвращать по формату функции, на самом деле никогда не выполнится
-	msg := []byte(`{"code":200, "message":"Destination unreacheable"}`)
-	return c.JSONBlob(200, msg)
+	// msg := []byte(`{"code":200, "message":"Destination unreacheable"}`)
+	// return c.JSONBlob(200, msg)
 }
 
 /*
