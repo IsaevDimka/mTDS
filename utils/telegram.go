@@ -76,23 +76,3 @@ func (tg *TelegramAdapter) SendMessage(text string) bool {
 	}
 	return false
 }
-
-// const (
-// 	PROXY_ADDR = "185.244.219.200:5443"
-// 	URL        = "https://api.telegram.org/bot"
-// 	TOKEN      = "624727745:AAH2YZUaw7OCkpch76RqH4ciggDmy9PvuoI"
-// 	PROXY_USER = "mihail"
-// 	PROXY_PASSWORD = "fit19280614"
-// )
-//
-// var chats = []string{"232291795"}
-
-// func main() {
-// 	var tg TelegramAdapter
-// 	tg.Init(chats,PROXY_USER,PROXY_PASSWORD,PROXY_ADDR,URL,TOKEN)
-//
-// 	if !tg.SendMessage("shit") {
-// 		fmt.Println("Error sending message")
-// 	}
-// }
-//
