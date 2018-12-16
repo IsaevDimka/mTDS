@@ -1,6 +1,7 @@
 __LAST CHANGES__
 
 16.12.2018
++ Telegram notifications for statistic / usage
 + Tested with GCCGO compiler over Ubuntu 18.04
 + Refactored directory structure
 + Minor fixes
