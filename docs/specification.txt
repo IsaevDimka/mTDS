@@ -1,0 +1,128 @@
+-------------------------------------------------------------------------------------------------------------------------------------
+Спецификация формата ключей базы данных для TDS/golang
+
+1. Хранение данных (описание хранения данных)
+2. Форматы ответов
+
+-------------------------------------------------------------------------------------------------------------------------------------
+Хранения потока в базе
+-------------------------------------------------------------------------------------------------------------------------------------
+
+ХХХХХХ - FlowHash
+YYYYYY - ClickHash
+
+SET
+XXXXXX:FlowID 			flow_id_at_meta_cpa
+XXXXXX:Hash 			flow_hash_at_meta_cpa
+XXXXXX:WebMasterID 		webmaster_id_at_meta_cpa
+XXXXXX:WebMasterCurrencyID 	web_master_currency_id_at_meta_cpa
+XXXXXX:OfferID			offer_id_at_meta_cpa
+
+HSET
+XXXXXX:preland:1 		id 		preland_id_at_meta_cpa1
+                        	url 		http://preland.com/?flow_hash={flow_hash}&click_hash={click_hash}&sub1={sub1}...
+
+XXXXXX:preland:2 		id 		preland_id_at_meta_cpa2
+                        	url 		preland_id_at_meta_cpa2 http://preland.com/?flow_hash={flow_hash}&click_hash={click_hash}&sub1={sub1}...
+
+HSET
+XXXXXX:land:1 			id 		id_land_id_at_meta_cpa1
+                        	url 		http://land.com/?flow_hash={flow_hash}&click_hash={click_hash}&sub1={sub1}...
+
+XXXXXX:land:2 			id 		id_land_id_at_meta_cpa2
+                        	url 		http://land.com/?flow_hash={flow_hash}&click_hash={click_hash}&sub1={sub1}...
+
+HSET
+XXXXXX:counters:yandex:id 	ID
+                         	name
+
+XXXXXX:counters:google:id 	ID
+                             	name
+
+------------------------------------------------------------------------------------------------------------------------------------
+Хранение кликов в базе (хеш таблица по ключу)
+------------------------------------------------------------------------------------------------------------------------------------
+HSET
+
+XXXXXX:click:YYYYYY1    FlowID 			123
+			LandingID		111
+			PrelandingID		0     //если переходили на лендинг
+                        OfferID			20180000
+                        WebMasterID		201800001
+                        WebMasterCurrencyID	19
+                        FlowHash		XXX
+                        Hash			3Irg3wdLfW
+                        IP 			195.208.152.114
+                        URL			http://localhost/XXX/1/2/3/4/5?format=land
+                        Time			2018-12-12 18:50:52
+                        Referer			
+                        UserAgent		Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) 
+                        Location		http://hostAA/XXX/3Irg3wdLfW/1/2/3/4/5
+                        Sub1			1
+                        Sub2			2
+                        Sub3			3
+                        Sub4			4
+                        Sub5			5
+
+-------------------------------------------------------------------------------------------------------------------------------------
+Cпецификация ответа JSON при запросе этого Flow "http://tdsurl/XXXXXX/?format=jsonpretty" || "?format=json"
+-------------------------------------------------------------------------------------------------------------------------------------
+
+{
+	"FlowHash": "XXXXXX",
+	"FlowID": "flow_id_at_meta_cpa",
+	"prelands": [{
+			"id": "preland_id_at_meta_cpa1",
+			"url": "http://preland.com/?flow_hash={flow_hash}&click_hash={click_hash}&sub1={sub1}..."
+		},
+		{
+			"id": "preland_id_at_meta_cpa2",
+			"url": "http://preland.com/?flow_hash={flow_hash}&click_hash={click_hash}&sub1={sub1}..."
+		}],
+	"lands": [{
+			"id": "id_land_id_at_meta_cpa1",
+			"url": "http://preland.com/?flow_hash={flow_hash}&click_hash={click_hash}&sub1={sub1}..."
+		},
+		{
+			"id": "id_land_id_at_meta_cpa2",
+			"url": "http://preland.com/?flow_hash={flow_hash}&click_hash={click_hash}&sub1={sub1}..."
+		}],
+	"counters": [{
+			"name": "yandex",
+			"id": "ID",
+			"self_id": "id_at_meta_cpa"			
+		},
+		{
+			"name": "yandex",
+			"id": "ID",
+			"self_id": "id_at_meta_cpa"			
+		}]
+}
+
+-------------------------------------------------------------------------------------------------------------------------------------
+Формат ответа информацией о клике по запросу "http://tdsurl/c/1gWGGpStJj"
+-------------------------------------------------------------------------------------------------------------------------------------
+
+{
+	"FlowID": 123,
+        "LandingID": 111,
+        "PrelandingID": 0,
+        "OfferID": 20180000,
+        "WebMasterID": 201800001,
+        "WebMasterCurrencyID": 19,
+        "FlowHash": "XXX",
+        "Hash": "3Irg3wdLfW",
+        "IP": "[::1]:4207",
+        "URL": "http://localhost/XXX/1/2/3/4/5?format=land",
+        "Time": "2018-12-12 18:50:52",
+        "Referer": "",
+        "UserAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.80 Safari/537.36",
+        "Location": "http://hostAA/XXX/3Irg3wdLfW/1/2/3/4/5",
+        "Sub1": "1",
+        "Sub2": "2",
+        "Sub3": "3",
+        "Sub4": "4",
+        "Sub5": "5"
+}
+
+-------------------------------------------------------------------------------------------------------------------------------------

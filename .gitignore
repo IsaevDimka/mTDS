@@ -1,0 +1,5 @@
+vendor/*
+tds.exe
+Gopkg.*
+tmp
+.idea/*
