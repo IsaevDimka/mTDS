@@ -1,3 +1,14 @@
+/****************************************************************************************************
+*
+* Telegram Adapter module, special for Meta CPA, Ltd.
+* by Michael S. Merzlyakov AFKA predator_pc@16122018
+* version v2.0.3
+*
+* created at 14122018
+* last edit: 16122018
+*
+*****************************************************************************************************/
+
 package utils
 
 import (

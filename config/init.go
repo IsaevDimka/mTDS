@@ -1,3 +1,14 @@
+/****************************************************************************************************
+*
+* Initialization package preparing to do hard work :)) special for Meta CPA, Ltd.
+* by Michael S. Merzlyakov AFKA predator_pc@12122018
+* version v2.0.3
+*
+* created at 04122018
+* last edit: 16122018
+*
+*****************************************************************************************************/
+
 package config
 
 import (
@@ -27,7 +38,9 @@ func init() {
 	Telegram.SendMessage(Cfg.General.Name + ": TDS Service started @ " + timeStamp)
 
 	if tlgrm {
-		utils.PrintInfo("Telegram", "Successfully init Telegram Adapter", initModuleName)
+		if Cfg.Debug.Level > 0 {
+			utils.PrintInfo("Telegram", "Successfully init Telegram Adapter", initModuleName)
+		}
 	} else {
 		utils.PrintError("Error", "Init Telegram Adapter", initModuleName)
 	}

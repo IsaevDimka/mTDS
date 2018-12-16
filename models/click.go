@@ -1,3 +1,14 @@
+/****************************************************************************************************
+*
+* Click model/entity and methods, special for Meta CPA, Ltd.
+* by Michael S. Merzlyakov AFKA predator_pc@12122018
+* version v2.0.3
+*
+* created at 04122018
+* last edit: 16122018
+*
+*****************************************************************************************************/
+
 package models
 
 import (
