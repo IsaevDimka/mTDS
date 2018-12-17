@@ -61,6 +61,14 @@ func URIByMap(c echo.Context, keyMap []string) map[string][]string {
 		}
 		resultMap[item] = append(resultMap[item], tmp)
 	}
+
+	//------ Support old version of TDS ---------
+
+	//resultMap["click_id"] = append(resultMap["click_id"], strings.Join(resultMap["click_hash"],""))
+	resultMap["flow_id"] = append(resultMap["flow_id"], strings.Join(resultMap["flow_hash"], ""))
+
+	//-------------------------------------------
+
 	return resultMap
 }
 

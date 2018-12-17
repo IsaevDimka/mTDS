@@ -14,6 +14,7 @@ package config
 import (
 	"fmt"
 	"metatds/utils"
+	"net/url"
 	"os"
 	"strconv"
 	"time"
@@ -82,4 +83,58 @@ func init() {
 			utils.PrintDebug("Completed", err, initModuleName)
 		}
 	}
+
+	// начинаем считать статистику
+	TDSStatisticChan()
+
+	// начинаем перезагружать конфиг
+	ReloadConfigChan()
+
+}
+
+func ReloadConfigChan() <-chan string {
+	c := make(chan string)
+
+	go func() {
+		for {
+			ReloadConfig()
+			time.Sleep(time.Duration(1+Cfg.General.ConfReload*60) * time.Second) // поспим чуть чуть
+		}
+	}()
+
+	return c
+}
+
+func TDSStatisticChan() <-chan string {
+	c := make(chan string)
+
+	go func() {
+		for {
+
+			if TDSStatistic != (utils.TDSStats{}) {
+				t := time.Now()
+				timeStamp := fmt.Sprintf("%d-%02d-%02d %02d:%02d:%02d",
+					t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second())
+
+				text := Cfg.General.Name + " usage\n" + timeStamp + ":" +
+					"\n\nUpdate Flow: " + strconv.Itoa(TDSStatistic.UpdatedFlows) +
+					"\nAppende Flow: " + strconv.Itoa(TDSStatistic.AppendedFlows) +
+					"\nPixel Request: " + strconv.Itoa(TDSStatistic.PixelRequest) +
+					"\nClick Info Request: " + strconv.Itoa(TDSStatistic.ClickInfoRequest) +
+					"\nFlow Info Request: " + strconv.Itoa(TDSStatistic.FlowInfoRequest) +
+					"\nRedirect Request: " + strconv.Itoa(TDSStatistic.RedirectRequest) +
+					"\nRedis Stat Request: " + strconv.Itoa(TDSStatistic.RedisStatRequest) +
+					"\nIncorrect Request: " + strconv.Itoa(TDSStatistic.IncorrectRequest)
+
+				Telegram.SendMessage(url.QueryEscape(text))
+			} else {
+				TDSStatistic.Reset()
+			}
+
+			// +1 its to avoid dumbs with zero multiplication
+			time.Sleep(time.Duration(1+Cfg.Telegram.MsgInterval*60) * time.Second) // поспим чуть чуть
+		}
+	}()
+
+	return c
 }

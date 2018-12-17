@@ -31,7 +31,8 @@ import (
 const tdsModuleName = "tds.go"
 
 // Карта ключей которые мы хотим получить
-var keyMap = []string{"flow_hash", "click_hash", "sub1", "sub2", "sub3", "sub4", "sub5", "format"}
+var keyMap = []string{"flow_hash", "click_hash", "sub1", "sub2", "sub3", "sub4", "sub5", "format",
+	"click_id", "flow_id"} // support for old version of TDS
 
 // Тип для
 type InfoData struct {
@@ -116,6 +117,8 @@ func main() {
 */
 
 func allClickHandler(c echo.Context) error {
+	start := time.Now()
+
 	var Click models.ClickData
 	Clicks := make(map[string][]models.ClickData)
 	FlowKeys, _ := config.Redisdb.Keys("*:FlowHash").Result()
@@ -146,6 +149,12 @@ func allClickHandler(c echo.Context) error {
 		}
 		utils.PrintDebug("Count", strconv.Itoa(counter), tdsModuleName)
 	}
+
+	config.TDSStatistic.RedisStatRequest++ // add counter tick
+	utils.PrintInfo("Action elapsed time", time.Since(start), tdsModuleName)
+
+	// TODO Здесь должен возвращаться контент тайп джейсон
+
 	return c.String(200, s)
 }
 
@@ -158,6 +167,9 @@ func clickHandler(c echo.Context) error {
 
 	resultMap := utils.URIByMap(c, keyMap)
 	resultMap["click_hash"] = append(resultMap["click_hash"], Click.Hash) // запишем сразу в наш массив
+
+	resultMap["click_id"] = append(resultMap["click_id"], Click.Hash) // support for old version TDS
+
 	Click = Click.GetInfo(strings.Join(resultMap["click_hash"], ""))
 
 	if Click != (models.ClickData{}) && config.Cfg.Debug.Level > 0 {
@@ -165,6 +177,9 @@ func clickHandler(c echo.Context) error {
 	}
 
 	s := utils.JSONPretty(Click)
+
+	config.TDSStatistic.ClickInfoRequest++ // add counter tick
+
 	return c.String(200, s)
 }
 
@@ -174,13 +189,17 @@ func clickHandler(c echo.Context) error {
  */
 
 func flowHandler(c echo.Context) error {
+	start := time.Now()
+
 	var Info InfoData
 	var LandingTemplate, PrelandingTemplate, LandingTemplateID, PrelandingTemplateID string
 	resultMap := utils.URIByMap(c, keyMap) // вот в этот массив
 
 	Info.Click.Hash = Info.Click.GenerateCID()                                 // генерим СИД
 	resultMap["click_hash"] = append(resultMap["click_hash"], Info.Click.Hash) // запишем сразу в наш массив
-	Info.Flow = Info.Flow.GetInfo(strings.Join(resultMap["flow_hash"], ""))    // получить всю инфу о потоке
+	resultMap["click_id"] = append(resultMap["click_id"], Info.Click.Hash)     // support for old version TDS
+
+	Info.Flow = Info.Flow.GetInfo(strings.Join(resultMap["flow_hash"], "")) // получить всю инфу о потоке
 
 	t := time.Now() // собираем данные для сейва в базу
 
@@ -247,7 +266,18 @@ func flowHandler(c echo.Context) error {
 			Info.Click.Location = LandingTemplate
 
 			defer Info.Click.Save()
-			return c.Redirect(302, LandingTemplate)
+
+			config.TDSStatistic.RedirectRequest++ // add counter tick
+
+			if config.Cfg.Debug.Level > 0 {
+				utils.PrintInfo("Action elapsed time", time.Since(start), tdsModuleName)
+			}
+
+			if !config.Cfg.Debug.Test {
+				return c.Redirect(302, LandingTemplate)
+			} else {
+				return c.String(200, "ok")
+			}
 		}
 
 		// редирект на пре-лендинг
@@ -274,7 +304,17 @@ func flowHandler(c echo.Context) error {
 			Info.Click.Location = PrelandingTemplate
 
 			defer Info.Click.Save()
-			return c.Redirect(302, PrelandingTemplate)
+			config.TDSStatistic.RedirectRequest++ // add counter tick
+
+			if config.Cfg.Debug.Level > 0 {
+				utils.PrintInfo("Action elapsed time", time.Since(start), tdsModuleName)
+			}
+
+			if !config.Cfg.Debug.Test {
+				return c.Redirect(302, PrelandingTemplate)
+			} else {
+				return c.String(200, "ok")
+			}
 		}
 
 		// отдать данные потока в джейсоне красиво
@@ -298,10 +338,16 @@ func flowHandler(c echo.Context) error {
 			s := utils.JSONPretty(Info)
 
 			defer Info.Click.Save()
+
+			if config.Cfg.Debug.Level > 0 {
+				config.TDSStatistic.FlowInfoRequest++ // add counter tick
+			}
+
+			utils.PrintInfo("Action elapsed time", time.Since(start), tdsModuleName)
+
 			return c.String(200, s)
 
 		} else {
-
 			// если никаких ключей нет, то пробрасываем дальше (по старой схеме)
 			// на первый выбраный домен из списка если несколько или на первый
 			for _, item := range keyMap {
@@ -315,7 +361,17 @@ func flowHandler(c echo.Context) error {
 			Info.Click.Location = LandingTemplate
 
 			defer Info.Click.Save()
-			return c.Redirect(302, LandingTemplate)
+			config.TDSStatistic.RedirectRequest++ // add counter tick
+
+			if config.Cfg.Debug.Level > 0 {
+				utils.PrintInfo("Action elapsed time", time.Since(start), tdsModuleName)
+			}
+
+			if !config.Cfg.Debug.Test {
+				return c.Redirect(302, LandingTemplate)
+			} else {
+				return c.String(200, "ok")
+			}
 		}
 	} else {
 		// если нет клика или потока, то все привет
