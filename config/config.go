@@ -16,8 +16,9 @@ import (
 	"metatds/utils"
 	"os"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/go-redis/redis"
-	gcfg "gopkg.in/gcfg.v1"
+	"gopkg.in/gcfg.v1"
 )
 
 const configFileName = "settings.ini"
@@ -26,9 +27,10 @@ const configModuleName = "config.go"
 // Config Тип для хранения конфига
 type Config struct {
 	General struct {
-		Name string
-		Host string
-		Port int
+		Name       string
+		Host       string
+		Port       int
+		ConfReload int
 	}
 	Click struct {
 		Length int
@@ -40,9 +42,11 @@ type Config struct {
 		Password string
 	}
 	Debug struct {
+		Test  bool
 		Level int
 	}
 	Telegram struct {
+		MsgInterval    int
 		Socks5Proxy    string
 		Socks5User     string
 		Socks5Password string
@@ -55,6 +59,7 @@ type Config struct {
 var Cfg Config                     // Конфиг инстанс
 var Redisdb *redis.Client          // Редис
 var Telegram utils.TelegramAdapter // инстанс бота
+var TDSStatistic utils.TDSStats    // Инстанс статистики
 
 // Загрузка конфига и обработка параметров
 func InitConfig() {
@@ -90,6 +95,9 @@ func InitConfig() {
 					}
 					if Cfg.General.Port != 0 {
 						fmt.Println("[ -- Port ]", Cfg.General.Port)
+					}
+					if Cfg.General.ConfReload != 0 {
+						fmt.Println("[ -- Config reload interval ]", Cfg.General.ConfReload)
 					} else {
 						fmt.Println("[ -- Empty ]")
 					}
@@ -129,6 +137,9 @@ func InitConfig() {
 					fmt.Println("[ Debug ]")
 					if Cfg.Debug.Level != 0 {
 						fmt.Println("[ -- Debug level ]", Cfg.Debug.Level)
+					}
+					if Cfg.Debug.Test != false {
+						fmt.Println("[ -- Debug TEST mode]", Cfg.Debug.Test)
 					} else {
 						fmt.Println("[ -- Empty ]")
 					}
@@ -139,6 +150,9 @@ func InitConfig() {
 				// тут нам надо понять на каком уровне дебага мы хотим работать
 				if Cfg.Telegram.Token != "" && Cfg.Telegram.Socks5Proxy != "" {
 					fmt.Println("[ Telegram ]")
+					if Cfg.Telegram.MsgInterval != 0 {
+						fmt.Println("[ -- Statistic sending interval ]", Cfg.Telegram.MsgInterval)
+					}
 					if Cfg.Telegram.Socks5Proxy != "" {
 						fmt.Println("[ -- Telegram proxy ]", Cfg.Telegram.Socks5Proxy)
 					}
@@ -174,6 +188,23 @@ func InitConfig() {
 				fmt.Println("          --help /none - show this message")
 				os.Exit(3)
 			}
+		}
+	}
+}
+
+func ReloadConfig() {
+	err := gcfg.FatalOnly(gcfg.ReadFileInto(&Cfg, configFileName))
+
+	if err != nil {
+		if Cfg.Debug.Level > 1 {
+			utils.PrintError("Reload config error", err, configModuleName)
+			utils.PrintInfo("Current config", "", configModuleName)
+			spew.Dump(Cfg)
+		}
+	} else {
+		if Cfg.Debug.Level > 1 {
+			utils.PrintDebug("Config reloaded", Cfg, configFileName)
+			spew.Dump(Cfg)
 		}
 	}
 }
