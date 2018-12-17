@@ -1,5 +1,11 @@
 __LAST CHANGES__
 
+17.12.2018
++ Time bench and statistics
++ Dynamic reload .ini file to get settings online
++ Sending custom stats to Telegram Bot
++ Import flows into Redis
+
 16.12.2018
 + Telegram notifications for statistic / usage
 + Tested with GCCGO compiler over Ubuntu 18.04
