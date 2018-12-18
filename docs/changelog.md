@@ -50,8 +50,19 @@ __MetaTDS v.2 CHANGE LOG__
 + Statistic export to Telegram MetaTDSBot
 + Changed project directory tree
 
-__TODO FEATURES__
+> __18.12.2018__
++ Import Flows to Redis
++ Save data to tests-log file `./tdstest.log`
++ Advanced setting cookie
++ Time usage statistics
 
-+ utm_source convertion to subs
-+ ask in redis for uniquity of generated CLICK_HASH
-+ testing for production
+> __17.12.2018__
++ Time bench and statistics
++ Dynamic reload .ini file to get settings online
++ Sending custom stats to Telegram Bot
++ Import flows into Redis
+
+__FEATURED TODO__
++ Tool to import flows (mass/single)
++ Implementing pixel integration 
++ Checking cookie 

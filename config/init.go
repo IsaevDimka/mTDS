@@ -97,6 +97,12 @@ func init() {
 
 }
 
+/*
+*
+* Reload config channel
+*
+ */
+
 func ReloadConfigChan() <-chan string {
 	c := make(chan string)
 
@@ -109,6 +115,12 @@ func ReloadConfigChan() <-chan string {
 
 	return c
 }
+
+/*
+*
+* Telegram send statistic channel
+*
+ */
 
 func TDSStatisticChan() <-chan string {
 	c := make(chan string)
@@ -134,9 +146,13 @@ func TDSStatisticChan() <-chan string {
 					"\nWorkt time: " + durafmt.Parse(TDSStatistic.WorkTime).String()
 
 				if Telegram.SendMessage(url.QueryEscape(text)) {
-					utils.PrintInfo("Telegram", "Sending message success", initModuleName)
+					if Cfg.Debug.Level > 0 {
+						utils.PrintInfo("Telegram", "Sending message success", initModuleName)
+					}
 				} else {
-					utils.PrintError("Telegram", "Sending message error", initModuleName)
+					if Cfg.Debug.Level > 0 {
+						utils.PrintError("Telegram", "Sending message error", initModuleName)
+					}
 				}
 			} else {
 				TDSStatistic.Reset()
