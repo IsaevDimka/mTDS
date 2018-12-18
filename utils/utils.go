@@ -16,6 +16,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/rand"
+	"os"
 	"strings"
 	"time"
 
@@ -24,6 +25,7 @@ import (
 )
 
 const utilsModuleName = "utils.go"
+const logFileName = "tdstest.log"
 
 const charset = "abcdefghijklmnopqrstuvwxyz" +
 	"ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
@@ -113,4 +115,18 @@ func Explode(str string, delimiter string) []string {
 		}
 	}
 	return final
+}
+
+func WriteTestStatToFile(FlowHash, ClickHash, Location string) {
+	LogFile, _ := os.OpenFile(logFileName, os.O_CREATE|os.O_RDWR|os.O_APPEND, 0660)
+	defer LogFile.Close()
+
+	t := time.Now()
+	timeStamp := fmt.Sprintf("%d-%02d-%02d %02d:%02d:%02d",
+		t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second())
+
+	LogFile.WriteString("[ " + timeStamp + " ] Flow: " + FlowHash + ", ")
+	LogFile.WriteString("Click: " + ClickHash + ", ")
+	LogFile.WriteString("URL: " + Location + "\n")
+
 }

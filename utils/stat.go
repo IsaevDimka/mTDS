@@ -1,5 +1,7 @@
 package utils
 
+import "time"
+
 type TDSStats struct {
 	UpdatedFlows     int
 	AppendedFlows    int
@@ -9,6 +11,7 @@ type TDSStats struct {
 	RedirectRequest  int
 	RedisStatRequest int
 	IncorrectRequest int
+	WorkTime         time.Duration
 }
 
 func (tdstat TDSStats) Reset() {
@@ -20,4 +23,5 @@ func (tdstat TDSStats) Reset() {
 	tdstat.FlowInfoRequest = 0
 	tdstat.RedirectRequest = 0
 	tdstat.IncorrectRequest = 0
+	tdstat.WorkTime = 0
 }

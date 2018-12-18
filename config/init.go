@@ -20,11 +20,16 @@ import (
 	"time"
 
 	"github.com/go-redis/redis"
+	"github.com/hako/durafmt"
 )
 
 const initModuleName = "init.go"
 
+var UpTime time.Time
+
 func init() {
+
+	UpTime = time.Now()
 
 	InitConfig() // loading configuration globally
 
@@ -124,9 +129,15 @@ func TDSStatisticChan() <-chan string {
 					"\nFlow Info Request: " + strconv.Itoa(TDSStatistic.FlowInfoRequest) +
 					"\nRedirect Request: " + strconv.Itoa(TDSStatistic.RedirectRequest) +
 					"\nRedis Stat Request: " + strconv.Itoa(TDSStatistic.RedisStatRequest) +
-					"\nIncorrect Request: " + strconv.Itoa(TDSStatistic.IncorrectRequest)
+					"\nIncorrect Request: " + strconv.Itoa(TDSStatistic.IncorrectRequest) +
+					"\n\nUp time: " + durafmt.Parse(time.Since(UpTime)).String() +
+					"\nWorkt time: " + durafmt.Parse(TDSStatistic.WorkTime).String()
 
-				Telegram.SendMessage(url.QueryEscape(text))
+				if Telegram.SendMessage(url.QueryEscape(text)) {
+					utils.PrintInfo("Telegram", "Sending message success", initModuleName)
+				} else {
+					utils.PrintError("Telegram", "Sending message error", initModuleName)
+				}
 			} else {
 				TDSStatistic.Reset()
 			}
