@@ -43,13 +43,19 @@ type ClickData struct {
 }
 
 func (ClickData) GenerateCID() string {
-	rnd := utils.RandomString(config.Cfg.Click.Length) //generateRandomString(cfg.Click.Length)
-	// TODO: Здесь надо покрутить проверку, на то, что сейчас в редисе на предмет дублирующих
-	// сидов, иначе жопа может быть
+restart:
+	rnd := utils.RandomString(config.Cfg.Click.Length)
+
 	if config.Cfg.Debug.Level > 1 {
 		utils.PrintInfo("Click ID", rnd, clickModuleName)
 	}
-	return rnd
+
+	if clickHashExists(rnd) {
+		utils.PrintError("Click ID already exists", rnd, clickModuleName)
+		goto restart
+	} else {
+		return rnd
+	}
 }
 
 /*
@@ -144,4 +150,12 @@ func (Click ClickData) GetInfo(ClickHash string) ClickData {
 	Click.Sub5, _ = config.Redisdb.HGet(Click.FlowHash+":click:"+Click.Hash, "Sub5").Result()
 
 	return Click
+}
+
+func clickHashExists(ClickHash string) bool {
+	keys, err := config.Redisdb.Keys("*:click:" + ClickHash).Result()
+	if err != nil || len(keys) > 0 {
+		return true
+	}
+	return false
 }
