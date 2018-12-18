@@ -56,8 +56,9 @@ type Config struct {
 	}
 }
 
-var Cfg Config                     // Конфиг инстанс
-var Redisdb *redis.Client          // Редис
+var Cfg Config            // Конфиг инстанс
+var Redisdb *redis.Client // Редис
+var IsRedisAlive = false
 var Telegram utils.TelegramAdapter // инстанс бота
 var TDSStatistic utils.TDSStats    // Инстанс статистики
 
