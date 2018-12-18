@@ -118,7 +118,7 @@ func Explode(str string, delimiter string) []string {
 }
 
 func WriteTestStatToFile(FlowHash, ClickHash, Location string) {
-	LogFile, _ := os.OpenFile(logFileName, os.O_CREATE|os.O_RDWR|os.O_APPEND, 0660)
+/*	LogFile, _ := os.OpenFile(logFileName, os.O_CREATE|os.O_RDWR|os.O_APPEND, 0660)
 	defer LogFile.Close()
 
 	t := time.Now()
@@ -127,6 +127,6 @@ func WriteTestStatToFile(FlowHash, ClickHash, Location string) {
 
 	LogFile.WriteString("[ " + timeStamp + " ] Flow: " + FlowHash + ", ")
 	LogFile.WriteString("Click: " + ClickHash + ", ")
-	LogFile.WriteString("URL: " + Location + "\n")
+	LogFile.WriteString("URL: " + Location + "\n") */
 
 }
