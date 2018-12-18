@@ -229,7 +229,7 @@ func flowHandler(c echo.Context) error {
 		if len(Info.Flow.Lands) > 0 {
 			Random := rand.Intn(len(Info.Flow.Lands))
 			LandingTemplate = Info.Flow.Lands[Random].URL // получаем рандомный урл ленда
-			LandingTemplateID = Info.Flow.Lands[Random].ID
+			LandingTemplateID = strconv.Itoa(Info.Flow.Lands[Random].ID)
 		} else {
 			msg := []byte(`{"code":400, "message":"No landing templates found"}`)
 			return c.JSONBlob(400, msg)
@@ -238,7 +238,7 @@ func flowHandler(c echo.Context) error {
 		if len(Info.Flow.Prelands) > 0 {
 			Random := rand.Intn(len(Info.Flow.Prelands))
 			PrelandingTemplate = Info.Flow.Prelands[Random].URL // получаем рандомный урл преленда
-			PrelandingTemplateID = Info.Flow.Prelands[Random].ID
+			PrelandingTemplateID = strconv.Itoa(Info.Flow.Prelands[Random].ID)
 		}
 
 		// Если дебаг то печатаем все это добро

@@ -20,19 +20,19 @@ const flowModuleName = "flow.go"
 
 //Prelands mini struct
 type Prelands struct {
-	ID  string
+	ID  int
 	URL string
 }
 
 //Lands mini struct
 type Lands struct {
-	ID  string
+	ID  int
 	URL string
 }
 
 //Counters mini struct
 type Counters struct {
-	ID   string
+	ID   int
 	Name string
 }
 
@@ -75,21 +75,24 @@ func (Flow FlowData) GetInfo(FlowHash string) FlowData {
 	for _, item := range FlowLandsList {
 		dataID, _ := config.Redisdb.HGet(item, "id").Result()
 		dataURL, _ := config.Redisdb.HGet(item, "url").Result()
-		Flow.Lands = append(Flow.Lands, Lands{dataID, dataURL})
+		convertedID, _ = strconv.Atoi(dataID)
+		Flow.Lands = append(Flow.Lands, Lands{convertedID, dataURL})
 	}
 
 	FlowPrelandsList, _ := config.Redisdb.Keys(FlowHash + ":preland:*").Result()
 	for _, item := range FlowPrelandsList {
 		dataID, _ := config.Redisdb.HGet(item, "id").Result()
 		dataURL, _ := config.Redisdb.HGet(item, "url").Result()
-		Flow.Prelands = append(Flow.Prelands, Prelands{dataID, dataURL})
+		convertedID, _ = strconv.Atoi(dataID)
+		Flow.Prelands = append(Flow.Prelands, Prelands{convertedID, dataURL})
 	}
 
 	FlowCountersList, _ := config.Redisdb.Keys(FlowHash + ":counters:*").Result()
 	for _, item := range FlowCountersList {
 		dataID, _ := config.Redisdb.HGet(item, "id").Result()
 		dataName, _ := config.Redisdb.HGet(item, "name").Result()
-		Flow.Counters = append(Flow.Counters, Counters{dataID, dataName})
+		convertedID, _ = strconv.Atoi(dataID)
+		Flow.Counters = append(Flow.Counters, Counters{convertedID, dataName})
 	}
 
 	return Flow
