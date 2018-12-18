@@ -127,6 +127,7 @@ func WriteTestStatToFile(FlowHash, ClickHash, Location string) {
 
 	LogFile.WriteString("[ " + timeStamp + " ] Flow: " + FlowHash + ", ")
 	LogFile.WriteString("Click: " + ClickHash + ", ")
-	LogFile.WriteString("URL: " + Location + "\n") */
+	LogFile.WriteString("URL: " + Location + "\n")
+*/
 
 }
