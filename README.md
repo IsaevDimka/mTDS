@@ -5,6 +5,7 @@ __FEATURED TODO__
 __LAST CHANGES__
 
 18.12.2018
++ Redis crash and recover support
 + Import Flows to Redis
 + Save data to tests-log file `./tdstest.log`
 + Advanced setting cookie

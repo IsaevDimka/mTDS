@@ -34,6 +34,8 @@ const tdsModuleName = "tds.go"
 var keyMap = []string{"flow_hash", "click_hash", "sub1", "sub2", "sub3", "sub4", "sub5", "format",
 	"click_id", "flow_id"} // support for old version of TDS
 
+var pixel = []byte(`data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z/C/HgAGgwJ/lK3Q6wAAAABJRU5ErkJggg==`)
+
 // Тип для
 type InfoData struct {
 	Flow  models.FlowData  // модель потока
@@ -54,7 +56,8 @@ func main() {
 	router.Use(middleware.Recover())
 	//avoid chrome to request favicon
 	router.GET("/favicon.ico", func(c echo.Context) error {
-		return c.String(404, "not found") //nothing
+		return c.Blob(200, "image/png", pixel)
+		//return c.String(404, "not found") //nothing
 	})
 	// Routes
 	router.GET("/", flowHandler)
@@ -166,6 +169,7 @@ func allClickHandler(c echo.Context) error {
 
 		return c.String(200, s)
 	} else {
+		config.TDSStatistic.IncorrectRequest++ // add counter tick
 		// если нет редиски, то все привет
 		msg := []byte(`{"code":500, "message":"No connection to RedisDB"}`)
 		return c.JSONBlob(400, msg)
@@ -207,6 +211,7 @@ func ListClickHandler(c echo.Context) error {
 
 		return c.String(200, s)
 	} else {
+		config.TDSStatistic.IncorrectRequest++ // add counter tick
 		// если нет редиски, то все привет
 		msg := []byte(`{"code":500, "message":"No connection to RedisDB"}`)
 		return c.JSONBlob(400, msg)
@@ -244,6 +249,7 @@ func clickHandler(c echo.Context) error {
 
 		return c.String(200, s)
 	} else {
+		config.TDSStatistic.IncorrectRequest++ // add counter tick
 		// если нет редиски, то все привет
 		msg := []byte(`{"code":500, "message":"No connection to RedisDB"}`)
 		return c.JSONBlob(400, msg)
@@ -304,6 +310,7 @@ func flowHandler(c echo.Context) error {
 				LandingTemplate = Info.Flow.Lands[Random].URL  // получаем рандомный урл ленда
 				LandingTemplateID = Info.Flow.Lands[Random].ID // strconv.Itoa(Info.Flow.Lands[Random].ID)
 			} else {
+				config.TDSStatistic.IncorrectRequest++ // add counter tick
 				msg := []byte(`{"code":400, "message":"No landing templates found"}`)
 				return c.JSONBlob(400, msg)
 			}
@@ -361,7 +368,9 @@ func flowHandler(c echo.Context) error {
 					return c.Redirect(302, LandingTemplate)
 				} else {
 					defer utils.WriteTestStatToFile(Info.Flow.Hash, Info.Click.Hash, LandingTemplate)
-					return c.String(200, "ok")
+
+					return c.Blob(200, "image/png", pixel)
+					//return c.String(200, "ok")
 				}
 			}
 			// ----------------------------------------------------------------------------------------------------
@@ -370,6 +379,8 @@ func flowHandler(c echo.Context) error {
 			if strings.Join(resultMap["format"], "") == "preland" {
 
 				if len(Info.Flow.Prelands) <= 0 {
+					config.TDSStatistic.IncorrectRequest++ // add counter tick
+
 					msg := []byte(`{"code":400, "message":"No pre-landing templates found"}`)
 					return c.JSONBlob(400, msg)
 				}
@@ -402,7 +413,9 @@ func flowHandler(c echo.Context) error {
 					return c.Redirect(302, PrelandingTemplate)
 				} else {
 					defer utils.WriteTestStatToFile(Info.Flow.Hash, Info.Click.Hash, LandingTemplate)
-					return c.String(200, "ok")
+
+					return c.Blob(200, "image/png", pixel)
+					//return c.String(200, "ok")
 				}
 			}
 			// ----------------------------------------------------------------------------------------------------
@@ -481,10 +494,13 @@ func flowHandler(c echo.Context) error {
 					return c.Redirect(302, LandingTemplate)
 				} else {
 					defer utils.WriteTestStatToFile(Info.Flow.Hash, Info.Click.Hash, LandingTemplate)
-					return c.String(200, "ok")
+
+					return c.Blob(200, "image/png", pixel)
+					//return c.String(200, "ok")
 				}
 			}
 		} else {
+			config.TDSStatistic.IncorrectRequest++ // add counter tick
 			// если нет клика или потока, то все привет
 			msg := []byte(`{"code":400, "message":"Insuficient parameters supplied"}`)
 			return c.JSONBlob(400, msg)
