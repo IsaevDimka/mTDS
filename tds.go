@@ -16,6 +16,7 @@ package main
 import (
 	"fmt"
 	"github.com/labstack/echo/middleware"
+	"github.com/labstack/gommon/log"
 	"math/rand"
 	"net/http"
 	"strconv"
@@ -49,10 +50,11 @@ type InfoData struct {
  */
 
 func main() {
+
 	// Echo instance
 	router := echo.New()
 	// Middleware
-	router.Use(middleware.Logger())
+	//router.Use(middleware.Logger())
 	router.Use(middleware.Recover())
 	//avoid chrome to request favicon
 	router.GET("/favicon.ico", func(c echo.Context) error {
@@ -92,9 +94,20 @@ func main() {
 	router.GET("/c/all", allClickHandler)
 	router.GET("/c/list", ListClickHandler)
 
+	customServer := &http.Server{
+		Addr:         ":" + strconv.Itoa(config.Cfg.General.Port),
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 5 * time.Second,
+	}
+
+	router.HideBanner = true
+	router.Logger.SetLevel(log.OFF)
+
+
 	// run router
 	if config.Cfg.General.Port != 0 {
-		router.Logger.Fatal(router.Start(":" + strconv.Itoa(config.Cfg.General.Port)))
+//		router.Logger.Fatal(router.Start(":" + strconv.Itoa(config.Cfg.General.Port)))
+		router.Logger.Fatal(router.StartServer(customServer))
 	} else {
 		//exit if not
 		panic("[ERROR] Failed to obtain server port from settings.ini")
