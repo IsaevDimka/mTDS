@@ -111,9 +111,7 @@ func main() {
 *                http://tds/r/FLOW_HASH/sub1...sub2/other?get_params=other
 *                http://tds/r/?flow_hash=FLOW_HASH&sub1=param...&sub5=param&other?get_params=other
 *
-* testhandler - returns anything you described in it, just for tests
-*
-/****************************************************************************************************
+/*****************************************************************************************************
 
 /*
 *

@@ -1,4 +1,14 @@
+__FEATURED TODO__
++ Development testing
++ Production testing
+
 __LAST CHANGES__
+
+18.12.2018
++ Import Flows to Redis
++ Save data to tests-log file `./tdstest.log`
++ Advanced setting cookie
++ Time usage statistics
 
 17.12.2018
 + Time bench and statistics
