@@ -64,6 +64,9 @@ func init() {
 	// начинаем перезагружать конфиг
 	ReloadConfigChan()
 
+	// this is temporary workaround, should be removed on release
+	// TODO remove in release
+	TempResetRedisClicks()
 }
 
 /*
@@ -126,6 +129,35 @@ func RedisDBChan() <-chan string {
 			}
 
 			time.Sleep(10 * time.Second) // поспим чуть чуть
+		}
+	}()
+
+	return c
+}
+
+func TempResetRedisClicks() <-chan string {
+	c := make(chan string)
+
+	go func() {
+		for {
+			start := time.Now()
+
+			keys, _ := Redisdb.Keys("*:click:*").Result()
+			fmt.Println("Keys found by mask: ", len(keys))
+
+			for _, item := range keys {
+				_ = Redisdb.Del(item).Err()
+			}
+
+			fmt.Println("Time elapsed: ", time.Since(start))
+
+			t := time.Now()
+			timeStamp := fmt.Sprintf("%d-%02d-%02d %02d:%02d:%02d",
+				t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second())
+
+			Telegram.SendMessage(url.QueryEscape(timeStamp + "\nRedis reset clicks succeeded"))
+
+			time.Sleep(1 * time.Hour)
 		}
 	}()
 
