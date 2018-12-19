@@ -104,9 +104,9 @@ func main() {
 
 	customServer := &http.Server{
 		Addr:         ":" + strconv.Itoa(config.Cfg.General.Port),
-		ReadTimeout:  5 * time.Second,
-		WriteTimeout: 5 * time.Second,
-		IdleTimeout:  5 * time.Second,
+		ReadTimeout:  30 * time.Second,
+		WriteTimeout: 30 * time.Second,
+		IdleTimeout:  30 * time.Second,
 	}
 
 	customServer.SetKeepAlivesEnabled(false)
