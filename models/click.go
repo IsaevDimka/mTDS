@@ -34,7 +34,10 @@ type ClickData struct {
 	Time                string
 	Referer             string
 	UserAgent           string
-	Location            string
+	LocationLP          string
+	IsVisitedLP         int
+	LocationPL          string
+	IsVisitedPL         int
 	Sub1                string
 	Sub2                string
 	Sub3                string
@@ -76,7 +79,11 @@ func (Click ClickData) Save() bool {
 	errIP := config.Redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "IP", Click.IP).Err()
 	errUserAgent := config.Redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "UserAgent", Click.UserAgent).Err()
 	errURL := config.Redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "URL", Click.URL).Err()
-	errLocation := config.Redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "Location", Click.Location).Err()
+	errLocationLP := config.Redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "LocationLP", Click.LocationLP).Err()
+	errIsVisitedLP := config.Redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "IsVisitedLP", Click.IsVisitedLP).Err()
+
+	errLocationPL := config.Redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "LocationPL", Click.LocationPL).Err()
+	errIsVisitedPL := config.Redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "IsVisitedPL", Click.IsVisitedPL).Err()
 
 	errSub1 := config.Redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "Sub1", Click.Sub1).Err()
 	errSub2 := config.Redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "Sub2", Click.Sub2).Err()
@@ -88,7 +95,8 @@ func (Click ClickData) Save() bool {
 	if errFlowID != nil || errLandingID != nil || errPrelandingID != nil || errWebMasterID != nil ||
 		errWebMasterCurrencyID != nil || errOfferID != nil || errFlowHash != nil || errHash != nil ||
 		errReferer != nil || errTime != nil || errIP != nil || errUserAgent != nil || errURL != nil ||
-		errLocation != nil || errSub1 != nil || errSub2 != nil || errSub3 != nil || errSub4 != nil ||
+		errLocationLP != nil || errLocationPL != nil || errIsVisitedLP != nil || errIsVisitedPL != nil ||
+		errSub1 != nil || errSub2 != nil || errSub3 != nil || errSub4 != nil ||
 		errSub5 != nil {
 		return false
 	} else {
@@ -97,7 +105,11 @@ func (Click ClickData) Save() bool {
 }
 
 func (Click ClickData) GetInfo(ClickHash string) ClickData {
-	//var Click ClickData
+
+	//
+	// TODO Maybe it would be better to use HGetAll instead of Keys/HGet
+	//
+
 	var FlowHash string
 
 	Click.Hash = ClickHash
@@ -140,7 +152,15 @@ func (Click ClickData) GetInfo(ClickHash string) ClickData {
 	Click.IP, _ = config.Redisdb.HGet(Click.FlowHash+":click:"+Click.Hash, "IP").Result()
 	Click.UserAgent, _ = config.Redisdb.HGet(Click.FlowHash+":click:"+Click.Hash, "UserAgent").Result()
 	Click.URL, _ = config.Redisdb.HGet(Click.FlowHash+":click:"+Click.Hash, "URL").Result()
-	Click.Location, _ = config.Redisdb.HGet(Click.FlowHash+":click:"+Click.Hash, "Location").Result()
+	Click.LocationLP, _ = config.Redisdb.HGet(Click.FlowHash+":click:"+Click.Hash, "LocationLP").Result()
+	ClickIsVisitedLP, _ := config.Redisdb.HGet(Click.FlowHash+":click:"+Click.Hash, "IsVisitedLP").Result()
+	convertedID, _ = strconv.Atoi(ClickIsVisitedLP)
+	Click.IsVisitedLP = convertedID
+
+	Click.LocationPL, _ = config.Redisdb.HGet(Click.FlowHash+":click:"+Click.Hash, "LocationPL").Result()
+	ClickIsVisitedPL, _ := config.Redisdb.HGet(Click.FlowHash+":click:"+Click.Hash, "IsVisitedPL").Result()
+	convertedID, _ = strconv.Atoi(ClickIsVisitedPL)
+	Click.IsVisitedPL = convertedID
 
 	// subs
 	Click.Sub1, _ = config.Redisdb.HGet(Click.FlowHash+":click:"+Click.Hash, "Sub1").Result()
