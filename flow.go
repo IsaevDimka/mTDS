@@ -138,10 +138,14 @@ func flowHandler(c echo.Context) error {
 
 	CID, cookieError := c.Cookie("CID")
 
-	if cookieError != nil && config.Cfg.Debug.Level > 1 {
-		utils.PrintDebug("Cookie", "Error reading cookie", tdsModuleName)
+	if cookieError != nil {
+		if config.Cfg.Debug.Level > 1 {
+			utils.PrintDebug("Cookie", "Error reading cookie", tdsModuleName)
+		}
 	} else {
-		utils.PrintInfo("Cookie", "CID = "+CID.Value, tdsModuleName)
+		if config.Cfg.Debug.Level > 1 {
+			utils.PrintInfo("Cookie", "CID = "+CID.Value, tdsModuleName)
+		}
 	}
 
 	if config.IsRedisAlive {
