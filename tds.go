@@ -98,7 +98,10 @@ func main() {
 		Addr:         ":" + strconv.Itoa(config.Cfg.General.Port),
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 5 * time.Second,
+		IdleTimeout:  5 * time.Second,
 	}
+
+	customServer.SetKeepAlivesEnabled(false)
 
 	router.HideBanner = true
 	router.Logger.SetLevel(log.OFF)
