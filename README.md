@@ -4,6 +4,14 @@ __FEATURED TODO__
 
 __LAST CHANGES__
 
+19.12.2018
++ fx 30 seconds drop connection
++ Recovering when Cookie reading
++ Redis temp func removeing objects 1h/rate
++ Export list of clicks 
++ Creating click with path to append
+  ClickHouse export format
+
 18.12.2018
 + Failover refusing connections withing 5sec. IN/OUT
 + Redis crash and recover support
