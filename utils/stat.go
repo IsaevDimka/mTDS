@@ -11,7 +11,9 @@ type TDSStats struct {
 	RedirectRequest  int
 	RedisStatRequest int
 	IncorrectRequest int
-	WorkTime         time.Duration
+	CookieRequest    int
+	ProcessingTime   time.Duration
+	MemoryAllocated  uint64
 }
 
 func (tdstat TDSStats) Reset() {
@@ -23,5 +25,7 @@ func (tdstat TDSStats) Reset() {
 	tdstat.FlowInfoRequest = 0
 	tdstat.RedirectRequest = 0
 	tdstat.IncorrectRequest = 0
-	tdstat.WorkTime = 0
+	tdstat.CookieRequest = 0
+	tdstat.ProcessingTime = 0
+	tdstat.MemoryAllocated = 0
 }

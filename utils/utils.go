@@ -16,7 +16,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/rand"
-	_"os"
+	"os"
+	_ "os"
 	"strings"
 	"time"
 
@@ -32,6 +33,10 @@ const charset = "abcdefghijklmnopqrstuvwxyz" +
 	"0123456789"
 
 var SeededRand = rand.New(rand.NewSource(time.Now().UnixNano()))
+
+func BToMb(b uint64) uint64 {
+	return b / 1024 / 1024
+}
 
 func PrintError(header string, message interface{}, module string) {
 	fmt.Fprintf(color.Output, "[ %s ]", color.RedString(header))
@@ -117,17 +122,11 @@ func Explode(str string, delimiter string) []string {
 	return final
 }
 
-func WriteTestStatToFile(FlowHash, ClickHash, Location string) {
-/*	LogFile, _ := os.OpenFile(logFileName, os.O_CREATE|os.O_RDWR|os.O_APPEND, 0660)
-	defer LogFile.Close()
-
-	t := time.Now()
-	timeStamp := fmt.Sprintf("%d-%02d-%02d %02d:%02d:%02d",
-		t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second())
-
-	LogFile.WriteString("[ " + timeStamp + " ] Flow: " + FlowHash + ", ")
-	LogFile.WriteString("Click: " + ClickHash + ", ")
-	LogFile.WriteString("URL: " + Location + "\n")
-*/
-
+func CreateDirIfNotExist(dir string) {
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		err = os.MkdirAll(dir, 0755)
+		if err != nil {
+			panic(err)
+		}
+	}
 }

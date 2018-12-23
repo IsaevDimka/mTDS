@@ -50,7 +50,17 @@ __MetaTDS v.2 CHANGE LOG__
 + Statistic export to Telegram MetaTDSBot
 + Changed project directory tree
 
+> __19.12.2018__
++ fx 30 seconds drop connection
++ Recovering when Cookie reading
++ Redis temp func removeing objects 1h/rate
++ Export list of clicks 
++ Creating click with path to append
+  ClickHouse export format
+
 > __18.12.2018__
++ Failover refusing connections withing 5sec. IN/OUT
++ Redis crash and recover support
 + Import Flows to Redis
 + Save data to tests-log file `./tdstest.log`
 + Advanced setting cookie
@@ -62,7 +72,16 @@ __MetaTDS v.2 CHANGE LOG__
 + Sending custom stats to Telegram Bot
 + Import flows into Redis
 
+> __16.12.2018__
++ Telegram notifications for statistic / usage
++ Tested with GCCGO compiler over Ubuntu 18.04
++ Refactored directory structure
++ Minor fixes
+
 __FEATURED TODO__
 + Tool to import flows (mass/single)
 + Implementing pixel integration 
-+ Checking cookie 
++ Sending stats to MetaData API
++ Saving to files is ready and depens on previous article
++ Mass load testing 
++ Check dir for existence when saving clicks to ./clicks/XXXXXXX.json

@@ -14,6 +14,7 @@ package utils
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 	"os"
 
 	"golang.org/x/net/proxy"
@@ -64,7 +65,7 @@ func (tg *TelegramAdapter) SendMessage(text string) bool {
 		// create a request
 
 		for _, item := range tg.Chats {
-			req, err := http.NewRequest("GET", tg.URL+tg.Token+"/sendMessage?chat_id="+item+"&text="+text, nil)
+			req, err := http.NewRequest("GET", tg.URL+tg.Token+"/sendMessage?parse_mode=markdown&chat_id="+item+"&text="+url.QueryEscape(text), nil)
 			if err != nil {
 				fmt.Fprintln(os.Stderr, "can't create request:", err)
 				//	os.Exit(2)

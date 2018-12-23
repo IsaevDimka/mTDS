@@ -4,33 +4,12 @@ __FEATURED TODO__
 
 __LAST CHANGES__
 
-19.12.2018
-+ fx 30 seconds drop connection
-+ Recovering when Cookie reading
-+ Redis temp func removeing objects 1h/rate
-+ Export list of clicks 
-+ Creating click with path to append
-  ClickHouse export format
-
-18.12.2018
-+ Failover refusing connections withing 5sec. IN/OUT
-+ Redis crash and recover support
-+ Import Flows to Redis
-+ Save data to tests-log file `./tdstest.log`
-+ Advanced setting cookie
-+ Time usage statistics
-
-17.12.2018
-+ Time bench and statistics
-+ Dynamic reload .ini file to get settings online
-+ Sending custom stats to Telegram Bot
-+ Import flows into Redis
-
-16.12.2018
-+ Telegram notifications for statistic / usage
-+ Tested with GCCGO compiler over Ubuntu 18.04
-+ Refactored directory structure
-+ Minor fixes
+> __23.12.2018
++ Improvements for Telegram Bot
++ Saving clicks from RedisDB to a files dir ./clicks/XXXXXXXXXX.json
++ Improvements for Statistics and memory usage params
++ Garbage collector implements
++ Mass testing analasys and fixes bugs depends on
 
 __INSTALLATION__
 

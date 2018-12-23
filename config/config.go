@@ -33,7 +33,8 @@ type Config struct {
 		ConfReload int
 	}
 	Click struct {
-		Length int
+		Length      int
+		DropToRedis int
 	}
 	Redis struct {
 		Host     string
@@ -109,6 +110,9 @@ func InitConfig() {
 					fmt.Println("[ Click ]")
 					if Cfg.Click.Length != 0 {
 						fmt.Println("[ -- Length ]", Cfg.Click.Length)
+					}
+					if Cfg.Click.DropToRedis != 0 {
+						fmt.Println("[ -- DropToRedis ]", Cfg.Click.DropToRedis)
 					} else {
 						fmt.Println("[ -- Empty ]")
 					}
