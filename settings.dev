@@ -40,7 +40,7 @@ level = 1
 [telegram]
 ; Send message interval / time in minutes
 MsgInterval = 1
-UseProxy = true
+UseProxy = false
 ; Socks5 settings
 Socks5Proxy = "185.244.219.200:5443"
 Socks5User = "mihail"

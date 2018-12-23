@@ -13,12 +13,11 @@ package utils
 
 import (
 	"fmt"
+	"golang.org/x/net/proxy"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
-
-	"golang.org/x/net/proxy"
 )
 
 type TelegramAdapter struct {
@@ -34,7 +33,7 @@ type TelegramAdapter struct {
 
 func (tg *TelegramAdapter) Init(Ch []string, User, Password, Proxy, SendURL, SendToken string, UseProxy bool) bool {
 	if len(Ch) > 0 && User != "" && Password != "" && Proxy != "" && SendURL != "" &&
-			SendToken != "" && UseProxy != false{
+		SendToken != "" {
 		tg.Chats = Ch
 		tg.User = User
 		tg.Password = Password
@@ -51,12 +50,11 @@ func (tg *TelegramAdapter) Init(Ch []string, User, Password, Proxy, SendURL, Sen
 func (tg *TelegramAdapter) SendMessage(text string) bool {
 	if tg.isActive {
 
-		// setup a http client
 		httpTransport := &http.Transport{}
 		httpClient := &http.Client{Transport: httpTransport}
 
 		if  tg.UseProxy {
-
+			// setup a http client
 			var authorization= new(proxy.Auth)
 			authorization.User = tg.User
 			authorization.Password = tg.Password
@@ -65,7 +63,6 @@ func (tg *TelegramAdapter) SendMessage(text string) bool {
 			dialer, err := proxy.SOCKS5("tcp", tg.ProxyAddress, authorization, proxy.Direct)
 			if err != nil {
 				fmt.Fprintln(os.Stderr, "can't connect to the proxy:", err)
-				// 	os.Exit(1)
 			}
 
 			// set our socks5 as the dialer
@@ -73,32 +70,28 @@ func (tg *TelegramAdapter) SendMessage(text string) bool {
 		}
 
 		for _, item := range tg.Chats {
-			req, err := http.NewRequest("GET", tg.URL+tg.Token+"/sendMessage?parse_mode=markdown&chat_id="+item+"&text="+url.QueryEscape(text), nil)
-			if err != nil {
-				fmt.Fprintln(os.Stderr, "can't create request:", err)
-				//	os.Exit(2)
-			}
-
 			if !tg.UseProxy {
-				defer req.Body.Close()
-				ioutil.ReadAll(req.Body)
+				req, err := http.Get(tg.URL+tg.Token+"/sendMessage?parse_mode=markdown&chat_id="+item+"&text="+url.QueryEscape(text))
+
+				if req != nil {
+					defer req.Body.Close()
+					ioutil.ReadAll(req.Body)
+				}
+				if err != nil {
+					fmt.Fprintln(os.Stderr, "can't create request:", err)
+				}
 			} else {
+				req, err := http.NewRequest("GET", tg.URL+tg.Token+"/sendMessage?parse_mode=markdown&chat_id="+item+"&text="+url.QueryEscape(text), nil)
+
 				// use the http client to fetch the page
 				resp, err := httpClient.Do(req)
 				if err != nil {
 					// TODO this needs to be recovered from panic otherwise fails
 					fmt.Fprintln(os.Stderr, "can't GET page:", err)
-					// 	os.Exit(3)
 				}
 				defer resp.Body.Close()
 			}
 		}
-		//b, err := ioutil.ReadAll(resp.Body)
-		//if err != nil {
-		//	fmt.Fprintln(os.Stderr, "error reading body:", err)
-		//	os.Exit(4)
-		//}
-		//fmt.Println(string(b))
 		return true
 	}
 	return false

@@ -47,6 +47,8 @@ type InfoData struct {
 
 func main() {
 
+	//go utils.MemMonitor(1)
+
 	// Echo instance
 	router := echo.New()
 	// Middleware
