@@ -21,7 +21,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/hako/durafmt"
+	"github.com/predatorpc/durafmt"
 )
 
 const initModuleName = "init.go"
@@ -69,9 +69,11 @@ func init() {
 	// this is temporary workaround, should be removed on release
 	// TODO remove in release
 	//TempResetRedisClicks()
-	RedisSaveClicks()
+
 
 	// TODO channel to resend stats to API, when Cherkesov gives me an URL
+	RedisSaveClicks()
+
 }
 
 /*
@@ -261,17 +263,13 @@ func TDSStatisticChan() <-chan string {
 				var duration time.Duration // current duration & uptime
 				var uptime, processingTime, memoryUsage string
 
-				duration = 10 * time.Minute
+				duration = 60 * time.Minute
 
 				//if TDSStatistic.ProcessingTime < duration {
 				if time.Since(UpTime) < duration {
 					uptime = durafmt.Parse(time.Since(UpTime)).String(durafmt.DF_LONG)
 					processingTime = durafmt.Parse(TDSStatistic.ProcessingTime).String(durafmt.DF_LONG)
 				} else {
-
-					// TODO Если 58 минут, то получаеться мы и не то и не то не выводим
-					// надо пофиксить
-
 					uptime = durafmt.Parse(time.Since(UpTime)).String(durafmt.DF_SHORT)
 					processingTime = durafmt.Parse(TDSStatistic.ProcessingTime).String(durafmt.DF_SHORT)
 				}
