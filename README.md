@@ -4,7 +4,7 @@ __FEATURED TODO__
 
 __LAST CHANGES__
 
-> __23.12.2018
+> __23.12.2018__
 + Improvements for Telegram Bot
 + Saving clicks from RedisDB to a files dir ./clicks/XXXXXXXXXX.json
 + Improvements for Statistics and memory usage params
