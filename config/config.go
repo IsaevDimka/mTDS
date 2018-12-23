@@ -48,6 +48,7 @@ type Config struct {
 	}
 	Telegram struct {
 		MsgInterval    int
+		UseProxy       bool
 		Socks5Proxy    string
 		Socks5User     string
 		Socks5Password string
@@ -157,6 +158,9 @@ func InitConfig() {
 					fmt.Println("[ Telegram ]")
 					if Cfg.Telegram.MsgInterval != 0 {
 						fmt.Println("[ -- Statistic sending interval ]", Cfg.Telegram.MsgInterval)
+					}
+					if Cfg.Telegram.UseProxy != false {
+						fmt.Println("[ -- Use Proxy ]", Cfg.Telegram.UseProxy)
 					}
 					if Cfg.Telegram.Socks5Proxy != "" {
 						fmt.Println("[ -- Telegram proxy ]", Cfg.Telegram.Socks5Proxy)
