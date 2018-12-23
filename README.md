@@ -4,6 +4,13 @@ __FEATURED TODO__
 
 __LAST CHANGES__
 
+> __24.12.2018__
++ for more stabiliy and graceful deployment
+  `settings.ini` is not in a package anymore, now after deployment
+  you should rename `settings.dev` or `settings.prod` to `settings.ini
++ fixed bug with nil pointer when telegram can't connect to proxy
++ added library for memory/system monitoring  
+
 > __23.12.2018__
 + Improvements for Telegram Bot
 + Saving clicks from RedisDB to a files dir ./clicks/XXXXXXXXXX.json

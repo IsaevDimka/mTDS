@@ -4,3 +4,4 @@ Gopkg.*
 tmp
 .idea/*
 stuff/*
+settings.ini
