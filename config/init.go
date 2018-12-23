@@ -268,6 +268,10 @@ func TDSStatisticChan() <-chan string {
 					uptime = durafmt.Parse(time.Since(UpTime)).String(durafmt.DF_LONG)
 					processingTime = durafmt.Parse(TDSStatistic.ProcessingTime).String(durafmt.DF_LONG)
 				} else {
+
+					// TODO Если 58 минут, то получаеться мы и не то и не то не выводим
+					// надо пофиксить
+
 					uptime = durafmt.Parse(time.Since(UpTime)).String(durafmt.DF_SHORT)
 					processingTime = durafmt.Parse(TDSStatistic.ProcessingTime).String(durafmt.DF_SHORT)
 				}
