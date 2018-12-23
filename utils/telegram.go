@@ -34,7 +34,7 @@ type TelegramAdapter struct {
 
 func (tg *TelegramAdapter) Init(Ch []string, User, Password, Proxy, SendURL, SendToken string, UseProxy bool) bool {
 	if len(Ch) > 0 && User != "" && Password != "" && Proxy != "" && SendURL != "" &&
-			SendToken != "" && UseProxy != false{
+			SendToken != "" {
 		tg.Chats = Ch
 		tg.User = User
 		tg.Password = Password
