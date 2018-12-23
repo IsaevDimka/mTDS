@@ -25,6 +25,13 @@ type Monitor struct {
 	Mallocs,
 	Frees,
 	LiveObjects,
+	HeapSys,
+	HeapAlloc,
+	HeapIdle,
+	HeapInuse,
+	HeapReleased,
+	HeapObjects,
+
 	PauseTotalNs uint64
 
 	NumGC        uint32
@@ -50,6 +57,13 @@ func MemMonitor(duration int) {
 		m.Sys = rtm.Sys
 		m.Mallocs = rtm.Mallocs
 		m.Frees = rtm.Frees
+
+		m.HeapSys = rtm.HeapSys
+		m.HeapAlloc = rtm.HeapAlloc
+		m.HeapIdle = rtm.HeapIdle
+		m.HeapInuse = rtm.HeapInuse
+		m.HeapReleased = rtm.HeapReleased
+		m.HeapObjects = rtm.HeapObjects
 
 		// Live objects = Mallocs - Frees
 		m.LiveObjects = m.Mallocs - m.Frees
