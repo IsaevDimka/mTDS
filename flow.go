@@ -5,126 +5,12 @@ import (
 	"github.com/labstack/echo"
 	"math/rand"
 	"metatds/config"
-	"metatds/models"
 	"metatds/utils"
 	"net/http"
-	"strconv"
+	"runtime"
 	"strings"
 	"time"
 )
-
-func clickBuild(c echo.Context) error {
-	var Click models.ClickData
-
-	if config.IsRedisAlive { // собираем данные для сейва в базу
-		resultMap := utils.URIByMap(c, keyMap) // вот в этот массив
-
-		PrelandID := strings.Join(resultMap["preland_id"], "")
-		LandID := strings.Join(resultMap["land_id"], "")
-
-		Click.Hash = strings.Join(resultMap["click_hash"], "")
-		Click.FlowHash = strings.Join(resultMap["flow_hash"], "")
-
-		resultMap["click_id"] = append(resultMap["click_id"], Click.Hash)
-
-		if Click.Hash != "" && Click.FlowHash != "" {
-
-			FlowID, _ := config.Redisdb.Get(Click.FlowHash + ":ID").Result()
-			convertedID, _ := strconv.Atoi(FlowID)
-			Click.FlowID = convertedID
-
-			FlowWebMasterID, _ := config.Redisdb.Get(Click.FlowHash + ":WebMasterID").Result()
-			convertedID, _ = strconv.Atoi(FlowWebMasterID)
-			Click.WebMasterID = convertedID
-
-			FlowWebMasterCurrencyID, _ := config.Redisdb.Get(Click.FlowHash + ":WebMasterCurrencyID").Result()
-			convertedID, _ = strconv.Atoi(FlowWebMasterCurrencyID)
-			Click.WebMasterCurrencyID = convertedID
-
-			FlowOfferID, _ := config.Redisdb.Get(Click.FlowHash + ":OfferID").Result()
-			convertedID, _ = strconv.Atoi(FlowOfferID)
-			Click.OfferID = convertedID
-
-			t := time.Now()
-
-			Click.UserAgent = c.Request().UserAgent()
-			Click.Time = fmt.Sprintf("%d-%02d-%02d %02d:%02d:%02d",
-				t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second())
-			Click.URL = "http://" + config.Cfg.General.Host + c.Request().RequestURI
-			Click.IP = c.Request().RemoteAddr
-			Click.Referer = c.Request().Referer()
-
-			Click.Sub1 = strings.Join(resultMap["sub1"], "")
-			Click.Sub2 = strings.Join(resultMap["sub2"], "")
-			Click.Sub3 = strings.Join(resultMap["sub3"], "")
-			Click.Sub4 = strings.Join(resultMap["sub4"], "")
-			Click.Sub5 = strings.Join(resultMap["sub5"], "")
-
-			Prelands, _ := config.Redisdb.Keys(Click.FlowHash + ":preland:*").Result()
-			PrelandingTemplate := ""
-
-			for _, key := range Prelands {
-				PrelandingTemplateID, _ := config.Redisdb.HGet(key, "id").Result()
-
-				if PrelandingTemplateID == PrelandID {
-					PrelandingTemplate, _ = config.Redisdb.HGet(key, "url").Result()
-
-					for _, item := range keyMap {
-						PrelandingTemplate = strings.Replace(PrelandingTemplate, fmt.Sprintf("{%s}", item),
-							strings.Trim(fmt.Sprintf("%s", resultMap[item]), " ]["), 1)
-
-						fmt.Println("[ REPLACE ] = ", PrelandingTemplate)
-					}
-				}
-			}
-
-			fmt.Println("[ XXX ] = ", PrelandingTemplate)
-
-			Click.LocationPL = PrelandingTemplate
-			convertedID, _ = strconv.Atoi(PrelandID)
-			Click.PrelandingID = convertedID
-			Click.IsVisitedPL = 1
-
-			Lands, _ := config.Redisdb.Keys(Click.FlowHash + ":land:*").Result()
-			LandingTemplate := ""
-
-			for _, key := range Lands {
-				LandingTemplateID, _ := config.Redisdb.HGet(key, "id").Result()
-
-				if LandingTemplateID == LandID {
-					LandingTemplate, _ = config.Redisdb.HGet(key, "url").Result()
-
-					for _, item := range keyMap {
-
-						LandingTemplate = strings.Replace(LandingTemplate, fmt.Sprintf("{%s}", item),
-							strings.Trim(fmt.Sprintf("%s", resultMap[item]), " ]["), 1)
-
-						fmt.Println("[ REPLACE ] = ", LandingTemplate)
-
-					}
-				}
-			}
-
-			Click.LocationLP = LandingTemplate
-			convertedID, _ = strconv.Atoi(LandID)
-			Click.LandingID = convertedID
-			Click.IsVisitedLP = 1
-
-			defer Click.Save()
-		} else {
-			msg := []byte(`{"code":400, "message":"No flow or click hashes found"}`)
-			return c.JSONBlob(400, msg)
-		}
-	} else {
-		// если нет редиски, то все привет
-		msg := []byte(`{"code":400, "message":"No connection to RedisDB"}`)
-		return c.JSONBlob(400, msg)
-	}
-
-	s := utils.JSONPretty(Click)
-
-	return c.String(200, s)
-}
 
 /*
 *
@@ -135,6 +21,13 @@ func clickBuild(c echo.Context) error {
  */
 
 func flowHandler(c echo.Context) error {
+
+	// for Debug don't delete for a few time
+	// var memory runtime.MemStats
+	// runtime.ReadMemStats(&memory)
+	// fmt.Print("[MEMORY USAGE]", " Alloc: ",utils.BToMb(memory.Alloc)," Mb, Total: ",utils.BToMb(memory.StackSys)," Mb, Sys: ",utils.BToMb(memory.Sys)," Mb")
+	// s:=strconv.FormatUint(utils.BToMb(memory.Sys+memory.Alloc),10)
+	// fmt.Println("S = ",s)
 
 	CID, cookieError := c.Cookie("CID")
 
@@ -160,6 +53,7 @@ func flowHandler(c echo.Context) error {
 
 		if cookieError == nil {
 			Info.Click.Hash = CID.Value
+			config.TDSStatistic.CookieRequest++
 		} else {
 			Info.Click.Hash = Info.Click.GenerateCID()
 		}
@@ -167,8 +61,7 @@ func flowHandler(c echo.Context) error {
 		// генерим СИД
 		resultMap["click_hash"] = append(resultMap["click_hash"], Info.Click.Hash) // запишем сразу в наш массив
 		resultMap["click_id"] = append(resultMap["click_id"], Info.Click.Hash)     // support for old version TDS
-
-		Info.Flow = Info.Flow.GetInfo(strings.Join(resultMap["flow_hash"], "")) // получить всю инфу о потоке
+		Info.Flow = Info.Flow.GetInfo(strings.Join(resultMap["flow_hash"], ""))    // получить всю инфу о потоке
 
 		t := time.Now() // собираем данные для сейва в базу
 
@@ -225,6 +118,7 @@ func flowHandler(c echo.Context) error {
 			cookie.Value = Info.Click.Hash
 			cookie.Expires = time.Now().Add(365 * 24 * time.Hour) // for an year
 
+			// ----------------------------------------------------------------------------------------------------
 			// выбираем по формату, что будем отдавать
 			// редирект на лендинг
 			// LAND
@@ -250,26 +144,25 @@ func flowHandler(c echo.Context) error {
 				defer Info.Click.Save()
 
 				config.TDSStatistic.RedirectRequest++ // add counter tick
-				config.TDSStatistic.WorkTime += time.Since(start)
+				config.TDSStatistic.ProcessingTime += time.Since(start)
 
 				if config.Cfg.Debug.Level > 0 {
 					utils.PrintInfo("Action elapsed time", time.Since(start), tdsModuleName)
 				}
 
 				if !config.Cfg.Debug.Test {
+					runtime.GC()
 					return c.Redirect(302, LandingTemplate)
 				} else {
-					defer utils.WriteTestStatToFile(Info.Flow.Hash, Info.Click.Hash, LandingTemplate)
-
+					runtime.GC()
 					return c.Blob(200, "image/png", pixel)
-					//return c.String(200, "ok")
 				}
 			}
 			// ----------------------------------------------------------------------------------------------------
 			// PRELAND
 			// редирект на пре-лендинг
+			// ----------------------------------------------------------------------------------------------------
 			if strings.Join(resultMap["format"], "") == "preland" {
-
 				if len(Info.Flow.Prelands) <= 0 {
 					config.TDSStatistic.IncorrectRequest++ // add counter tick
 
@@ -295,25 +188,28 @@ func flowHandler(c echo.Context) error {
 				c.SetCookie(cookie)
 
 				defer Info.Click.Save()
+
 				config.TDSStatistic.RedirectRequest++ // add counter tick
-				config.TDSStatistic.WorkTime += time.Since(start)
+				config.TDSStatistic.ProcessingTime += time.Since(start)
 
 				if config.Cfg.Debug.Level > 0 {
 					utils.PrintInfo("Action elapsed time", time.Since(start), tdsModuleName)
 				}
 
 				if !config.Cfg.Debug.Test {
+
+					runtime.GC()
 					return c.Redirect(302, PrelandingTemplate)
 				} else {
-					defer utils.WriteTestStatToFile(Info.Flow.Hash, Info.Click.Hash, LandingTemplate)
 
+					runtime.GC()
 					return c.Blob(200, "image/png", pixel)
-					//return c.String(200, "ok")
 				}
 			}
 			// ----------------------------------------------------------------------------------------------------
 			// JSON FORMAT
 			// отдать данные потока в джейсоне красиво
+			// ----------------------------------------------------------------------------------------------------
 			if strings.Join(resultMap["format"], "") == "json" {
 				if len(Info.Flow.Prelands) > 0 {
 					for _, item := range keyMap {
@@ -332,14 +228,13 @@ func flowHandler(c echo.Context) error {
 				}
 
 				Info.Click.LandingID = LandingTemplateID
-				Info.Click.PrelandingID = PrelandingTemplateID
 				Info.Click.LocationLP = LandingTemplate
 				Info.Click.IsVisitedLP = 0
+
+				Info.Click.PrelandingID = PrelandingTemplateID
 				Info.Click.LocationPL = PrelandingTemplate
 				Info.Click.IsVisitedPL = 1
-				//
-				// TODO тут еще вопрос че показывать ленд или преленд
-				//
+
 				cookie.Path = Info.Click.LocationLP
 				c.SetCookie(cookie)
 
@@ -352,12 +247,9 @@ func flowHandler(c echo.Context) error {
 				}
 
 				config.TDSStatistic.FlowInfoRequest++ // add counter tick
-				config.TDSStatistic.WorkTime += time.Since(start)
+				config.TDSStatistic.ProcessingTime += time.Since(start)
 
-				if !config.Cfg.Debug.Test {
-					defer utils.WriteTestStatToFile(Info.Flow.Hash, Info.Click.Hash, LandingTemplate)
-				}
-
+				runtime.GC()
 				return c.String(200, s)
 
 			} else {
@@ -365,7 +257,7 @@ func flowHandler(c echo.Context) error {
 				// ----------------------------------------------------------------------------------------------------
 				// если никаких ключей нет, то пробрасываем дальше (по старой схеме)
 				// на первый выбраный домен из списка если несколько или на первый
-
+				// ----------------------------------------------------------------------------------------------------
 				for _, item := range keyMap {
 					LandingTemplate = strings.Replace(LandingTemplate, fmt.Sprintf("{%s}", item),
 						strings.Trim(fmt.Sprintf("%s", resultMap[item]), " ]["), 1)
@@ -380,30 +272,36 @@ func flowHandler(c echo.Context) error {
 
 				defer Info.Click.Save()
 				config.TDSStatistic.RedirectRequest++ // add counter tick
-				config.TDSStatistic.WorkTime += time.Since(start)
+				config.TDSStatistic.ProcessingTime += time.Since(start)
 
 				if config.Cfg.Debug.Level > 0 {
 					utils.PrintInfo("Action elapsed time", time.Since(start), tdsModuleName)
 				}
 
 				if !config.Cfg.Debug.Test {
+
+					runtime.GC()
 					return c.Redirect(302, LandingTemplate)
 				} else {
-					defer utils.WriteTestStatToFile(Info.Flow.Hash, Info.Click.Hash, LandingTemplate)
 
+					runtime.GC()
 					return c.Blob(200, "image/png", pixel)
-					//return c.String(200, "ok")
 				}
 			}
 		} else {
 			config.TDSStatistic.IncorrectRequest++ // add counter tick
 			// если нет клика или потока, то все привет
 			msg := []byte(`{"code":400, "message":"Insuficient parameters supplied"}`)
+
+			runtime.GC()
 			return c.JSONBlob(400, msg)
 		}
 	} else {
+
 		// если нет редиски, то все привет
 		msg := []byte(`{"code":500, "message":"No connection to RedisDB"}`)
+
+		runtime.GC()
 		return c.JSONBlob(400, msg)
 	}
 }

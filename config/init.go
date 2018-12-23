@@ -12,10 +12,12 @@
 package config
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/go-redis/redis"
+	"io/ioutil"
 	"metatds/utils"
-	"net/url"
+	"runtime"
 	"strconv"
 	"time"
 
@@ -48,7 +50,7 @@ func init() {
 	timeStamp := fmt.Sprintf("%d-%02d-%02d %02d:%02d:%02d",
 		UpTime.Year(), UpTime.Month(), UpTime.Day(), UpTime.Hour(), UpTime.Minute(), UpTime.Second())
 
-	Telegram.SendMessage(Cfg.General.Name + ": TDS Service started @ " + timeStamp)
+	Telegram.SendMessage("```\n" + timeStamp + "\n" + Cfg.General.Name + "\nTDS Service started\n```")
 
 	if tlgrm {
 		if Cfg.Debug.Level > 0 {
@@ -66,7 +68,10 @@ func init() {
 
 	// this is temporary workaround, should be removed on release
 	// TODO remove in release
-	TempResetRedisClicks()
+	//TempResetRedisClicks()
+	RedisSaveClicks()
+
+	// TODO channel to resend stats to API, when Cherkesov gives me an URL
 }
 
 /*
@@ -135,6 +140,55 @@ func RedisDBChan() <-chan string {
 	return c
 }
 
+func RedisSaveClicks() <-chan string {
+	c := make(chan string)
+
+	go func() {
+		for {
+			var clicks []map[string]string
+
+			t := time.Now()
+			timestamp := fmt.Sprintf("%d%02d%02d%02d%02d%02d",
+				t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second())
+
+			keys, _ := Redisdb.Keys("*:click:*").Result()
+			// 	fmt.Println("Keys found by mask: ", len(keys))
+
+			for _, item := range keys {
+				d, _ := Redisdb.HGetAll(item).Result()
+				clicks = append(clicks, d)
+			}
+
+			jsonData, _ := json.Marshal(clicks)
+
+			if Cfg.Debug.Level > 1 {
+				fmt.Println("Time elapsed export: ", time.Since(t))
+			}
+
+			if len(jsonData) > 0 && len(clicks) > 0 {
+				utils.CreateDirIfNotExist("clicks")
+				ioutil.WriteFile("clicks/"+timestamp+".json", jsonData, 0777)
+
+				// TODO обработка если в файл не записалось пока просто грохаем
+				for _, item := range keys {
+					_ = Redisdb.Del(item).Err()
+				}
+			}
+			timestampPrintable := fmt.Sprintf("%d-%02d-%02d %02d:%02d:%02d",
+				t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second())
+
+			if Cfg.Debug.Level > 1 {
+				fmt.Println("Time elapsed total: ", time.Since(t))
+			}
+
+			Telegram.SendMessage("```\n" + timestampPrintable + "\n" +
+				Cfg.General.Name + "\nClicks saved and reseted from RedisDB\n```")
+			time.Sleep(time.Duration(1+Cfg.Click.DropToRedis) * time.Minute)
+		}
+	}()
+	return c
+}
+
 func TempResetRedisClicks() <-chan string {
 	c := make(chan string)
 
@@ -155,7 +209,7 @@ func TempResetRedisClicks() <-chan string {
 			timeStamp := fmt.Sprintf("%d-%02d-%02d %02d:%02d:%02d",
 				t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second())
 
-			Telegram.SendMessage(url.QueryEscape(timeStamp + "\nRedis reset clicks succeeded"))
+			Telegram.SendMessage("```\n" + timeStamp + "\n" + Cfg.General.Name + "\nRedis reset clicks succeeded\n```")
 
 			time.Sleep(1 * time.Hour)
 		}
@@ -203,20 +257,44 @@ func TDSStatisticChan() <-chan string {
 				timeStamp := fmt.Sprintf("%d-%02d-%02d %02d:%02d:%02d",
 					t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second())
 
-				text := Cfg.General.Name + " usage\n" + timeStamp + ":" +
-					"\n\nUpdate Flow: " + strconv.Itoa(TDSStatistic.UpdatedFlows) +
-					"\nAppende Flow: " + strconv.Itoa(TDSStatistic.AppendedFlows) +
-					"\nPixel Request: " + strconv.Itoa(TDSStatistic.PixelRequest) +
-					"\nClick Info Request: " + strconv.Itoa(TDSStatistic.ClickInfoRequest) +
-					"\nFlow Info Request: " + strconv.Itoa(TDSStatistic.FlowInfoRequest) +
-					"\nRedirect Request: " + strconv.Itoa(TDSStatistic.RedirectRequest) +
-					"\nRedis Stat Request: " + strconv.Itoa(TDSStatistic.RedisStatRequest) +
-					"\nIncorrect Request: " + strconv.Itoa(TDSStatistic.IncorrectRequest) +
-					"\n\nUp time: " + durafmt.Parse(time.Since(UpTime)).String() +
-					"\nWorkt time: " + durafmt.Parse(TDSStatistic.WorkTime).String() +
-					"\n\nRedis connection: " + strconv.FormatBool(IsRedisAlive)
+				var memory runtime.MemStats
+				var duration time.Duration // current duration & uptime
+				var uptime, processingTime, memoryUsage string
 
-				if Telegram.SendMessage(url.QueryEscape(text)) {
+				duration = 10 * time.Minute
+
+				//if TDSStatistic.ProcessingTime < duration {
+				if time.Since(UpTime) < duration {
+					uptime = durafmt.Parse(time.Since(UpTime)).String(durafmt.DF_LONG)
+					processingTime = durafmt.Parse(TDSStatistic.ProcessingTime).String(durafmt.DF_LONG)
+				} else {
+					uptime = durafmt.Parse(time.Since(UpTime)).String(durafmt.DF_SHORT)
+					processingTime = durafmt.Parse(TDSStatistic.ProcessingTime).String(durafmt.DF_SHORT)
+				}
+
+				runtime.ReadMemStats(&memory)
+				memoryUsage = strconv.FormatUint(utils.BToMb(memory.Sys), 10)
+				//fmt.Print("[MEMORY USAGE]",memoryUsage, memory.Sys)
+
+				uniqueRequests := TDSStatistic.RedirectRequest - TDSStatistic.CookieRequest - TDSStatistic.IncorrectRequest
+
+				text := "```\n" + timeStamp + "\n" + Cfg.General.Name + " usage:" +
+					"\n\nUpdate flow       : " + strconv.Itoa(TDSStatistic.UpdatedFlows) +
+					"\nAppende flow      : " + strconv.Itoa(TDSStatistic.AppendedFlows) +
+					"\nPixel request     : " + strconv.Itoa(TDSStatistic.PixelRequest) +
+					"\nClick Info request: " + strconv.Itoa(TDSStatistic.ClickInfoRequest) +
+					"\nFlow Info request : " + strconv.Itoa(TDSStatistic.FlowInfoRequest) +
+					"\nRedirect request  : " + strconv.Itoa(TDSStatistic.RedirectRequest) +
+					"\nRedis Stat request: " + strconv.Itoa(TDSStatistic.RedisStatRequest) +
+					"\nIncorrect request : " + strconv.Itoa(TDSStatistic.IncorrectRequest) +
+					"\nCookies request   : " + strconv.Itoa(TDSStatistic.CookieRequest) +
+					"\nUnique request    : " + strconv.Itoa(uniqueRequests) +
+					"\n\nUp time           : " + uptime +
+					"\nProcessing time   : " + processingTime +
+					"\nMemory allocated  : " + memoryUsage + " Mb" +
+					"\n\nRedis connection  : " + strconv.FormatBool(IsRedisAlive) + "\n```"
+
+				if Telegram.SendMessage(text) {
 					if Cfg.Debug.Level > 0 {
 						utils.PrintInfo("Telegram", "Sending message success", initModuleName)
 					}
@@ -236,3 +314,16 @@ func TDSStatisticChan() <-chan string {
 
 	return c
 }
+
+//
+// Template for Channel by predator_pc
+//
+// func ChannelWithSleepTemplate() <-chan string {
+// 	c := make(chan string)
+// 	go func() {
+// 		for {
+// 			time.Sleep(time.Minute * 10)
+// 		}
+// 	}()
+// 	return c
+// }
