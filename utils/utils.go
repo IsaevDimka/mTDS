@@ -38,6 +38,10 @@ func BToMb(b uint64) uint64 {
 	return b / 1024 / 1024
 }
 
+func BToKb(b uint64) uint64 {
+	return b / 1024
+}
+
 func PrintError(header string, message interface{}, module string) {
 	fmt.Fprintf(color.Output, "[ %s ]", color.RedString(header))
 	fmt.Println(" ", message, " - ", module)
