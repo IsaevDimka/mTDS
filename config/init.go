@@ -45,7 +45,7 @@ func init() {
 	// Напишем всем, что мы стартанули
 	tlgrmRecipients := utils.Explode(Cfg.Telegram.Recipients, "; ")
 	tlgrm := Telegram.Init(tlgrmRecipients, Cfg.Telegram.Socks5User, Cfg.Telegram.Socks5Password,
-		Cfg.Telegram.Socks5Proxy, Cfg.Telegram.ApiURL, Cfg.Telegram.Token)
+		Cfg.Telegram.Socks5Proxy, Cfg.Telegram.ApiURL, Cfg.Telegram.Token, Cfg.Telegram.UseProxy)
 
 	timeStamp := fmt.Sprintf("%d-%02d-%02d %02d:%02d:%02d",
 		UpTime.Year(), UpTime.Month(), UpTime.Day(), UpTime.Hour(), UpTime.Minute(), UpTime.Second())

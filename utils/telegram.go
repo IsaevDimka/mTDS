@@ -13,6 +13,7 @@ package utils
 
 import (
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
@@ -27,11 +28,13 @@ type TelegramAdapter struct {
 	ProxyAddress string
 	URL          string
 	Token        string
+	UseProxy     bool
 	isActive     bool
 }
 
-func (tg *TelegramAdapter) Init(Ch []string, User, Password, Proxy, SendURL, SendToken string) bool {
-	if len(Ch) > 0 && User != "" && Password != "" && Proxy != "" && SendURL != "" && SendToken != "" {
+func (tg *TelegramAdapter) Init(Ch []string, User, Password, Proxy, SendURL, SendToken string, UseProxy bool) bool {
+	if len(Ch) > 0 && User != "" && Password != "" && Proxy != "" && SendURL != "" &&
+			SendToken != "" && UseProxy != false{
 		tg.Chats = Ch
 		tg.User = User
 		tg.Password = Password
@@ -39,6 +42,7 @@ func (tg *TelegramAdapter) Init(Ch []string, User, Password, Proxy, SendURL, Sen
 		tg.URL = SendURL
 		tg.Token = SendToken
 		tg.isActive = true
+		tg.UseProxy = UseProxy
 		return true
 	}
 	return false
@@ -47,22 +51,26 @@ func (tg *TelegramAdapter) Init(Ch []string, User, Password, Proxy, SendURL, Sen
 func (tg *TelegramAdapter) SendMessage(text string) bool {
 	if tg.isActive {
 
-		var authorization = new(proxy.Auth)
-		authorization.User = tg.User
-		authorization.Password = tg.Password
-
-		// create a socks5 dialer
-		dialer, err := proxy.SOCKS5("tcp", tg.ProxyAddress, authorization, proxy.Direct)
-		if err != nil {
-			fmt.Fprintln(os.Stderr, "can't connect to the proxy:", err)
-			//	os.Exit(1)
-		}
 		// setup a http client
 		httpTransport := &http.Transport{}
 		httpClient := &http.Client{Transport: httpTransport}
-		// set our socks5 as the dialer
-		httpTransport.Dial = dialer.Dial
-		// create a request
+
+		if  tg.UseProxy {
+
+			var authorization= new(proxy.Auth)
+			authorization.User = tg.User
+			authorization.Password = tg.Password
+
+			// create a socks5 dialer
+			dialer, err := proxy.SOCKS5("tcp", tg.ProxyAddress, authorization, proxy.Direct)
+			if err != nil {
+				fmt.Fprintln(os.Stderr, "can't connect to the proxy:", err)
+				// 	os.Exit(1)
+			}
+
+			// set our socks5 as the dialer
+			httpTransport.Dial = dialer.Dial
+		}
 
 		for _, item := range tg.Chats {
 			req, err := http.NewRequest("GET", tg.URL+tg.Token+"/sendMessage?parse_mode=markdown&chat_id="+item+"&text="+url.QueryEscape(text), nil)
@@ -70,13 +78,20 @@ func (tg *TelegramAdapter) SendMessage(text string) bool {
 				fmt.Fprintln(os.Stderr, "can't create request:", err)
 				//	os.Exit(2)
 			}
-			// use the http client to fetch the page
-			resp, err := httpClient.Do(req)
-			if err != nil {
-				fmt.Fprintln(os.Stderr, "can't GET page:", err)
-				//	os.Exit(3)
+
+			if !tg.UseProxy {
+				defer req.Body.Close()
+				ioutil.ReadAll(req.Body)
+			} else {
+				// use the http client to fetch the page
+				resp, err := httpClient.Do(req)
+				if err != nil {
+					// TODO this needs to be recovered from panic otherwise fails
+					fmt.Fprintln(os.Stderr, "can't GET page:", err)
+					// 	os.Exit(3)
+				}
+				defer resp.Body.Close()
 			}
-			defer resp.Body.Close()
 		}
 		//b, err := ioutil.ReadAll(resp.Body)
 		//if err != nil {
