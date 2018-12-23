@@ -12,10 +12,9 @@
 package utils
 
 import (
-"encoding/json"
-"fmt"
-"runtime"
-"time"
+	"fmt"
+	"runtime"
+	"time"
 )
 
 type Monitor struct {
@@ -31,6 +30,16 @@ type Monitor struct {
 	HeapInuse,
 	HeapReleased,
 	HeapObjects,
+	StackInuse,
+	StackSys,
+	MSpanInuse,
+	MSpanSys,
+	MCacheInuse,
+	MCacheSys,
+	BuckHashSys,
+	GCSys,
+	OtherSys,
+
 
 	PauseTotalNs uint64
 
@@ -52,18 +61,29 @@ func MemMonitor(duration int) {
 		m.NumGoroutine = runtime.NumGoroutine()
 
 		// Misc memory stats
-		m.Alloc = rtm.Alloc
-		m.TotalAlloc = rtm.TotalAlloc
-		m.Sys = rtm.Sys
-		m.Mallocs = rtm.Mallocs
-		m.Frees = rtm.Frees
+		m.Alloc = BToKb(rtm.Alloc)
+		m.TotalAlloc = BToKb(rtm.TotalAlloc)
+		m.Sys = BToKb(rtm.Sys)
+		m.Mallocs = BToKb(rtm.Mallocs)
+		m.Frees = BToKb(rtm.Frees)
 
-		m.HeapSys = rtm.HeapSys
-		m.HeapAlloc = rtm.HeapAlloc
-		m.HeapIdle = rtm.HeapIdle
-		m.HeapInuse = rtm.HeapInuse
-		m.HeapReleased = rtm.HeapReleased
-		m.HeapObjects = rtm.HeapObjects
+		m.HeapSys = BToKb(rtm.HeapSys)
+		m.HeapAlloc = BToKb(rtm.HeapAlloc)
+		m.HeapIdle = BToKb(rtm.HeapIdle)
+		m.HeapInuse = BToKb(rtm.HeapInuse)
+		m.HeapReleased = BToKb(rtm.HeapReleased)
+		m.HeapObjects = BToKb(rtm.HeapObjects)
+
+
+		m.StackInuse = BToKb(rtm.StackInuse)
+		m.StackSys = BToKb(rtm.StackSys)
+		m.MSpanInuse = BToKb(rtm.MSpanInuse)
+		m.MSpanSys = BToKb(rtm.MSpanSys)
+		m.MCacheInuse = BToKb(rtm.MCacheInuse)
+		m.MCacheSys = BToKb(rtm.MCacheSys)
+		m.BuckHashSys = BToKb(rtm.BuckHashSys)
+		m.GCSys = BToKb(rtm.GCSys)
+		m.OtherSys = BToKb(rtm.OtherSys)
 
 		// Live objects = Mallocs - Frees
 		m.LiveObjects = m.Mallocs - m.Frees
@@ -73,7 +93,8 @@ func MemMonitor(duration int) {
 		m.NumGC = rtm.NumGC
 
 		// Just encode to json and print
-		b, _ := json.Marshal(m)
-		fmt.Println(string(b))
+		//b, _ := json.Marshal(m)
+		fmt.Println(JSONPretty(m))
+		//fmt.Printf("Total system memory: %d\n", memory.TotalMemory())
 	}
 }

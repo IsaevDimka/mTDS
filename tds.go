@@ -16,7 +16,6 @@ package main
 import (
 	"github.com/labstack/echo/middleware"
 	"github.com/labstack/gommon/log"
-	"metatds/utils"
 	"net/http"
 	"strconv"
 	"time"
@@ -48,7 +47,7 @@ type InfoData struct {
 
 func main() {
 
-	go utils.MemMonitor(1)
+	//go utils.MemMonitor(1)
 
 	// Echo instance
 	router := echo.New()
