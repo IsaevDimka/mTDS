@@ -15,7 +15,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/go-redis/redis"
-	"io/ioutil"
 	"metatds/utils"
 	"runtime"
 	"strconv"
@@ -69,7 +68,6 @@ func init() {
 	// this is temporary workaround, should be removed on release
 	// TODO remove in release
 	//TempResetRedisClicks()
-
 
 	// TODO channel to resend stats to API, when Cherkesov gives me an URL
 	RedisSaveClicks()
@@ -135,6 +133,7 @@ func RedisDBChan() <-chan string {
 				IsRedisAlive = true
 			}
 
+			runtime.GC()
 			time.Sleep(10 * time.Second) // поспим чуть чуть
 		}
 	}()
@@ -150,8 +149,8 @@ func RedisSaveClicks() <-chan string {
 			var clicks []map[string]string
 
 			t := time.Now()
-			timestamp := fmt.Sprintf("%d%02d%02d%02d%02d%02d",
-				t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second())
+			// timestamp := fmt.Sprintf("%d%02d%02d%02d%02d%02d",
+			// 	t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second())
 
 			keys, _ := Redisdb.Keys("*:click:*").Result()
 			// 	fmt.Println("Keys found by mask: ", len(keys))
@@ -168,8 +167,8 @@ func RedisSaveClicks() <-chan string {
 			}
 
 			if len(jsonData) > 0 && len(clicks) > 0 {
-				utils.CreateDirIfNotExist("clicks")
-				ioutil.WriteFile("clicks/"+timestamp+".json", jsonData, 0777)
+				//utils.CreateDirIfNotExist("clicks")
+				// ioutil.WriteFile("clicks/"+timestamp+".json", jsonData, 0777)
 
 				// TODO обработка если в файл не записалось пока просто грохаем
 				for _, item := range keys {
@@ -185,6 +184,9 @@ func RedisSaveClicks() <-chan string {
 
 			Telegram.SendMessage("```\n" + timestampPrintable + "\n" +
 				Cfg.General.Name + "\nClicks saved and reseted from RedisDB\n```")
+
+			runtime.GC()
+
 			time.Sleep(time.Duration(1+Cfg.Click.DropToRedis) * time.Minute)
 		}
 	}()
@@ -235,6 +237,7 @@ func ReloadConfigChan() <-chan string {
 			ReloadConfig()
 			// поспим чуть чуть
 			// +1 its to avoid dumbs with zero multiplication
+			runtime.GC()
 			time.Sleep(time.Duration(1+Cfg.General.ConfReload*60) * time.Second)
 		}
 	}()
@@ -309,6 +312,7 @@ func TDSStatisticChan() <-chan string {
 				TDSStatistic.Reset()
 			}
 
+			runtime.GC()
 			// +1 its to avoid dumbs with zero multiplication
 			time.Sleep(time.Duration(1+Cfg.Telegram.MsgInterval*60) * time.Second) // поспим чуть чуть
 		}
