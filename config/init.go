@@ -264,7 +264,7 @@ func TDSStatisticChan() <-chan string {
 
 				var memory runtime.MemStats
 				var duration time.Duration // current duration & uptime
-				var uptime, processingTime, memoryUsage string
+				var uptime, processingTime, memoryUsageGeneral, memoryUsagePrivate string
 
 				duration = 60 * time.Minute
 
@@ -278,7 +278,14 @@ func TDSStatisticChan() <-chan string {
 				}
 
 				runtime.ReadMemStats(&memory)
-				memoryUsage = strconv.FormatUint(utils.BToMb(memory.Sys), 10)
+
+				RealDetectedGeneral := memory.Sys + memory.HeapSys +
+					memory.HeapAlloc + memory.HeapInuse - memory.Alloc
+				RealDetectedPrivate := memory.HeapSys - memory.Alloc
+
+				memoryUsageGeneral = strconv.FormatUint(utils.BToMb(RealDetectedGeneral), 10)
+				memoryUsagePrivate = strconv.FormatUint(utils.BToMb(RealDetectedPrivate), 10)
+
 				//fmt.Print("[MEMORY USAGE]",memoryUsage, memory.Sys)
 
 				uniqueRequests := TDSStatistic.RedirectRequest - TDSStatistic.CookieRequest - TDSStatistic.IncorrectRequest
@@ -296,7 +303,8 @@ func TDSStatisticChan() <-chan string {
 					"\nUnique request    : " + strconv.Itoa(uniqueRequests) +
 					"\n\nUp time           : " + uptime +
 					"\nProcessing time   : " + processingTime +
-					"\nMemory allocated  : " + memoryUsage + " Mb" +
+					"\nTotal memory alloc: " + memoryUsageGeneral + " Mb" +
+					"\nPrivate memory    : " + memoryUsagePrivate + " Mb" +
 					"\n\nRedis connection  : " + strconv.FormatBool(IsRedisAlive) + "\n```"
 
 				if Telegram.SendMessage(text) {

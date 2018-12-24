@@ -39,7 +39,9 @@ type Monitor struct {
 	BuckHashSys,
 	GCSys,
 	OtherSys,
+	RealDetected2,
 
+	RealDetected,
 
 	PauseTotalNs uint64
 
@@ -68,12 +70,16 @@ func MemMonitor(duration int) {
 		m.Frees = BToKb(rtm.Frees)
 
 		m.HeapSys = BToKb(rtm.HeapSys)
+
 		m.HeapAlloc = BToKb(rtm.HeapAlloc)
 		m.HeapIdle = BToKb(rtm.HeapIdle)
 		m.HeapInuse = BToKb(rtm.HeapInuse)
+
+		m.RealDetected = BToKb(rtm.Sys) + BToKb(rtm.HeapSys) + BToKb(rtm.HeapAlloc) + BToKb(rtm.HeapInuse) - BToKb(rtm.Alloc)
+		m.RealDetected2 = BToKb(rtm.HeapSys) - BToKb(rtm.Alloc)
+
 		m.HeapReleased = BToKb(rtm.HeapReleased)
 		m.HeapObjects = BToKb(rtm.HeapObjects)
-
 
 		m.StackInuse = BToKb(rtm.StackInuse)
 		m.StackSys = BToKb(rtm.StackSys)
