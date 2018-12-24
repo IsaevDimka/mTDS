@@ -23,6 +23,7 @@ import (
 func flowHandler(c echo.Context) error {
 
 	// for Debug don't delete for a few time
+
 	// var memory runtime.MemStats
 	// runtime.ReadMemStats(&memory)
 	// fmt.Print("[MEMORY USAGE]", " Alloc: ",utils.BToMb(memory.Alloc)," Mb, Total: ",utils.BToMb(memory.StackSys)," Mb, Sys: ",utils.BToMb(memory.Sys)," Mb")
