@@ -15,7 +15,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/go-redis/redis"
+	"io/ioutil"
 	"metatds/utils"
+	"net/http"
 	"runtime"
 	"strconv"
 	"time"
@@ -37,6 +39,9 @@ func init() {
 	if Cfg.Debug.Level > 0 {
 		utils.PrintDebug("Initialization", "", initModuleName)
 	}
+
+	// issue with too many open files
+	http.DefaultClient.Timeout = time.Second * 30
 
 	// цепляем редис и потом, проверяем постоянно, как у него дела
 	RedisDBChan()
@@ -149,8 +154,8 @@ func RedisSaveClicks() <-chan string {
 			var clicks []map[string]string
 
 			t := time.Now()
-			// timestamp := fmt.Sprintf("%d%02d%02d%02d%02d%02d",
-			// 	t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second())
+			timestamp := fmt.Sprintf("%d%02d%02d%02d%02d%02d",
+				t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second())
 
 			keys, _ := Redisdb.Keys("*:click:*").Result()
 			// 	fmt.Println("Keys found by mask: ", len(keys))
@@ -167,8 +172,8 @@ func RedisSaveClicks() <-chan string {
 			}
 
 			if len(jsonData) > 0 && len(clicks) > 0 {
-				//utils.CreateDirIfNotExist("clicks")
-				// ioutil.WriteFile("clicks/"+timestamp+".json", jsonData, 0777)
+				utils.CreateDirIfNotExist("clicks")
+				ioutil.WriteFile("clicks/"+timestamp+".json", jsonData, 0777)
 
 				// TODO обработка если в файл не записалось пока просто грохаем
 				for _, item := range keys {
@@ -279,8 +284,7 @@ func TDSStatisticChan() <-chan string {
 
 				runtime.ReadMemStats(&memory)
 
-				RealDetectedGeneral := memory.Sys + memory.HeapSys +
-					memory.HeapAlloc + memory.HeapInuse - memory.Alloc
+				RealDetectedGeneral := memory.Sys + memory.HeapSys + memory.HeapAlloc + memory.HeapInuse - memory.Alloc
 				RealDetectedPrivate := memory.HeapSys - memory.Alloc
 
 				memoryUsageGeneral = strconv.FormatUint(utils.BToMb(RealDetectedGeneral), 10)
