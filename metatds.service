@@ -1,0 +1,21 @@
+#
+# MetaTDS startup service file
+# put it into /etc/systemd/system/metatds.service
+# then run:
+#       $ sudo systemctl enable metatds
+#       $ sudo systemctl start metatds
+
+[Unit]
+Description=MetaTDS Service
+
+[Service]
+Environment=NETWORK=sites
+
+ExecStart=/PATH_TO_DIRECROTY_WITH_TDS/tds run
+
+KillMode=none
+TimeoutStartSec=10
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
