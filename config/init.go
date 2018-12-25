@@ -313,7 +313,8 @@ func TDSStatisticChan() <-chan string {
 
 				uniqueRequests := TDSStatistic.RedirectRequest - TDSStatistic.CookieRequest - TDSStatistic.IncorrectRequest
 
-				text := "```\n" + timeStamp + "\n" + Cfg.General.Name + " usage:" +
+				text := "```\n" + timeStamp + "\n" + Cfg.General.Name +
+					"\n\nINFO" +
 					"\n\nUpdate flow       : " + strconv.Itoa(TDSStatistic.UpdatedFlows) +
 					"\nAppende flow      : " + strconv.Itoa(TDSStatistic.AppendedFlows) +
 					"\nPixel request     : " + strconv.Itoa(TDSStatistic.PixelRequest) +
@@ -326,7 +327,8 @@ func TDSStatisticChan() <-chan string {
 					"\nUnique request    : " + strconv.Itoa(uniqueRequests) +
 					"\n\nUp time           : " + uptime +
 					"\nProcessing time   : " + processingTime +
-					"\nTotal memory alloc: " + memoryUsageGeneral + " Mb" +
+					"\n\nSYSTEM INFO" +
+					"\n\nTotal memory alloc: " + memoryUsageGeneral + " Mb" +
 					"\nPrivate memory    : " + memoryUsagePrivate + " Mb" +
 					"\nOpened files      : " + openedFiles +
 					"\n\nRedis connection  : " + strconv.FormatBool(IsRedisAlive) + "\n```"
