@@ -31,6 +31,7 @@ type Config struct {
 		Host       string
 		Port       int
 		ConfReload int
+		OS         string
 	}
 	Click struct {
 		Length      int
@@ -101,6 +102,9 @@ func InitConfig() {
 					}
 					if Cfg.General.ConfReload != 0 {
 						fmt.Println("[ -- Config reload interval ]", Cfg.General.ConfReload)
+					}
+					if Cfg.General.OS != "" {
+						fmt.Println("[ -- OS ]", Cfg.General.OS)
 					} else {
 						fmt.Println("[ -- Empty ]")
 					}
