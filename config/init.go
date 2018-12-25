@@ -325,7 +325,7 @@ func TDSStatisticChan() <-chan string {
 					"\nIncorrect request  : " + strconv.Itoa(TDSStatistic.IncorrectRequest) +
 					"\nCookies request    : " + strconv.Itoa(TDSStatistic.CookieRequest) +
 					"\nUnique request     : " + strconv.Itoa(uniqueRequests) +
-					"\n\nUp time           : " + uptime +
+					"\n\nUp time            : " + uptime +
 					"\nProcessing time    : " + processingTime +
 					"\n\nSYSTEM INFO" +
 					"\n\nTotal memory alloc : " + memoryUsageGeneral + " Mb" +
