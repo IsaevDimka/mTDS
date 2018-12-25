@@ -13,13 +13,11 @@ package config
 
 import (
 	"fmt"
-	"metatds/utils"
-	"os"
-	"path/filepath"
-
 	"github.com/davecgh/go-spew/spew"
 	"github.com/go-redis/redis"
 	"gopkg.in/gcfg.v1"
+	"metatds/utils"
+	"os"
 )
 
 const configFileName = "settings.ini"
@@ -71,8 +69,8 @@ func InitConfig() {
 	var actionArg string
 	_ = actionArg
 
-	fp, _ := filepath.Abs(configFileName)
-	err := gcfg.FatalOnly(gcfg.ReadFileInto(&Cfg, fp))
+	//fp, _ := filepath.Abs(configFileName)
+	err := gcfg.FatalOnly(gcfg.ReadFileInto(&Cfg, configFileName))
 
 	if len(os.Args) > 1 {
 		actionArg = os.Args[1]

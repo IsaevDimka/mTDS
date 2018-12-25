@@ -10,7 +10,7 @@ Description=MetaTDS Service
 
 [Service]
 Environment=NETWORK=sites
-
+WorkingDirectory=/PATH_TO_DIRECROTY_WITH_TDS
 ExecStart=/PATH_TO_DIRECROTY_WITH_TDS/tds run
 
 KillMode=none
