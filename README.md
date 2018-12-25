@@ -4,6 +4,12 @@ __FEATURED TODO__
 
 __LAST CHANGES__
 
+> __25.12.2018__
++ testing issues (too many open files)
++ count open files within statistic
++ absolute file path for `settings.ini`
++ added service configuration for system.d (thanks to `@pfirsov`) 
+
 > __24.12.2018__
 + for more stabiliy and graceful deployment
   `settings.ini` is not in a package anymore, now after deployment

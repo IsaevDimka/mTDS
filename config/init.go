@@ -315,23 +315,23 @@ func TDSStatisticChan() <-chan string {
 
 				text := "```\n" + timeStamp + "\n" + Cfg.General.Name +
 					"\n\nINFO" +
-					"\n\nUpdate flow       : " + strconv.Itoa(TDSStatistic.UpdatedFlows) +
-					"\nAppende flow      : " + strconv.Itoa(TDSStatistic.AppendedFlows) +
-					"\nPixel request     : " + strconv.Itoa(TDSStatistic.PixelRequest) +
-					"\nClick Info request: " + strconv.Itoa(TDSStatistic.ClickInfoRequest) +
-					"\nFlow Info request : " + strconv.Itoa(TDSStatistic.FlowInfoRequest) +
-					"\nRedirect request  : " + strconv.Itoa(TDSStatistic.RedirectRequest) +
-					"\nRedis Stat request: " + strconv.Itoa(TDSStatistic.RedisStatRequest) +
-					"\nIncorrect request : " + strconv.Itoa(TDSStatistic.IncorrectRequest) +
-					"\nCookies request   : " + strconv.Itoa(TDSStatistic.CookieRequest) +
-					"\nUnique request    : " + strconv.Itoa(uniqueRequests) +
+					"\n\nUpdate flow        : " + strconv.Itoa(TDSStatistic.UpdatedFlows) +
+					"\nAppende flow       : " + strconv.Itoa(TDSStatistic.AppendedFlows) +
+					"\nPixel request      : " + strconv.Itoa(TDSStatistic.PixelRequest) +
+					"\nClick Info request : " + strconv.Itoa(TDSStatistic.ClickInfoRequest) +
+					"\nFlow Info request  : " + strconv.Itoa(TDSStatistic.FlowInfoRequest) +
+					"\nRedirect request   : " + strconv.Itoa(TDSStatistic.RedirectRequest) +
+					"\nRedis Stat request : " + strconv.Itoa(TDSStatistic.RedisStatRequest) +
+					"\nIncorrect request  : " + strconv.Itoa(TDSStatistic.IncorrectRequest) +
+					"\nCookies request    : " + strconv.Itoa(TDSStatistic.CookieRequest) +
+					"\nUnique request     : " + strconv.Itoa(uniqueRequests) +
 					"\n\nUp time           : " + uptime +
-					"\nProcessing time   : " + processingTime +
+					"\nProcessing time    : " + processingTime +
 					"\n\nSYSTEM INFO" +
-					"\n\nTotal memory alloc: " + memoryUsageGeneral + " Mb" +
-					"\nPrivate memory    : " + memoryUsagePrivate + " Mb" +
-					"\nOpened files      : " + openedFiles +
-					"\n\nRedis connection  : " + strconv.FormatBool(IsRedisAlive) + "\n```"
+					"\n\nTotal memory alloc : " + memoryUsageGeneral + " Mb" +
+					"\nPrivate memory     : " + memoryUsagePrivate + " Mb" +
+					"\nOpened files       : " + openedFiles +
+					"\n\nRedis connection   : " + strconv.FormatBool(IsRedisAlive) + "\n```"
 
 				if Telegram.SendMessage(text) {
 					if Cfg.Debug.Level > 0 {

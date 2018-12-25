@@ -15,6 +15,7 @@ import (
 	"fmt"
 	"metatds/utils"
 	"os"
+	"path/filepath"
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/go-redis/redis"
@@ -70,7 +71,8 @@ func InitConfig() {
 	var actionArg string
 	_ = actionArg
 
-	err := gcfg.FatalOnly(gcfg.ReadFileInto(&Cfg, configFileName))
+	fp, _ := filepath.Abs(configFileName)
+	err := gcfg.FatalOnly(gcfg.ReadFileInto(&Cfg, fp))
 
 	if len(os.Args) > 1 {
 		actionArg = os.Args[1]
