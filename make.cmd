@@ -1,3 +1,4 @@
+del tds.exe
 go build -ldflags "-s -w" tds.go flow.go click.go
 @ECHO OFF
 if %ERRORLEVEL%==0 tds run

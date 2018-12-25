@@ -11,6 +11,7 @@ host = "localhost"
 port = 80
 ; Config reload interval / time in minutes
 ConfReload = 1
+OS = unix
 
 ; Click hash desired length
 [click]

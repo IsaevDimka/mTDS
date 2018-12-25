@@ -18,6 +18,7 @@ import (
 	"io/ioutil"
 	"metatds/utils"
 	"net/http"
+	"os"
 	"runtime"
 	"strconv"
 	"time"
@@ -41,7 +42,7 @@ func init() {
 	}
 
 	// issue with too many open files
-	http.DefaultClient.Timeout = time.Second * 30
+	http.DefaultClient.Timeout = time.Second * 10
 
 	// цепляем редис и потом, проверяем постоянно, как у него дела
 	RedisDBChan()
@@ -271,6 +272,7 @@ func TDSStatisticChan() <-chan string {
 				var memory runtime.MemStats
 				var duration time.Duration // current duration & uptime
 				var uptime, processingTime, memoryUsageGeneral, memoryUsagePrivate string
+				var openedFiles = "0"
 
 				duration = 60 * time.Minute
 
@@ -293,6 +295,22 @@ func TDSStatisticChan() <-chan string {
 
 				//fmt.Print("[MEMORY USAGE]",memoryUsage, memory.Sys)
 
+				if Cfg.General.OS == "linux" || Cfg.General.OS == "unix" {
+
+					pid := strconv.Itoa(os.Getpid())
+					fds, e := ioutil.ReadDir("/proc/" + pid + "/fd")
+
+					if e != nil && Cfg.Debug.Level > 0 {
+						utils.PrintError("Error", "reading process direcroty failed", initModuleName)
+					} else {
+						utils.PrintInfo("PID", pid, initModuleName)
+					}
+
+					if len(fds) > 0 {
+						openedFiles = strconv.Itoa(len(fds))
+					}
+				}
+
 				uniqueRequests := TDSStatistic.RedirectRequest - TDSStatistic.CookieRequest - TDSStatistic.IncorrectRequest
 
 				text := "```\n" + timeStamp + "\n" + Cfg.General.Name + " usage:" +
@@ -310,6 +328,7 @@ func TDSStatisticChan() <-chan string {
 					"\nProcessing time   : " + processingTime +
 					"\nTotal memory alloc: " + memoryUsageGeneral + " Mb" +
 					"\nPrivate memory    : " + memoryUsagePrivate + " Mb" +
+					"\nOpened files      : " + openedFiles +
 					"\n\nRedis connection  : " + strconv.FormatBool(IsRedisAlive) + "\n```"
 
 				if Telegram.SendMessage(text) {
