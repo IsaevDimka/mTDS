@@ -123,6 +123,7 @@ func RedisDBChan() <-chan string {
 					utils.PrintError("Redis error", msg, initModuleName)
 				}
 
+				time.Sleep(10 * time.Second) // поспим чуть чуть
 				goto tryUntilConnect
 				//		os.Exit(0)
 			} else {
