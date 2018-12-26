@@ -2,6 +2,8 @@ package utils
 
 import "time"
 
+var ResponseAverage []time.Duration
+
 type TDSStats struct {
 	UpdatedFlows     int
 	AppendedFlows    int
@@ -28,4 +30,6 @@ func (tdstat TDSStats) Reset() {
 	tdstat.CookieRequest = 0
 	tdstat.ProcessingTime = 0
 	tdstat.MemoryAllocated = 0
+
+	ResponseAverage = []time.Duration{}
 }

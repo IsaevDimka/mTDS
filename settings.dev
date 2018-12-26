@@ -16,8 +16,11 @@ OS = windows
 ; Click hash desired length
 [click]
 length = 10
+apiurl = "http://116.202.27.130/set/hits"
+apitoken = "PaILgFTQQCvX9tzS"
 ; Time to drop clicks to file from Redis
 droptoredis = 1
+DropFilesToAPI = 1
 
 ; redis configuration
 ; flows and clicks storage DB is default = 0

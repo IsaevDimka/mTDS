@@ -42,24 +42,55 @@ func BToKb(b uint64) uint64 {
 	return b / 1024
 }
 
+const WriteToLogOnly = true
+const LogFileName = "metatds.log"
+
 func PrintError(header string, message interface{}, module string) {
-	fmt.Fprintf(color.Output, "[ %s ]", color.RedString(header))
-	fmt.Println(" ", message, " - ", module)
+	if WriteToLogOnly {
+		item := "[ " + header + " ] " + fmt.Sprintf("%s", message) + ", " + module + "\n"
+		f, _ := os.OpenFile(LogFileName, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
+		f.WriteString(item)
+		f.Close()
+	} else {
+		fmt.Fprintf(color.Output, "[ %s ]", color.RedString(header))
+		fmt.Println(" ", message, " - ", module)
+	}
 }
 
 func PrintInfo(header string, message interface{}, module string) {
-	fmt.Fprintf(color.Output, "[ %s ]", color.CyanString(header))
-	fmt.Println(" ", message, " - ", module)
+	if WriteToLogOnly {
+		item := "[ " + header + " ] " + fmt.Sprintf("%s", message) + ", " + module + "\n"
+		f, _ := os.OpenFile(LogFileName, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
+		f.WriteString(item)
+		f.Close()
+	} else {
+		fmt.Fprintf(color.Output, "[ %s ]", color.CyanString(header))
+		fmt.Println(" ", message, " - ", module)
+	}
 }
 
 func PrintSuccess(header string, message interface{}, module string) {
-	fmt.Fprintf(color.Output, "[ %s ]", color.GreenString(header))
-	fmt.Println(" ", message, " - ", module)
+	if WriteToLogOnly {
+		item := "[ " + header + " ] " + fmt.Sprintf("%s", message) + ", " + module + "\n"
+		f, _ := os.OpenFile(LogFileName, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
+		f.WriteString(item)
+		f.Close()
+	} else {
+		fmt.Fprintf(color.Output, "[ %s ]", color.GreenString(header))
+		fmt.Println(" ", message, " - ", module)
+	}
 }
 
 func PrintDebug(header string, message interface{}, module string) {
-	fmt.Fprintf(color.Output, "[ %s ]", color.YellowString(header))
-	fmt.Println(" ", message, " - ", module)
+	if WriteToLogOnly {
+		item := "[ " + header + " ] " + fmt.Sprintf("%s", message) + ", " + module + "\n"
+		f, _ := os.OpenFile(LogFileName, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
+		f.WriteString(item)
+		f.Close()
+	} else {
+		fmt.Fprintf(color.Output, "[ %s ]", color.YellowString(header))
+		fmt.Println(" ", message, " - ", module)
+	}
 }
 
 // URIByMap Заполняем наш мап параметрами из УРИ

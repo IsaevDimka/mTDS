@@ -12,6 +12,8 @@ Description=MetaTDS Service
 Environment=NETWORK=sites
 WorkingDirectory=/PATH_TO_DIRECROTY_WITH_TDS
 ExecStart=/PATH_TO_DIRECROTY_WITH_TDS/tds run
+StandardOutput=/PATH_TO_DIRECROTY_WITH_TDS/system.log
+StandardError=/PATH_TO_DIRECROTY_WITH_TDS/system.log
 
 KillMode=none
 TimeoutStartSec=10

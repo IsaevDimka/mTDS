@@ -18,6 +18,7 @@ import (
 	"gopkg.in/gcfg.v1"
 	"metatds/utils"
 	"os"
+	"time"
 )
 
 const configFileName = "settings.ini"
@@ -33,8 +34,11 @@ type Config struct {
 		OS         string
 	}
 	Click struct {
-		Length      int
-		DropToRedis int
+		Length         int
+		ApiUrl         string
+		ApiToken       string
+		DropToRedis    int
+		DropFilesToAPI int
 	}
 	Redis struct {
 		Host     string
@@ -63,6 +67,7 @@ var Redisdb *redis.Client // Редис
 var IsRedisAlive = false
 var Telegram utils.TelegramAdapter // инстанс бота
 var TDSStatistic utils.TDSStats    // Инстанс статистики
+var ResponseAverage []time.Duration
 
 // Загрузка конфига и обработка параметров
 func InitConfig() {
@@ -116,8 +121,17 @@ func InitConfig() {
 					if Cfg.Click.Length != 0 {
 						fmt.Println("[ -- Length ]", Cfg.Click.Length)
 					}
+					if Cfg.Click.ApiUrl != "" {
+						fmt.Println("[ -- ApiUrl ]", Cfg.Click.ApiUrl)
+					}
+					if Cfg.Click.ApiToken != "" {
+						fmt.Println("[ -- ApiToken ]", Cfg.Click.ApiToken)
+					}
 					if Cfg.Click.DropToRedis != 0 {
 						fmt.Println("[ -- DropToRedis ]", Cfg.Click.DropToRedis)
+					}
+					if Cfg.Click.DropFilesToAPI != 0 {
+						fmt.Println("[ -- DropFilesToAPI ]", Cfg.Click.DropFilesToAPI)
 					} else {
 						fmt.Println("[ -- Empty ]")
 					}

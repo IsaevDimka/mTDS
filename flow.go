@@ -147,8 +147,14 @@ func flowHandler(c echo.Context) error {
 				config.TDSStatistic.RedirectRequest++ // add counter tick
 				config.TDSStatistic.ProcessingTime += time.Since(start)
 
-				if config.Cfg.Debug.Level > 0 {
+				if config.Cfg.Debug.Level > 1 {
 					utils.PrintInfo("Action elapsed time", time.Since(start), tdsModuleName)
+				}
+
+				if len(config.ResponseAverage) <= 100 {
+					utils.ResponseAverage = append(utils.ResponseAverage, time.Since(start))
+				} else {
+					utils.ResponseAverage = nil
 				}
 
 				if !config.Cfg.Debug.Test {
@@ -193,8 +199,14 @@ func flowHandler(c echo.Context) error {
 				config.TDSStatistic.RedirectRequest++ // add counter tick
 				config.TDSStatistic.ProcessingTime += time.Since(start)
 
-				if config.Cfg.Debug.Level > 0 {
+				if config.Cfg.Debug.Level > 1 {
 					utils.PrintInfo("Action elapsed time", time.Since(start), tdsModuleName)
+				}
+
+				if len(config.ResponseAverage) <= 100 {
+					utils.ResponseAverage = append(utils.ResponseAverage, time.Since(start))
+				} else {
+					utils.ResponseAverage = nil
 				}
 
 				if !config.Cfg.Debug.Test {
@@ -243,8 +255,14 @@ func flowHandler(c echo.Context) error {
 
 				defer Info.Click.Save()
 
-				if config.Cfg.Debug.Level > 0 {
+				if config.Cfg.Debug.Level > 1 {
 					utils.PrintInfo("Action elapsed time", time.Since(start), tdsModuleName)
+				}
+
+				if len(config.ResponseAverage) <= 100 {
+					utils.ResponseAverage = append(utils.ResponseAverage, time.Since(start))
+				} else {
+					utils.ResponseAverage = nil
 				}
 
 				config.TDSStatistic.FlowInfoRequest++ // add counter tick
@@ -275,13 +293,20 @@ func flowHandler(c echo.Context) error {
 				config.TDSStatistic.RedirectRequest++ // add counter tick
 				config.TDSStatistic.ProcessingTime += time.Since(start)
 
-				if config.Cfg.Debug.Level > 0 {
+				if config.Cfg.Debug.Level > 1 {
 					utils.PrintInfo("Action elapsed time", time.Since(start), tdsModuleName)
+				}
+
+				if len(config.ResponseAverage) <= 100 {
+					utils.ResponseAverage = append(utils.ResponseAverage, time.Since(start))
+				} else {
+					utils.ResponseAverage = nil
 				}
 
 				if !config.Cfg.Debug.Test {
 
 					runtime.GC()
+
 					return c.Redirect(302, LandingTemplate)
 				} else {
 
