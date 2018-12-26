@@ -53,9 +53,9 @@ func (tg *TelegramAdapter) SendMessage(text string) bool {
 		httpTransport := &http.Transport{}
 		httpClient := &http.Client{Transport: httpTransport}
 
-		if  tg.UseProxy {
+		if tg.UseProxy {
 			// setup a http client
-			var authorization= new(proxy.Auth)
+			var authorization = new(proxy.Auth)
 			authorization.User = tg.User
 			authorization.Password = tg.Password
 
@@ -71,7 +71,8 @@ func (tg *TelegramAdapter) SendMessage(text string) bool {
 
 		for _, item := range tg.Chats {
 			if !tg.UseProxy {
-				req, err := http.Get(tg.URL+tg.Token+"/sendMessage?parse_mode=markdown&chat_id="+item+"&text="+url.QueryEscape(text))
+				req, err := http.Get(tg.URL + tg.Token + "/sendMessage?parse_mode=markdown&chat_id=" + item + "&text=" + url.QueryEscape(text))
+				req.Header.Set("Connection", "close")
 
 				if req != nil {
 					defer req.Body.Close()
@@ -82,6 +83,7 @@ func (tg *TelegramAdapter) SendMessage(text string) bool {
 				}
 			} else {
 				req, err := http.NewRequest("GET", tg.URL+tg.Token+"/sendMessage?parse_mode=markdown&chat_id="+item+"&text="+url.QueryEscape(text), nil)
+				req.Header.Set("Connection", "close")
 
 				// use the http client to fetch the page
 				resp, err := httpClient.Do(req)
