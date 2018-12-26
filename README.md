@@ -4,6 +4,14 @@ __FEATURED TODO__
 
 __LAST CHANGES__
 
+> __26.12.2018__
+
++ Sending to API
++ Re-sending in case of failure to API
++ Log files optional to STDOUT 
++ Improvements for `system.d` start script
++ Statistics improvements + average time for respond
+
 > __25.12.2018__
 + testing issues (too many open files)
 + count open files within statistic

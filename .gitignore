@@ -1,8 +1,9 @@
 vendor/*
-tds.exe
+*.exe
 Gopkg.*
 tmp
 .idea/*
 stuff/*
+clicks/*
 settings.ini
 metatds.log
