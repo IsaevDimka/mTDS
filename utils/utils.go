@@ -26,11 +26,12 @@ import (
 )
 
 const utilsModuleName = "utils.go"
-const logFileName = "tdstest.log"
 
 const charset = "abcdefghijklmnopqrstuvwxyz" +
 	"ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
 	"0123456789"
+const WriteToLogOnly = true
+const LogFileName = "metatds.log"
 
 var SeededRand = rand.New(rand.NewSource(time.Now().UnixNano()))
 
@@ -41,9 +42,6 @@ func BToMb(b uint64) uint64 {
 func BToKb(b uint64) uint64 {
 	return b / 1024
 }
-
-const WriteToLogOnly = true
-const LogFileName = "metatds.log"
 
 func PrintError(header string, message interface{}, module string) {
 	if WriteToLogOnly {

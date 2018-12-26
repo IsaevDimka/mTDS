@@ -11,11 +11,14 @@ Description=MetaTDS Service
 [Service]
 Environment=NETWORK=sites
 WorkingDirectory=/PATH_TO_DIRECROTY_WITH_TDS
+
 ExecStart=/PATH_TO_DIRECROTY_WITH_TDS/tds run
+ExecStop=/bin/kill -9 $MAINPID
+ExecReload=/bin/kill -HUP $MAINPID
 StandardOutput=/PATH_TO_DIRECROTY_WITH_TDS/system.log
 StandardError=/PATH_TO_DIRECROTY_WITH_TDS/system.log
 
-KillMode=none
+KillMode=root
 TimeoutStartSec=10
 Restart=on-failure
 
