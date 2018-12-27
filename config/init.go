@@ -168,12 +168,13 @@ func RedisSendOrSaveClicks() <-chan string {
 					t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second())
 
 				keys, _ := Redisdb.Keys("*:click:*").Result()
-				// 	fmt.Println("Keys found by mask: ", len(keys))
 
 				for _, item := range keys {
 					d, _ := Redisdb.HGetAll(item).Result()
 					clicks = append(clicks, d)
 				}
+
+				TDSStatistic.ClicksSentToRedis += len(clicks)
 
 				jsonData, _ := json.Marshal(clicks)
 
@@ -185,9 +186,6 @@ func RedisSendOrSaveClicks() <-chan string {
 
 					url := Cfg.Click.ApiUrl     // "http://116.202.27.130/set/hits"
 					token := Cfg.Click.ApiToken // "PaILgFTQQCvX9tzS"
-					// fmt.Println("URL:>", url)
-					// var jsonStr = []byte(`{"title":"Buy cheese and bread for breakfast."}`)
-					// req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
 					req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
 					req.Header.Set("X-Token", token)
 					req.Header.Set("Content-Type", "application/json")
@@ -197,7 +195,6 @@ func RedisSendOrSaveClicks() <-chan string {
 					resp, err := client.Do(req)
 					if err != nil {
 						recover()
-						//panic(err)
 						goto tryagain
 					}
 					defer resp.Body.Close()
@@ -205,11 +202,7 @@ func RedisSendOrSaveClicks() <-chan string {
 					utils.PrintDebug("Response status", resp.Status, initModuleName)
 
 					if resp.Status == "200 OK" {
-						// ioutil.ReadAll(resp.Body)
-						// fmt.Println("response Status:", resp.Status)
-						// fmt.Println("response Headers:", resp.Header)
 						body, _ := ioutil.ReadAll(resp.Body)
-						// fmt.Println("response Body:", string(body))
 						utils.PrintInfo("Response", string(body), initModuleName)
 
 						for _, item := range keys {
@@ -217,7 +210,7 @@ func RedisSendOrSaveClicks() <-chan string {
 						}
 
 						Telegram.SendMessage("```\n" + timestampPrintable + "\n" +
-							Cfg.General.Name + "\nClicks sent to API" +
+							Cfg.General.Name + "\nClicks sent to API: " + strconv.Itoa(TDSStatistic.ClicksSentToRedis) +
 							"\nTime elsapsed for operation: " + durafmt.Parse(time.Since(t)).String(durafmt.DF_LONG) +
 							"```")
 					} else {
@@ -407,12 +400,15 @@ func TDSStatisticChan() <-chan string {
 					"\nUnique request     : " + strconv.Itoa(uniqueRequests) +
 					"\n\nUp time            : " + uptime +
 					"\nProcessing time    : " + processingTime +
-					"\nAvg. response time : " + avgReq +
+					"\nAvg response time  : " + avgReq +
 					"\n\nSYSTEM INFO" +
 					"\n\nTotal memory alloc : " + memoryUsageGeneral + " Mb" +
 					"\nPrivate memory     : " + memoryUsagePrivate + " Mb" +
 					"\nOpened files       : " + openedFiles +
-					"\n\nRedis connection   : " + strconv.FormatBool(IsRedisAlive) + "\n```"
+					"\n\nREDIS" +
+					"\n\nConnection         : " + strconv.FormatBool(IsRedisAlive) +
+					"\nClicks sent        : " + strconv.Itoa(TDSStatistic.ClicksSentToRedis) +
+					"\n```"
 
 				if Telegram.SendMessage(text) {
 					if Cfg.Debug.Level > 0 {
