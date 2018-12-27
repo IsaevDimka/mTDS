@@ -50,6 +50,23 @@ type FlowData struct {
 	Counters            []Counters
 }
 
+// temporary
+// TODO Should be removed on release
+// just for testing purposes
+
+type FlowImportData struct {
+	ID                  int
+	OfferID             int
+	WebMasterID         int
+	WebMasterCurrencyID int
+	Hash                string
+	//	RandomPreland       string
+	//	RandomLand          string
+	Prelands []Prelands
+	Lands    []Lands
+	Counters []Counters
+}
+
 func (Flow FlowData) GetInfo(FlowHash string) FlowData {
 	//Фллоу хеш, если он есть в базе значит все пучком
 	FlowID, _ := config.Redisdb.Get(FlowHash + ":ID").Result()
