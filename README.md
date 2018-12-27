@@ -4,8 +4,15 @@ __FEATURED TODO__
 
 __LAST CHANGES__
 
-> __26.12.2018__
+> __27.12.2018__
++ Recieving flows from API for startup and for work
++ Re-sending in case of failure to API (clicks) tested
++ Additional time stamp saved to `last.update.time` 
++ Improvements for `system.d` start script
++ Statistics improvements + average time for respond
++ Options for flows and clicks @`settings.ini`
 
+> __26.12.2018__
 + Sending to API
 + Re-sending in case of failure to API
 + Log files optional to STDOUT 
