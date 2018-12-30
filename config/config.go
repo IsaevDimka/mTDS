@@ -41,10 +41,12 @@ type Config struct {
 		DropFilesToAPI int
 	}
 	Redis struct {
-		Host     string
-		Port     int
-		Login    string
-		Password string
+		Host        string
+		Port        int
+		Login       string
+		Password    string
+		ApiFlowsURL string
+		UpdateFlows int
 	}
 	Debug struct {
 		Test  bool
@@ -151,6 +153,12 @@ func InitConfig() {
 					}
 					if Cfg.Redis.Password != "" {
 						fmt.Println("[ -- Password ]", Cfg.Redis.Password)
+					}
+					if Cfg.Redis.UpdateFlows != 0 {
+						fmt.Println("[ -- UpdateFlows ]", Cfg.Redis.UpdateFlows)
+					}
+					if Cfg.Redis.ApiFlowsURL != "" {
+						fmt.Println("[ -- ApiFlowsURL ]", Cfg.Redis.ApiFlowsURL)
 					} else {
 						fmt.Println("[ -- Empty ]")
 					}

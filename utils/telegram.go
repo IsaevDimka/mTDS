@@ -69,9 +69,11 @@ func (tg *TelegramAdapter) SendMessage(text string) bool {
 			httpTransport.Dial = dialer.Dial
 		}
 
+		markDownedText := "```" + text + "```"
+
 		for _, item := range tg.Chats {
 			if !tg.UseProxy {
-				req, err := http.Get(tg.URL + tg.Token + "/sendMessage?parse_mode=markdown&chat_id=" + item + "&text=" + url.QueryEscape(text))
+				req, err := http.Get(tg.URL + tg.Token + "/sendMessage?parse_mode=markdown&chat_id=" + item + "&text=" + url.QueryEscape(markDownedText))
 				req.Header.Set("Connection", "close")
 
 				if req != nil {
@@ -82,7 +84,7 @@ func (tg *TelegramAdapter) SendMessage(text string) bool {
 					fmt.Fprintln(os.Stderr, "can't create request:", err)
 				}
 			} else {
-				req, err := http.NewRequest("GET", tg.URL+tg.Token+"/sendMessage?parse_mode=markdown&chat_id="+item+"&text="+url.QueryEscape(text), nil)
+				req, err := http.NewRequest("GET", tg.URL+tg.Token+"/sendMessage?parse_mode=markdown&chat_id="+item+"&text="+url.QueryEscape(markDownedText), nil)
 				req.Header.Set("Connection", "close")
 
 				// use the http client to fetch the page
