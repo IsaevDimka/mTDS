@@ -68,20 +68,16 @@ func init() {
 		utils.PrintError("Error", "Init Telegram Adapter", initModuleName)
 	}
 
-	// начинаем считать статистику
+	// начинаем слать статистику
 	TDSStatisticChan()
 
 	// начинаем перезагружать конфиг
 	ReloadConfigChan()
 
-	// this is temporary workaround, should be removed on release
-	// TODO remove in release
-	//TempResetRedisClicks()
-
-	// TODO channel to resend stats to API, when Cherkesov gives me an URL
+	// отправка кликов в мета-дату
 	RedisSendOrSaveClicks()
 
-	// File sender
+	// File sender это ресенд если не удалось предыдущее
 	SendFileToRecieveApi()
 }
 
@@ -198,7 +194,7 @@ func RedisSendOrSaveClicks() <-chan string {
 					}
 					defer resp.Body.Close()
 
-					utils.PrintDebug("Response status", resp.Status, initModuleName)
+					utils.PrintInfo("Response status", resp.Status, initModuleName)
 
 					if resp.Status == "200 OK" {
 						body, _ := ioutil.ReadAll(resp.Body)
@@ -208,9 +204,11 @@ func RedisSendOrSaveClicks() <-chan string {
 							_ = Redisdb.Del(item).Err()
 						}
 
-						Telegram.SendMessage("\n" + timestampPrintable + "\n" +
-							Cfg.General.Name + "\nClicks sent to API: " + strconv.Itoa(TDSStatistic.ClicksSentToRedis) +
-							"\nTime elsapsed for operation: " + durafmt.Parse(time.Since(t)).String(durafmt.DF_LONG))
+						if Cfg.Debug.Level > 1 {
+							Telegram.SendMessage("\n" + timestampPrintable + "\n" +
+								Cfg.General.Name + "\nClicks sent to API: " + strconv.Itoa(TDSStatistic.ClicksSentToRedis) +
+								"\nTime elsapsed for operation: " + durafmt.Parse(time.Since(t)).String(durafmt.DF_LONG))
+						}
 					} else {
 						utils.CreateDirIfNotExist("clicks")
 						ioutil.WriteFile("clicks/"+timestamp+".json", jsonData, 0777)
@@ -374,28 +372,28 @@ func GetSystemStatistics() string {
 
 		text = "\n" + timeStamp + "\n" + Cfg.General.Name +
 			"\n\nINFO" +
-			"\n\nUpdate flow        : " + strconv.Itoa(TDSStatistic.UpdatedFlows) +
-			"\nAppende flow       : " + strconv.Itoa(TDSStatistic.AppendedFlows) +
-			"\nPixel request      : " + strconv.Itoa(TDSStatistic.PixelRequest) +
-			"\nClick Info request : " + strconv.Itoa(TDSStatistic.ClickInfoRequest) +
-			"\nFlow Info request  : " + strconv.Itoa(TDSStatistic.FlowInfoRequest) +
-			"\nRedirect request   : " + strconv.Itoa(TDSStatistic.RedirectRequest) +
-			"\nRedis Stat request : " + strconv.Itoa(TDSStatistic.RedisStatRequest) +
-			"\nIncorrect request  : " + strconv.Itoa(TDSStatistic.IncorrectRequest) +
-			"\nCookies request    : " + strconv.Itoa(TDSStatistic.CookieRequest) +
-			"\nUnique request     : " + strconv.Itoa(uniqueRequests) +
-			"\n\nUp time            : " + uptime +
-			"\nProcessing time    : " + processingTime +
-			"\nAvg response time  : " + avgReq +
+			"\n\nFlow update request    : " + strconv.Itoa(TDSStatistic.UpdatedFlows) +
+			"\nFlow appended          : " + strconv.Itoa(TDSStatistic.AppendedFlows) +
+			"\nPixel request          : " + strconv.Itoa(TDSStatistic.PixelRequest) +
+			"\nClick Info request     : " + strconv.Itoa(TDSStatistic.ClickInfoRequest) +
+			"\nFlow Info request      : " + strconv.Itoa(TDSStatistic.FlowInfoRequest) +
+			"\nRedirect request       : " + strconv.Itoa(TDSStatistic.RedirectRequest) +
+			//			"\nRedis Stat request     : " + strconv.Itoa(TDSStatistic.RedisStatRequest) +
+			"\nIncorrect request      : " + strconv.Itoa(TDSStatistic.IncorrectRequest) +
+			"\nCookies request        : " + strconv.Itoa(TDSStatistic.CookieRequest) +
+			"\nUnique request (?)     : " + strconv.Itoa(uniqueRequests) +
+			"\n\nUp time                : " + uptime +
+			"\nProcessing time        : " + processingTime +
+			"\nAverage response time  : " + avgReq +
 			"\n\nSYSTEM INFO" +
-			"\n\nOperating system   : " + Cfg.General.OS +
-			"\nDebug level        : " + strconv.Itoa(Cfg.Debug.Level) +
-			"\nTotal memory alloc : " + memoryUsageGeneral + " Mb" +
-			"\nPrivate memory     : " + memoryUsagePrivate + " Mb" +
-			"\nOpened files       : " + openedFiles +
+			"\n\nOperating system       : " + Cfg.General.OS +
+			"\nDebug level            : " + strconv.Itoa(Cfg.Debug.Level) +
+			"\nTotal memory allocated : " + memoryUsageGeneral + " Mb" +
+			"\nPrivate memory         : " + memoryUsagePrivate + " Mb" +
+			"\nOpened files           : " + openedFiles +
 			"\n\nREDIS" +
-			"\n\nConnection         : " + strconv.FormatBool(IsRedisAlive) +
-			"\nClicks sent        : " + strconv.Itoa(TDSStatistic.ClicksSentToRedis) +
+			"\n\nConnection             : " + strconv.FormatBool(IsRedisAlive) +
+			"\nClicks sent            : " + strconv.Itoa(TDSStatistic.ClicksSentToRedis) +
 			"\n"
 		return text
 	} else {
