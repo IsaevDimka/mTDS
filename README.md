@@ -4,6 +4,13 @@ __FEATURED TODO__
 
 __LAST CHANGES__
 
+> __30.12.2018__
++ Improved performance for responsing to context
++ Additional statistics /stat, /conf
++ Small refactoring
++ Additional configurable settings @`settings.ini`
++ Production testing
+
 > __27.12.2018__
 + Recieving flows from API for startup and for work
 + Re-sending in case of failure to API (clicks) tested

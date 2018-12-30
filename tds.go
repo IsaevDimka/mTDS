@@ -113,6 +113,9 @@ func main() {
 	router.GET("/c/info/:click_hash", clickHandler)
 	router.GET("/c/list", ListClickHandler)
 
+	router.GET("/stat", GetSystemStatkHandler)
+	router.GET("/conf", GetSystemConfHandler)
+
 	customServer := &http.Server{
 		Addr:         ":" + strconv.Itoa(config.Cfg.General.Port),
 		ReadTimeout:  10 * time.Second,
@@ -138,10 +141,38 @@ func main() {
 	}
 }
 
+func GetSystemConfHandler(c echo.Context) error {
+	agent := c.Request().UserAgent()
+	// защита от долбоебов
+	if agent == "MetaDevAgent" {
+		text := config.GetSystemConfiguration()
+		return c.HTML(200, "<html><head><title>TDS System statistics</title><script>"+
+			"setInterval(function(){window.location.reload(true)},5000);"+
+			"</script></head><body><pre>"+
+			text+"</pre></body></html>")
+
+	} else {
+		return c.String(404, "Not found on server")
+	}
+}
+
+func GetSystemStatkHandler(c echo.Context) error {
+	agent := c.Request().UserAgent()
+	// защита от долбоебов
+	if agent == "MetaDevAgent" {
+		text := config.GetSystemStatistics()
+		return c.HTML(200, "<html><head><title>TDS System statistics</title><script>"+
+			"setInterval(function(){window.location.reload(true)},5000);"+
+			"</script></head><body><pre>"+
+			text+"</pre></body></html>")
+
+	} else {
+		return c.String(404, "Not found on server")
+	}
+}
+
 func ImportFlowsToRedis(jsonData []byte) (int, bool) {
-
 	Flows := make(map[string]models.FlowImportData)
-
 	if err := json.Unmarshal(jsonData, &Flows); err != nil {
 		if config.Cfg.Debug.Level > 1 {
 			utils.PrintDebug("Error", "Can`t decode JSON given", tdsModuleName)
@@ -161,6 +192,7 @@ func ImportFlowsToRedis(jsonData []byte) (int, bool) {
 				}
 			}
 		}
+
 		return len(Flows), true
 	}
 	return len(Flows), false
@@ -179,7 +211,11 @@ func UpdateFlowsListChan() <-chan string {
 			timestampPrintable := fmt.Sprintf("%d-%02d-%02d %02d:%02d:%02d",
 				t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second())
 
-			if fileData, err := ioutil.ReadFile(timestampFile); err == nil {
+			// getting current count of flows and if it isn't null then proceeed
+			currentCount, _ := config.Redisdb.Keys("*:ID").Result()
+			fileData, err := ioutil.ReadFile(timestampFile)
+
+			if err == nil && len(currentCount) > 0 {
 				//---------------------------------------------------------------------------------------------------------------------
 				// LOADING WITH PARAMS OF LAST UPDATE
 				// When TDS starting up first time we need to load all flows in it
@@ -192,8 +228,7 @@ func UpdateFlowsListChan() <-chan string {
 				}
 
 				// performing request to our API
-				//TODO config settings should be implemented
-				url := "https://metacpa.ru/api/flow/GetFlows?timestamp="
+				url := config.Cfg.Redis.ApiFlowsURL
 				req, err := http.Get(url + strings.Trim(string(fileData), "\r\n"))
 				req.Header.Set("Connection", "close")
 
@@ -209,11 +244,10 @@ func UpdateFlowsListChan() <-chan string {
 				if req.Status == "200 OK" {
 					if count, err := ImportFlowsToRedis(body); err != false {
 
-						config.Telegram.SendMessage("```\n" + timestampPrintable + "\n" +
+						config.Telegram.SendMessage("\n" + timestampPrintable + "\n" +
 							config.Cfg.General.Name + "\nRequested flows from API\n" +
 							"\nUpdated flows: " + strconv.Itoa(count) +
-							"\nTime elsapsed for operation: " + durafmt.Parse(time.Since(t)).String(durafmt.DF_LONG) +
-							"```")
+							"\nTime elsapsed for operation: " + durafmt.Parse(time.Since(t)).String(durafmt.DF_LONG))
 
 						utils.PrintInfo("Redis import", "updated flows successful", tdsModuleName)
 
@@ -245,8 +279,7 @@ func UpdateFlowsListChan() <-chan string {
 				fileData = []byte(defaultStartOfEpoch) // 2000-01-01
 
 				// performing request to our API
-				//TODO config settings should be implemented
-				url := "https://metacpa.ru/api/flow/GetFlows?timestamp="
+				url := config.Cfg.Redis.ApiFlowsURL
 				req, err := http.Get(url + strings.Trim(string(fileData), "\r\n"))
 				req.Header.Set("Connection", "close")
 
@@ -261,13 +294,11 @@ func UpdateFlowsListChan() <-chan string {
 
 				if req.Status == "200 OK" {
 					if count, err := ImportFlowsToRedis(body); err != false {
-
 						// writing debug
-						config.Telegram.SendMessage("```\n" + timestampPrintable + "\n" +
+						config.Telegram.SendMessage("\n" + timestampPrintable + "\n" +
 							config.Cfg.General.Name + "\nRequested flows from API\n" +
 							"\nUpdated flows: " + strconv.Itoa(count) +
-							"\nTime elsapsed for operation: " + durafmt.Parse(time.Since(t)).String(durafmt.DF_LONG) +
-							"```")
+							"\nTime elsapsed for operation: " + durafmt.Parse(time.Since(t)).String(durafmt.DF_LONG))
 
 						utils.PrintInfo("Redis import", "All flows loaded successful", tdsModuleName)
 
@@ -292,10 +323,8 @@ func UpdateFlowsListChan() <-chan string {
 				}
 			}
 
-			runtime.GC() // startup garbage collector
-
-			//TODO config settings should be implemented
-			time.Sleep(time.Minute * 10) // sleep a while
+			defer runtime.GC() // startup garbage collector
+			time.Sleep(time.Duration(1+config.Cfg.Redis.UpdateFlows) * time.Minute)
 		}
 	}()
 	return c

@@ -29,6 +29,8 @@ host = "localhost"
 port = 6379
 login = ""
 password = ""
+ApiFlowsURL = "https://metacpa.ru/api/flow/GetFlows?timestamp="
+UpdateFlows = 10
 
 ; debug configuration
 [debug]

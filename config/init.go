@@ -25,6 +25,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/predatorpc/durafmt"
 )
 
@@ -57,7 +58,7 @@ func init() {
 	timeStamp := fmt.Sprintf("%d-%02d-%02d %02d:%02d:%02d",
 		UpTime.Year(), UpTime.Month(), UpTime.Day(), UpTime.Hour(), UpTime.Minute(), UpTime.Second())
 
-	Telegram.SendMessage("```\n" + timeStamp + "\n" + Cfg.General.Name + "\nTDS Service started\n```")
+	Telegram.SendMessage("\n" + timeStamp + "\n" + Cfg.General.Name + "\nTDS Service started\n")
 
 	if tlgrm {
 		if Cfg.Debug.Level > 0 {
@@ -115,8 +116,6 @@ func RedisDBChan() <-chan string {
 			}
 
 		tryUntilConnect: // try to reconnect until success
-			// start responding json {error:redis}
-
 			// check connection via Pong
 			pong, err := Redisdb.Ping().Result()
 
@@ -128,13 +127,13 @@ func RedisDBChan() <-chan string {
 					utils.PrintError("Redis error", msg, initModuleName)
 				}
 
-				time.Sleep(10 * time.Second) // поспим чуть чуть
+				time.Sleep(60 * time.Second) // поспим чуть чуть
+
 				goto tryUntilConnect
 				//		os.Exit(0)
 			} else {
 				if Cfg.Debug.Level > 0 && !IsRedisAlive {
 					utils.PrintSuccess("Redis response", pong, initModuleName)
-					//utils.PrintSuccess("Redis response", err, initModuleName)
 				}
 
 				if Cfg.Debug.Level > 0 && !IsRedisAlive {
@@ -144,8 +143,8 @@ func RedisDBChan() <-chan string {
 				IsRedisAlive = true
 			}
 
-			runtime.GC()
-			time.Sleep(10 * time.Second) // поспим чуть чуть
+			defer runtime.GC()
+			time.Sleep(60 * time.Second) // поспим чуть чуть
 		}
 	}()
 
@@ -209,10 +208,9 @@ func RedisSendOrSaveClicks() <-chan string {
 							_ = Redisdb.Del(item).Err()
 						}
 
-						Telegram.SendMessage("```\n" + timestampPrintable + "\n" +
+						Telegram.SendMessage("\n" + timestampPrintable + "\n" +
 							Cfg.General.Name + "\nClicks sent to API: " + strconv.Itoa(TDSStatistic.ClicksSentToRedis) +
-							"\nTime elsapsed for operation: " + durafmt.Parse(time.Since(t)).String(durafmt.DF_LONG) +
-							"```")
+							"\nTime elsapsed for operation: " + durafmt.Parse(time.Since(t)).String(durafmt.DF_LONG))
 					} else {
 						utils.CreateDirIfNotExist("clicks")
 						ioutil.WriteFile("clicks/"+timestamp+".json", jsonData, 0777)
@@ -221,10 +219,9 @@ func RedisSendOrSaveClicks() <-chan string {
 							_ = Redisdb.Del(item).Err()
 						}
 
-						Telegram.SendMessage("```\n" + timestampPrintable + "\n" +
+						Telegram.SendMessage("\n" + timestampPrintable + "\n" +
 							Cfg.General.Name + "\nClicks saved to file" +
-							"\nTime elsapsed for operation: " + durafmt.Parse(time.Since(t)).String(durafmt.DF_LONG) +
-							"```")
+							"\nTime elsapsed for operation: " + durafmt.Parse(time.Since(t)).String(durafmt.DF_LONG))
 					}
 				}
 
@@ -232,7 +229,7 @@ func RedisSendOrSaveClicks() <-chan string {
 					fmt.Println("Time elapsed total: ", time.Since(t))
 				}
 
-				runtime.GC()
+				defer runtime.GC()
 
 			}
 		tryagain:
@@ -240,6 +237,11 @@ func RedisSendOrSaveClicks() <-chan string {
 		}
 	}()
 	return c
+}
+
+func GetSystemConfiguration() string {
+	text := spew.Sdump(Cfg)
+	return text
 }
 
 //
@@ -253,9 +255,6 @@ func SendFileToRecieveApi() <-chan string {
 			var fdsReplace string
 
 			t := time.Now()
-			// timestamp := fmt.Sprintf("%d%02d%02d%02d%02d%02d",
-			// 	t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second())
-
 			timestampPrintable := fmt.Sprintf("%d-%02d-%02d %02d:%02d:%02d",
 				t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second())
 
@@ -290,37 +289,119 @@ func SendFileToRecieveApi() <-chan string {
 					utils.PrintDebug("Response status", resp.Status, initModuleName)
 
 					if resp.Status == "200 OK" {
-						// ioutil.ReadAll(resp.Body)
-						// fmt.Println("response Status:", resp.Status)
-						// fmt.Println("response Headers:", resp.Header)
 						body, _ := ioutil.ReadAll(resp.Body)
-						// fmt.Println("response Body:", string(body))
 						utils.PrintInfo("Response", string(body), initModuleName)
 
+						// удаляем файл, мы его успешно обработали
 						os.Remove(item)
 
-						Telegram.SendMessage("```\n" + timestampPrintable + "\n" +
+						Telegram.SendMessage("\n" + timestampPrintable + "\n" +
 							Cfg.General.Name + "\nResending file succedeed " + fdsReplace + " to API" +
-							"\nTime elsapsed for operation: " + durafmt.Parse(time.Since(t)).String(durafmt.DF_LONG) +
-							"```")
+							"\nTime elsapsed for operation: " + durafmt.Parse(time.Since(t)).String(durafmt.DF_LONG))
 					} else {
 						utils.PrintDebug("Error", "Sending file to click API failed", initModuleName)
 
-						Telegram.SendMessage("```\n" + timestampPrintable + "\n" +
+						Telegram.SendMessage("\n" + timestampPrintable + "\n" +
 							Cfg.General.Name + "\nResending file failed " + fdsReplace + " to API" +
-							"\nTime elsapsed for operation: " + durafmt.Parse(time.Since(t)).String(durafmt.DF_LONG) +
-							"```")
+							"\nTime elsapsed for operation: " + durafmt.Parse(time.Since(t)).String(durafmt.DF_LONG))
 					}
 
+					// поспим между файлами
 					time.Sleep(time.Second * 10)
 				}
 			}
 
-			runtime.GC()
+			defer runtime.GC()
 			time.Sleep(time.Duration(Cfg.Click.DropFilesToAPI) * time.Minute)
 		}
 	}()
 	return c
+}
+
+func GetSystemStatistics() string {
+	var text = "no stat"
+
+	if TDSStatistic != (utils.TDSStats{}) {
+		t := time.Now()
+		timeStamp := fmt.Sprintf("%d-%02d-%02d %02d:%02d:%02d",
+			t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second())
+
+		var memory runtime.MemStats
+		var duration time.Duration // current duration & uptime
+		var uptime, processingTime, memoryUsageGeneral, memoryUsagePrivate string
+		var openedFiles = "0"
+
+		duration = 60 * time.Minute
+
+		//if TDSStatistic.ProcessingTime < duration {
+		if time.Since(UpTime) < duration {
+			uptime = durafmt.Parse(time.Since(UpTime)).String(durafmt.DF_LONG)
+			processingTime = durafmt.Parse(TDSStatistic.ProcessingTime).String(durafmt.DF_LONG)
+		} else {
+			uptime = durafmt.Parse(time.Since(UpTime)).String(durafmt.DF_MIDDLE)
+			processingTime = durafmt.Parse(TDSStatistic.ProcessingTime).String(durafmt.DF_MIDDLE)
+		}
+
+		runtime.ReadMemStats(&memory)
+
+		RealDetectedGeneral := memory.Sys + memory.HeapSys + memory.HeapAlloc + memory.HeapInuse - memory.Alloc
+		RealDetectedPrivate := memory.HeapSys - memory.Alloc
+
+		memoryUsageGeneral = strconv.FormatUint(utils.BToMb(RealDetectedGeneral), 10)
+		memoryUsagePrivate = strconv.FormatUint(utils.BToMb(RealDetectedPrivate), 10)
+
+		//fmt.Print("[MEMORY USAGE]",memoryUsage, memory.Sys)
+
+		if Cfg.General.OS == "linux" || Cfg.General.OS == "unix" {
+
+			pid := strconv.Itoa(os.Getpid())
+			fds, e := ioutil.ReadDir("/proc/" + pid + "/fd")
+
+			if e != nil && Cfg.Debug.Level > 0 {
+				utils.PrintError("Error", "reading process directory failed", initModuleName)
+			} else {
+				utils.PrintInfo("PID", pid, initModuleName)
+			}
+
+			if len(fds) > 0 {
+				openedFiles = strconv.Itoa(len(fds))
+			}
+		}
+
+		avgReq := durafmt.Parse(DurationAverage(utils.ResponseAverage)).String(durafmt.DF_LONG)
+
+		uniqueRequests := TDSStatistic.RedirectRequest - TDSStatistic.CookieRequest - TDSStatistic.IncorrectRequest
+
+		text = "\n" + timeStamp + "\n" + Cfg.General.Name +
+			"\n\nINFO" +
+			"\n\nUpdate flow        : " + strconv.Itoa(TDSStatistic.UpdatedFlows) +
+			"\nAppende flow       : " + strconv.Itoa(TDSStatistic.AppendedFlows) +
+			"\nPixel request      : " + strconv.Itoa(TDSStatistic.PixelRequest) +
+			"\nClick Info request : " + strconv.Itoa(TDSStatistic.ClickInfoRequest) +
+			"\nFlow Info request  : " + strconv.Itoa(TDSStatistic.FlowInfoRequest) +
+			"\nRedirect request   : " + strconv.Itoa(TDSStatistic.RedirectRequest) +
+			"\nRedis Stat request : " + strconv.Itoa(TDSStatistic.RedisStatRequest) +
+			"\nIncorrect request  : " + strconv.Itoa(TDSStatistic.IncorrectRequest) +
+			"\nCookies request    : " + strconv.Itoa(TDSStatistic.CookieRequest) +
+			"\nUnique request     : " + strconv.Itoa(uniqueRequests) +
+			"\n\nUp time            : " + uptime +
+			"\nProcessing time    : " + processingTime +
+			"\nAvg response time  : " + avgReq +
+			"\n\nSYSTEM INFO" +
+			"\n\nOperating system   : " + Cfg.General.OS +
+			"\nDebug level        : " + strconv.Itoa(Cfg.Debug.Level) +
+			"\nTotal memory alloc : " + memoryUsageGeneral + " Mb" +
+			"\nPrivate memory     : " + memoryUsagePrivate + " Mb" +
+			"\nOpened files       : " + openedFiles +
+			"\n\nREDIS" +
+			"\n\nConnection         : " + strconv.FormatBool(IsRedisAlive) +
+			"\nClicks sent        : " + strconv.Itoa(TDSStatistic.ClicksSentToRedis) +
+			"\n"
+		return text
+	} else {
+		TDSStatistic.Reset()
+		return text
+	}
 }
 
 /*
@@ -336,80 +417,7 @@ func TDSStatisticChan() <-chan string {
 		for {
 
 			if TDSStatistic != (utils.TDSStats{}) {
-				t := time.Now()
-				timeStamp := fmt.Sprintf("%d-%02d-%02d %02d:%02d:%02d",
-					t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second())
-
-				var memory runtime.MemStats
-				var duration time.Duration // current duration & uptime
-				var uptime, processingTime, memoryUsageGeneral, memoryUsagePrivate string
-				var openedFiles = "0"
-
-				duration = 60 * time.Minute
-
-				//if TDSStatistic.ProcessingTime < duration {
-				if time.Since(UpTime) < duration {
-					uptime = durafmt.Parse(time.Since(UpTime)).String(durafmt.DF_LONG)
-					processingTime = durafmt.Parse(TDSStatistic.ProcessingTime).String(durafmt.DF_LONG)
-				} else {
-					uptime = durafmt.Parse(time.Since(UpTime)).String(durafmt.DF_MIDDLE)
-					processingTime = durafmt.Parse(TDSStatistic.ProcessingTime).String(durafmt.DF_MIDDLE)
-				}
-
-				runtime.ReadMemStats(&memory)
-
-				RealDetectedGeneral := memory.Sys + memory.HeapSys + memory.HeapAlloc + memory.HeapInuse - memory.Alloc
-				RealDetectedPrivate := memory.HeapSys - memory.Alloc
-
-				memoryUsageGeneral = strconv.FormatUint(utils.BToMb(RealDetectedGeneral), 10)
-				memoryUsagePrivate = strconv.FormatUint(utils.BToMb(RealDetectedPrivate), 10)
-
-				//fmt.Print("[MEMORY USAGE]",memoryUsage, memory.Sys)
-
-				if Cfg.General.OS == "linux" || Cfg.General.OS == "unix" {
-
-					pid := strconv.Itoa(os.Getpid())
-					fds, e := ioutil.ReadDir("/proc/" + pid + "/fd")
-
-					if e != nil && Cfg.Debug.Level > 0 {
-						utils.PrintError("Error", "reading process direcroty failed", initModuleName)
-					} else {
-						utils.PrintInfo("PID", pid, initModuleName)
-					}
-
-					if len(fds) > 0 {
-						openedFiles = strconv.Itoa(len(fds))
-					}
-				}
-
-				avgReq := durafmt.Parse(DurationAverage(utils.ResponseAverage)).String(durafmt.DF_LONG)
-
-				uniqueRequests := TDSStatistic.RedirectRequest - TDSStatistic.CookieRequest - TDSStatistic.IncorrectRequest
-
-				text := "```\n" + timeStamp + "\n" + Cfg.General.Name +
-					"\n\nINFO" +
-					"\n\nUpdate flow        : " + strconv.Itoa(TDSStatistic.UpdatedFlows) +
-					"\nAppende flow       : " + strconv.Itoa(TDSStatistic.AppendedFlows) +
-					"\nPixel request      : " + strconv.Itoa(TDSStatistic.PixelRequest) +
-					"\nClick Info request : " + strconv.Itoa(TDSStatistic.ClickInfoRequest) +
-					"\nFlow Info request  : " + strconv.Itoa(TDSStatistic.FlowInfoRequest) +
-					"\nRedirect request   : " + strconv.Itoa(TDSStatistic.RedirectRequest) +
-					"\nRedis Stat request : " + strconv.Itoa(TDSStatistic.RedisStatRequest) +
-					"\nIncorrect request  : " + strconv.Itoa(TDSStatistic.IncorrectRequest) +
-					"\nCookies request    : " + strconv.Itoa(TDSStatistic.CookieRequest) +
-					"\nUnique request     : " + strconv.Itoa(uniqueRequests) +
-					"\n\nUp time            : " + uptime +
-					"\nProcessing time    : " + processingTime +
-					"\nAvg response time  : " + avgReq +
-					"\n\nSYSTEM INFO" +
-					"\n\nTotal memory alloc : " + memoryUsageGeneral + " Mb" +
-					"\nPrivate memory     : " + memoryUsagePrivate + " Mb" +
-					"\nOpened files       : " + openedFiles +
-					"\n\nREDIS" +
-					"\n\nConnection         : " + strconv.FormatBool(IsRedisAlive) +
-					"\nClicks sent        : " + strconv.Itoa(TDSStatistic.ClicksSentToRedis) +
-					"\n```"
-
+				text := GetSystemStatistics()
 				if Telegram.SendMessage(text) {
 					if Cfg.Debug.Level > 0 {
 						utils.PrintInfo("Telegram", "Sending message success", initModuleName)

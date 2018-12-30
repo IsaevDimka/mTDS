@@ -16,6 +16,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/rand"
+	"net/http"
 	"os"
 	_ "os"
 	"strings"
@@ -162,4 +163,15 @@ func CreateDirIfNotExist(dir string) {
 			panic(err)
 		}
 	}
+}
+
+// мы не хотим узнать сохранилась ли она или нет, пока-что
+func SaveCookieToUser(value, path string) *http.Cookie {
+	cookie := new(http.Cookie)
+	// ставим куку на этот урл если у нас не прочиталось из запроса
+	cookie.Name = "CID"
+	cookie.Value = value
+	cookie.Expires = time.Now().Add(365 * 24 * time.Hour) // for an year
+	cookie.Path = path
+	return cookie
 }
