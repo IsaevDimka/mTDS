@@ -243,6 +243,8 @@ func UpdateFlowsListChan() <-chan string {
 
 				if req.Status == "200 OK" {
 					if count, err := ImportFlowsToRedis(body); err != false {
+						config.TDSStatistic.AppendedFlows += count
+						config.TDSStatistic.UpdatedFlows++
 
 						config.Telegram.SendMessage("\n" + timestampPrintable + "\n" +
 							config.Cfg.General.Name + "\nRequested flows from API\n" +
@@ -294,6 +296,7 @@ func UpdateFlowsListChan() <-chan string {
 
 				if req.Status == "200 OK" {
 					if count, err := ImportFlowsToRedis(body); err != false {
+						config.TDSStatistic.UpdatedFlows++
 						// writing debug
 						config.Telegram.SendMessage("\n" + timestampPrintable + "\n" +
 							config.Cfg.General.Name + "\nRequested flows from API\n" +
