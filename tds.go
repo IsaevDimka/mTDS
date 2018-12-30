@@ -19,6 +19,7 @@ import (
 	"github.com/labstack/echo/middleware"
 	"github.com/labstack/gommon/log"
 	"github.com/predatorpc/durafmt"
+	"github.com/sevenNt/echo-pprof"
 	"io/ioutil"
 	"net/http"
 	"runtime"
@@ -118,15 +119,16 @@ func main() {
 
 	customServer := &http.Server{
 		Addr:         ":" + strconv.Itoa(config.Cfg.General.Port),
-		ReadTimeout:  10 * time.Second,
-		WriteTimeout: 10 * time.Second,
-		IdleTimeout:  10 * time.Second,
+		ReadTimeout:  100 * time.Second,
+		WriteTimeout: 100 * time.Second,
+		IdleTimeout:  100 * time.Second,
 	}
 
 	customServer.SetKeepAlivesEnabled(false)
 
 	router.HideBanner = true
 	router.Logger.SetLevel(log.OFF)
+	echopprof.Wrap(router)
 
 	// run router
 	if config.Cfg.General.Port != 0 {
@@ -139,6 +141,7 @@ func main() {
 		//exit if not
 		panic("[ERROR] Failed to obtain server port from settings.ini")
 	}
+
 }
 
 func GetSystemConfHandler(c echo.Context) error {
@@ -204,130 +207,131 @@ func UpdateFlowsListChan() <-chan string {
 	c := make(chan string)
 	go func() {
 		for {
-			var body []byte
+			if config.IsRedisAlive {
+				var body []byte
 
-			t := time.Now()
-			timestampWriteable := strconv.FormatInt(time.Now().Unix(), 10)
-			timestampPrintable := fmt.Sprintf("%d-%02d-%02d %02d:%02d:%02d",
-				t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second())
+				t := time.Now()
+				timestampWriteable := strconv.FormatInt(time.Now().Unix(), 10)
+				timestampPrintable := fmt.Sprintf("%d-%02d-%02d %02d:%02d:%02d",
+					t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second())
 
-			// getting current count of flows and if it isn't null then proceeed
-			currentCount, _ := config.Redisdb.Keys("*:ID").Result()
-			fileData, err := ioutil.ReadFile(timestampFile)
+				// getting current count of flows and if it isn't null then proceeed
+				currentCount, _ := config.Redisdb.Keys("*:ID").Result()
+				fileData, err := ioutil.ReadFile(timestampFile)
 
-			if err == nil && len(currentCount) > 0 {
-				//---------------------------------------------------------------------------------------------------------------------
-				// LOADING WITH PARAMS OF LAST UPDATE
-				// When TDS starting up first time we need to load all flows in it
-				//---------------------------------------------------------------------------------------------------------------------
-				// if we can't parse this we should get all anyway
-				_, err := strconv.ParseInt(string(fileData), 10, 64)
-				if err != nil && config.Cfg.Debug.Level > 0 {
-					utils.PrintDebug("Error", "parsing timestamp from `"+timestampFile+"` failure", tdsModuleName)
+				if err == nil && len(currentCount) > 0 {
+					// ---------------------------------------------------------------------------------------------------------------------
+					// LOADING WITH PARAMS OF LAST UPDATE
+					// When TDS starting up first time we need to load all flows in it
+					// ---------------------------------------------------------------------------------------------------------------------
+					// if we can't parse this we should get all anyway
+					_, err := strconv.ParseInt(string(fileData), 10, 64)
+					if err != nil && config.Cfg.Debug.Level > 0 {
+						utils.PrintDebug("Error", "parsing timestamp from `"+timestampFile+"` failure", tdsModuleName)
+						fileData = []byte(defaultStartOfEpoch) // 2000-01-01
+					}
+
+					// performing request to our API
+					url := config.Cfg.Redis.ApiFlowsURL
+					req, err := http.Get(url + strings.Trim(string(fileData), "\r\n"))
+					req.Header.Set("Connection", "close")
+
+					if req != nil {
+						defer req.Body.Close()
+						body, _ = ioutil.ReadAll(req.Body)
+					}
+
+					if err != nil {
+						utils.PrintError("Redis import", "Can't create request to API to recieve flows", tdsModuleName)
+					}
+
+					if req.Status == "200 OK" {
+						if count, err := ImportFlowsToRedis(body); err != false {
+							config.TDSStatistic.AppendedFlows += count
+							config.TDSStatistic.UpdatedFlows++
+
+							config.Telegram.SendMessage("\n" + timestampPrintable + "\n" +
+								config.Cfg.General.Name + "\nRequested flows from API\n" +
+								"\nUpdated flows: " + strconv.Itoa(count) +
+								"\nTime elsapsed for operation: " + durafmt.Parse(time.Since(t)).String(durafmt.DF_LONG))
+
+							utils.PrintInfo("Redis import", "updated flows successful", tdsModuleName)
+
+							// saving current timestamp to file
+							ioutil.WriteFile(timestampFile, []byte(timestampWriteable), 0644)
+
+						} else {
+							// config.Telegram.SendMessage("```\n" + timestampPrintable + "\n" +
+							// 	config.Cfg.General.Name + "\nRequested flows from API\n" +
+							// 	"\nUpdated flows: nothing to update" +
+							// 	"\nTime elsapsed for operation: " + durafmt.Parse(time.Since(t)).String(durafmt.DF_LONG) +
+							// 	"```")
+						}
+
+					} else {
+						utils.PrintDebug("Error", "Recieving new flows failed", tdsModuleName)
+						//
+						// config.Telegram.SendMessage("```\n" + timestampPrintable + "\n" +
+						// 	config.Cfg.General.Name + "\nRequested flows from API\n" +
+						// 	"\nError: can't connect to API service" +
+						// 	"\nTime elsapsed for operation: " + durafmt.Parse(time.Since(t)).String(durafmt.DF_LONG) +
+						// 	"```")
+					}
+				} else {
+					// ---------------------------------------------------------------------------------------------------------------------
+					// DEFAULT LOADING
+					// When TDS starting up first time we need to load all flows in it
+					// ---------------------------------------------------------------------------------------------------------------------
 					fileData = []byte(defaultStartOfEpoch) // 2000-01-01
-				}
 
-				// performing request to our API
-				url := config.Cfg.Redis.ApiFlowsURL
-				req, err := http.Get(url + strings.Trim(string(fileData), "\r\n"))
-				req.Header.Set("Connection", "close")
+					// performing request to our API
+					url := config.Cfg.Redis.ApiFlowsURL
+					req, err := http.Get(url + strings.Trim(string(fileData), "\r\n"))
 
-				if req != nil {
-					defer req.Body.Close()
-					body, _ = ioutil.ReadAll(req.Body)
-				}
+					if req != nil {
+						defer req.Body.Close()
+						body, _ = ioutil.ReadAll(req.Body)
+					}
 
-				if err != nil {
-					utils.PrintError("Redis import", "Can't create request to API to recieve flows", tdsModuleName)
-				}
+					if err != nil {
+						utils.PrintError("Redis import", "Can't create request to API to recieve flows", tdsModuleName)
+					}
 
-				if req.Status == "200 OK" {
-					if count, err := ImportFlowsToRedis(body); err != false {
-						config.TDSStatistic.AppendedFlows += count
-						config.TDSStatistic.UpdatedFlows++
+					if req.Status == "200 OK" {
+						if count, err := ImportFlowsToRedis(body); err != false {
+							config.TDSStatistic.UpdatedFlows++
+							// writing debug
+							config.Telegram.SendMessage("\n" + timestampPrintable + "\n" +
+								config.Cfg.General.Name + "\nRequested flows from API\n" +
+								"\nUpdated flows: " + strconv.Itoa(count) +
+								"\nTime elsapsed for operation: " + durafmt.Parse(time.Since(t)).String(durafmt.DF_LONG))
 
-						config.Telegram.SendMessage("\n" + timestampPrintable + "\n" +
-							config.Cfg.General.Name + "\nRequested flows from API\n" +
-							"\nUpdated flows: " + strconv.Itoa(count) +
-							"\nTime elsapsed for operation: " + durafmt.Parse(time.Since(t)).String(durafmt.DF_LONG))
+							utils.PrintInfo("Redis import", "All flows loaded successful", tdsModuleName)
 
-						utils.PrintInfo("Redis import", "updated flows successful", tdsModuleName)
+							// saving current timestamp to file
+							ioutil.WriteFile(timestampFile, []byte(timestampWriteable), 0644)
 
-						//saving current timestamp to file
-						ioutil.WriteFile(timestampFile, []byte(timestampWriteable), 0644)
+						} else {
+							// config.Telegram.SendMessage("```\n" + timestampPrintable + "\n" +
+							// 	config.Cfg.General.Name + "\nRequested flows from API\n" +
+							// 	"\nUpdated flows: 0 nothing to update" +
+							// 	"\nTime elsapsed for operation: " + durafmt.Parse(time.Since(t)).String(durafmt.DF_LONG) +
+							// 	"```")
+						}
 
 					} else {
+						utils.PrintDebug("Error", "Recieving new flows failed", tdsModuleName)
 						// config.Telegram.SendMessage("```\n" + timestampPrintable + "\n" +
 						// 	config.Cfg.General.Name + "\nRequested flows from API\n" +
-						// 	"\nUpdated flows: nothing to update" +
+						// 	"\nUpdated flows: 0" +
 						// 	"\nTime elsapsed for operation: " + durafmt.Parse(time.Since(t)).String(durafmt.DF_LONG) +
 						// 	"```")
 					}
-
-				} else {
-					utils.PrintDebug("Error", "Recieving new flows failed", tdsModuleName)
-					//
-					// config.Telegram.SendMessage("```\n" + timestampPrintable + "\n" +
-					// 	config.Cfg.General.Name + "\nRequested flows from API\n" +
-					// 	"\nError: can't connect to API service" +
-					// 	"\nTime elsapsed for operation: " + durafmt.Parse(time.Since(t)).String(durafmt.DF_LONG) +
-					// 	"```")
-				}
-			} else {
-				//---------------------------------------------------------------------------------------------------------------------
-				// DEFAULT LOADING
-				// When TDS starting up first time we need to load all flows in it
-				//---------------------------------------------------------------------------------------------------------------------
-				fileData = []byte(defaultStartOfEpoch) // 2000-01-01
-
-				// performing request to our API
-				url := config.Cfg.Redis.ApiFlowsURL
-				req, err := http.Get(url + strings.Trim(string(fileData), "\r\n"))
-				req.Header.Set("Connection", "close")
-
-				if req != nil {
-					defer req.Body.Close()
-					body, _ = ioutil.ReadAll(req.Body)
 				}
 
-				if err != nil {
-					utils.PrintError("Redis import", "Can't create request to API to recieve flows", tdsModuleName)
-				}
-
-				if req.Status == "200 OK" {
-					if count, err := ImportFlowsToRedis(body); err != false {
-						config.TDSStatistic.UpdatedFlows++
-						// writing debug
-						config.Telegram.SendMessage("\n" + timestampPrintable + "\n" +
-							config.Cfg.General.Name + "\nRequested flows from API\n" +
-							"\nUpdated flows: " + strconv.Itoa(count) +
-							"\nTime elsapsed for operation: " + durafmt.Parse(time.Since(t)).String(durafmt.DF_LONG))
-
-						utils.PrintInfo("Redis import", "All flows loaded successful", tdsModuleName)
-
-						//saving current timestamp to file
-						ioutil.WriteFile(timestampFile, []byte(timestampWriteable), 0644)
-
-					} else {
-						// config.Telegram.SendMessage("```\n" + timestampPrintable + "\n" +
-						// 	config.Cfg.General.Name + "\nRequested flows from API\n" +
-						// 	"\nUpdated flows: 0 nothing to update" +
-						// 	"\nTime elsapsed for operation: " + durafmt.Parse(time.Since(t)).String(durafmt.DF_LONG) +
-						// 	"```")
-					}
-
-				} else {
-					utils.PrintDebug("Error", "Recieving new flows failed", tdsModuleName)
-					// config.Telegram.SendMessage("```\n" + timestampPrintable + "\n" +
-					// 	config.Cfg.General.Name + "\nRequested flows from API\n" +
-					// 	"\nUpdated flows: 0" +
-					// 	"\nTime elsapsed for operation: " + durafmt.Parse(time.Since(t)).String(durafmt.DF_LONG) +
-					// 	"```")
-				}
+				defer runtime.GC() // startup garbage collector
+				time.Sleep(time.Duration(1+config.Cfg.Redis.UpdateFlows) * time.Minute)
 			}
-
-			defer runtime.GC() // startup garbage collector
-			time.Sleep(time.Duration(1+config.Cfg.Redis.UpdateFlows) * time.Minute)
 		}
 	}()
 	return c
