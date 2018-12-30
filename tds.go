@@ -22,7 +22,6 @@ import (
 	"github.com/sevenNt/echo-pprof"
 	"io/ioutil"
 	"net/http"
-	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -329,7 +328,7 @@ func UpdateFlowsListChan() <-chan string {
 					}
 				}
 
-				defer runtime.GC() // startup garbage collector
+				//defer runtime.GC() // startup garbage collector
 				time.Sleep(time.Duration(1+config.Cfg.Redis.UpdateFlows) * time.Minute)
 			}
 		}

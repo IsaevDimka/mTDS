@@ -165,10 +165,10 @@ func flowHandler(c echo.Context) error {
 				// Финал редиректим
 				//------------------------------------------------------------------------------------------------------//------------------------------------------------------------------------------------------------------
 				if !config.Cfg.Debug.Test {
-					defer runtime.GC()
+				//	defer runtime.GC()
 					return c.Redirect(302, LandingTemplate)
 				} else {
-					defer runtime.GC()
+				//	defer runtime.GC()
 					return c.Blob(200, "image/png", pixel)
 				}
 			}
@@ -213,10 +213,10 @@ func flowHandler(c echo.Context) error {
 				// FINAL
 				// ----------------------------------------------------------------------------------------------------
 				if !config.Cfg.Debug.Test {
-					defer runtime.GC()
+				//	defer runtime.GC()
 					return c.Redirect(302, PrelandingTemplate)
 				} else {
-					defer runtime.GC()
+				//	defer runtime.GC()
 					return c.Blob(200, "image/png", pixel)
 				}
 			}
@@ -257,7 +257,7 @@ func flowHandler(c echo.Context) error {
 				// FINAL
 				// ----------------------------------------------------------------------------------------------------
 				s := utils.JSONPretty(Info)
-				defer runtime.GC()
+				//defer runtime.GC()
 				return c.String(200, s)
 			} else {
 				// ----------------------------------------------------------------------------------------------------
@@ -294,10 +294,10 @@ func flowHandler(c echo.Context) error {
 				// FINAL
 				// ----------------------------------------------------------------------------------------------------
 				if !config.Cfg.Debug.Test {
-					defer runtime.GC()
+				//	defer runtime.GC()
 					return c.Redirect(302, LandingTemplate)
 				} else {
-					defer runtime.GC()
+				//	defer runtime.GC()
 					return c.Blob(200, "image/png", pixel)
 				}
 			}
