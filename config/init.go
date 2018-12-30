@@ -278,6 +278,7 @@ func SendFileToRecieveApi() <-chan string {
 					resp, err := client.Do(req)
 
 					if resp != nil {
+						recover()
 						// TODO this needs to be recovered from panic otherwise fails
 						fmt.Fprintln(os.Stderr, "can't GET page:", err)
 					}
@@ -374,7 +375,7 @@ func GetSystemStatistics() string {
 			"\n\nINFO" +
 			"\n\nFlow update request    : " + strconv.Itoa(TDSStatistic.UpdatedFlows) +
 			"\nFlow appended          : " + strconv.Itoa(TDSStatistic.AppendedFlows) +
-			"\nPixel request          : " + strconv.Itoa(TDSStatistic.PixelRequest) +
+			//"\nPixel request          : " + strconv.Itoa(TDSStatistic.PixelRequest) +
 			"\nClick Info request     : " + strconv.Itoa(TDSStatistic.ClickInfoRequest) +
 			"\nFlow Info request      : " + strconv.Itoa(TDSStatistic.FlowInfoRequest) +
 			"\nRedirect request       : " + strconv.Itoa(TDSStatistic.RedirectRequest) +
