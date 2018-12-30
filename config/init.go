@@ -139,7 +139,7 @@ func RedisDBChan() <-chan string {
 				IsRedisAlive = true
 			}
 
-			defer runtime.GC()
+			// defer runtime.GC()
 			time.Sleep(60 * time.Second) // поспим чуть чуть
 		}
 	}()
@@ -227,7 +227,7 @@ func RedisSendOrSaveClicks() <-chan string {
 					fmt.Println("Time elapsed total: ", time.Since(t))
 				}
 
-				defer runtime.GC()
+				//defer runtime.GC()
 
 			}
 		tryagain:
@@ -310,7 +310,7 @@ func SendFileToRecieveApi() <-chan string {
 				}
 			}
 
-			defer runtime.GC()
+			// defer runtime.GC()
 			time.Sleep(time.Duration(Cfg.Click.DropFilesToAPI) * time.Minute)
 		}
 	}()
@@ -430,7 +430,7 @@ func TDSStatisticChan() <-chan string {
 				TDSStatistic.Reset()
 			}
 
-			runtime.GC()
+			//defer runtime.GC()
 			// +1 its to avoid dumbs with zero multiplication
 			time.Sleep(time.Duration(1+Cfg.Telegram.MsgInterval*60) * time.Second) // поспим чуть чуть
 		}
@@ -478,7 +478,7 @@ func ReloadConfigChan() <-chan string {
 			ReloadConfig()
 			// поспим чуть чуть
 			// +1 its to avoid dumbs with zero multiplication
-			runtime.GC()
+			//defer runtime.GC()
 			time.Sleep(time.Duration(1+Cfg.General.ConfReload*60) * time.Second)
 		}
 	}()
