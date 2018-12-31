@@ -180,25 +180,70 @@ func ImportFlowsToRedis(jsonData []byte) (int, bool) {
 			utils.PrintDebug("Error", "Can`t decode JSON given", tdsModuleName)
 		}
 	} else {
+
 		for _, item := range Flows {
-			_ = config.Redisdb.Set(item.Hash+":ID", item.ID, 0).Err()
-			_ = config.Redisdb.Set(item.Hash+":Hash", item.Hash, 0).Err()
-			_ = config.Redisdb.Set(item.Hash+":OfferID", item.OfferID, 0).Err()
-			_ = config.Redisdb.Set(item.Hash+":WebMasterID", item.WebMasterID, 0).Err()
-			_ = config.Redisdb.Set(item.Hash+":WebMasterCurrencyID", item.WebMasterCurrencyID, 0).Err()
+
+			params:=make(map[string]interface{})
+
+			params["ID"] = item.ID
+			params["Hash"] = item.Hash
+			params["OfferID"] = item.OfferID
+			params["WebMasterID"] = item.WebMasterID
+			params["WebMasterCurrencyID"] = item.WebMasterCurrencyID
+
+			_ = config.Redisdb.HMSet(item.Hash, params).Err()
+
+			// _ = config.Redisdb.HSet(item.Hash,"ID", item.ID).Err()
+			// _ = config.Redisdb.HSet(item.Hash,"Hash", item.Hash).Err()
+			// _ = config.Redisdb.HSet(item.Hash,"OfferID", item.OfferID).Err()
+			// _ = config.Redisdb.HSet(item.Hash,"WebMasterID", item.WebMasterID).Err()
+			// _ = config.Redisdb.HSet(item.Hash,"WebMasterCurrencyID", item.WebMasterCurrencyID).Err()
 
 			if len(item.Lands) > 0 {
-				for i, lands := range item.Lands {
-					_ = config.Redisdb.HSet(item.Hash+":land:"+strconv.Itoa(i), "id", lands.ID)
-					_ = config.Redisdb.HSet(item.Hash+":land:"+strconv.Itoa(i), "url", lands.URL)
+				for _, lands := range item.Lands {
+					_ = config.Redisdb.HSet(item.Hash+":lands", strconv.Itoa(lands.ID), lands.URL).Err()
+					//_ = config.Redisdb.HSet(item.Hash+":lands", )
+					// _ = config.Redisdb.HSet(item.Hash+":land:"+strconv.Itoa(i), "id", lands.ID)
+					// _ = config.Redisdb.HSet(item.Hash+":land:"+strconv.Itoa(i), "url", lands.URL)
+
 				}
 			}
+
 		}
 
 		return len(Flows), true
 	}
 	return len(Flows), false
 }
+
+// func ImportFlowsToRedis(jsonData []byte) (int, bool) {
+// 	Flows := make(map[string]models.FlowImportData)
+// 	if err := json.Unmarshal(jsonData, &Flows); err != nil {
+// 		if config.Cfg.Debug.Level > 1 {
+// 			utils.PrintDebug("Error", "Can`t decode JSON given", tdsModuleName)
+// 		}
+// 	} else {
+//
+// 		for _, item := range Flows {
+//
+// 			_ = config.Redisdb.Set(item.Hash+":ID", item.ID, 0).Err()
+// 			_ = config.Redisdb.Set(item.Hash+":Hash", item.Hash, 0).Err()
+// 			_ = config.Redisdb.Set(item.Hash+":OfferID", item.OfferID, 0).Err()
+// 			_ = config.Redisdb.Set(item.Hash+":WebMasterID", item.WebMasterID, 0).Err()
+// 			_ = config.Redisdb.Set(item.Hash+":WebMasterCurrencyID", item.WebMasterCurrencyID, 0).Err()
+//
+// 			if len(item.Lands) > 0 {
+// 				for i, lands := range item.Lands {
+// 					_ = config.Redisdb.HSet(item.Hash+":land:"+strconv.Itoa(i), "id", lands.ID)
+// 					_ = config.Redisdb.HSet(item.Hash+":land:"+strconv.Itoa(i), "url", lands.URL)
+// 				}
+// 			}
+// 		}
+//
+// 		return len(Flows), true
+// 	}
+// 	return len(Flows), false
+// }
 
 const defaultStartOfEpoch = "946684800"
 
