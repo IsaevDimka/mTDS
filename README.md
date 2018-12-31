@@ -4,12 +4,13 @@ __FEATURED TODO__
 
 __LAST CHANGES__
 
-> __31.12.2018__
+> __31.12.2018 22:29 (коммит новогодний) __
  + Improved average time calculatin
  + Improved saving click with redis HMSET
  + Improved getting infos from all triiggers
    lands / prelands / flows / clicks
  + reused profiling information
+ + Humanize
  + fx with count of flows
 
 > __30.12.2018__

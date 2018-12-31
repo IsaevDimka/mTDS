@@ -15,6 +15,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/dustin/go-humanize"
 	"github.com/go-redis/redis"
 	"io/ioutil"
 	"metatds/utils"
@@ -369,10 +370,12 @@ func GetSystemStatistics() string {
 
 		dur:=DurationAverage(utils.ResponseAverage)
 
-		if dur < time.Duration(1 * time.Millisecond) {
-			avgReq = durafmt.Parse(dur).String(durafmt.DF_LONG)
-		} else {
+		fmt.Println("DUR = ", dur, "[ ",durafmt.Parse(dur).String(durafmt.DF_LONG)," ]")
+
+		if dur < time.Duration(1 * time.Millisecond) { //|| dur < time.Duration(1 * time.Microsecond) || dur < time.Duration(1 * time.Nanosecond) {
 			avgReq = " < 1 ms"
+		} else {
+			avgReq = durafmt.Parse(dur).String(durafmt.DF_LONG)
 		}
 
 		uniqueRequests := TDSStatistic.RedirectRequest - TDSStatistic.CookieRequest - TDSStatistic.IncorrectRequest
@@ -384,7 +387,7 @@ func GetSystemStatistics() string {
 			//"\nPixel request          : " + strconv.Itoa(TDSStatistic.PixelRequest) +
 			"\nClick Info request     : " + strconv.Itoa(TDSStatistic.ClickInfoRequest) +
 			"\nFlow Info request      : " + strconv.Itoa(TDSStatistic.FlowInfoRequest) +
-			"\nRedirect request       : " + strconv.Itoa(TDSStatistic.RedirectRequest) +
+			"\nRedirect request       : " + humanize.Comma(int64(TDSStatistic.RedirectRequest)) + //strconv.Itoa(TDSStatistic.RedirectRequest) +
 			//			"\nRedis Stat request     : " + strconv.Itoa(TDSStatistic.RedisStatRequest) +
 			"\nIncorrect request      : " + strconv.Itoa(TDSStatistic.IncorrectRequest) +
 			"\nCookies request        : " + strconv.Itoa(TDSStatistic.CookieRequest) +
@@ -476,7 +479,7 @@ func DurationAverage(dur []time.Duration) time.Duration {
 		allTime += float64(item)
 	}
 	result:= allTime / float64(1+len(dur))
-//	fmt.Println("All time sum ", allTime, " / ", 1+len(dur))
+	fmt.Println("All time sum ", allTime, " / ", 1+len(dur))
 	return time.Duration(result)
 }
 
