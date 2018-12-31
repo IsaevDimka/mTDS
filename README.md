@@ -10,6 +10,7 @@ __LAST CHANGES__
  + Improved getting infos from all triiggers
    lands / prelands / flows / clicks
  + reused profiling information
+ + fx with count of flows
 
 > __30.12.2018__
 + Improved performance for responsing to context

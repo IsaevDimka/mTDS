@@ -260,10 +260,10 @@ func UpdateFlowsListChan() <-chan string {
 					t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second())
 
 				// getting current count of flows and if it isn't null then proceeed
-				currentCount, _ := config.Redisdb.Keys("*:ID").Result()
+				//currentCount, _ := config.Redisdb.Keys("*:ID").Result()
 				fileData, err := ioutil.ReadFile(timestampFile)
 
-				if err == nil && len(currentCount) > 0 {
+				if err == nil { //&& len(currentCount) > 0 {
 					// ---------------------------------------------------------------------------------------------------------------------
 					// LOADING WITH PARAMS OF LAST UPDATE
 					// When TDS starting up first time we need to load all flows in it

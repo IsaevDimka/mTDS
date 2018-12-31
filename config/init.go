@@ -327,7 +327,7 @@ func GetSystemStatistics() string {
 
 		var memory runtime.MemStats
 		var duration time.Duration // current duration & uptime
-		var uptime, processingTime, memoryUsageGeneral, memoryUsagePrivate string
+		var uptime, processingTime, memoryUsageGeneral, memoryUsagePrivate, avgReq string
 		var openedFiles = "0"
 
 		duration = 60 * time.Minute
@@ -367,7 +367,13 @@ func GetSystemStatistics() string {
 			}
 		}
 
-		avgReq := durafmt.Parse(DurationAverage(utils.ResponseAverage)).String(durafmt.DF_LONG)
+		dur:=DurationAverage(utils.ResponseAverage)
+
+		if dur < time.Duration(1 * time.Millisecond) {
+			avgReq = durafmt.Parse(dur).String(durafmt.DF_LONG)
+		} else {
+			avgReq = " < 1 ms"
+		}
 
 		uniqueRequests := TDSStatistic.RedirectRequest - TDSStatistic.CookieRequest - TDSStatistic.IncorrectRequest
 
