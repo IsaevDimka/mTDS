@@ -359,7 +359,7 @@ func GetSystemStatistics() string {
 			if e != nil && Cfg.Debug.Level > 0 {
 				utils.PrintError("Error", "reading process directory failed", initModuleName)
 			} else {
-				utils.PrintInfo("PID", pid, initModuleName)
+				//utils.PrintInfo("PID", pid, initModuleName)
 			}
 
 			if len(fds) > 0 {
