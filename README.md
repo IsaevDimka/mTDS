@@ -4,6 +4,13 @@ __FEATURED TODO__
 
 __LAST CHANGES__
 
+> __31.12.2018__
+ + Improved average time calculatin
+ + Improved saving click with redis HMSET
+ + Improved getting infos from all triiggers
+   lands / prelands / flows / clicks
+ + reused profiling information
+
 > __30.12.2018__
 + Improved performance for responsing to context
 + Additional statistics /stat, /conf

@@ -31,7 +31,7 @@ const utilsModuleName = "utils.go"
 const charset = "abcdefghijklmnopqrstuvwxyz" +
 	"ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
 	"0123456789"
-const WriteToLogOnly = false
+const WriteToLogOnly = true
 const LogFileName = "metatds.log"
 
 var SeededRand = rand.New(rand.NewSource(time.Now().UnixNano()))

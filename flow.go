@@ -18,6 +18,7 @@ import (
 *
 *
  */
+ const minimumStatCount = 1000
 
 func flowHandler(c echo.Context) error {
 	if config.IsRedisAlive {
@@ -155,7 +156,7 @@ func flowHandler(c echo.Context) error {
 					utils.PrintInfo("Action elapsed time", time.Since(start), tdsModuleName)
 				}
 
-				if len(utils.ResponseAverage) < 100 {
+				if len(utils.ResponseAverage) < minimumStatCount {
 					utils.ResponseAverage = append(utils.ResponseAverage, time.Since(start))
 				} else {
 					utils.ResponseAverage = utils.ResponseAverageDefault
@@ -203,7 +204,7 @@ func flowHandler(c echo.Context) error {
 					utils.PrintInfo("Action elapsed time", time.Since(start), tdsModuleName)
 				}
 
-				if len(utils.ResponseAverage) < 100 {
+				if len(utils.ResponseAverage) < minimumStatCount {
 					utils.ResponseAverage = append(utils.ResponseAverage, time.Since(start))
 				} else {
 					utils.ResponseAverage = utils.ResponseAverageDefault
@@ -247,7 +248,7 @@ func flowHandler(c echo.Context) error {
 					utils.PrintInfo("Action elapsed time", time.Since(start), tdsModuleName)
 				}
 
-				if len(utils.ResponseAverage) < 100 {
+				if len(utils.ResponseAverage) < minimumStatCount {
 					utils.ResponseAverage = append(utils.ResponseAverage, time.Since(start))
 				} else {
 					utils.ResponseAverage = utils.ResponseAverageDefault
@@ -285,7 +286,7 @@ func flowHandler(c echo.Context) error {
 					utils.PrintInfo("Action elapsed time", time.Since(start), tdsModuleName)
 				}
 
-				if len(utils.ResponseAverage) < 100 {
+				if len(utils.ResponseAverage) < minimumStatCount {
 					utils.ResponseAverage = append(utils.ResponseAverage, time.Since(start))
 				} else {
 					utils.ResponseAverage = utils.ResponseAverageDefault
