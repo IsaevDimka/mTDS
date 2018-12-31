@@ -3,6 +3,7 @@ package utils
 import "time"
 
 var ResponseAverage []time.Duration
+var ResponseAverageDefault []time.Duration
 
 type TDSStats struct {
 	UpdatedFlows      int
@@ -32,5 +33,6 @@ func (tdstat TDSStats) Reset() {
 	tdstat.ProcessingTime = 0
 	tdstat.MemoryAllocated = 0
 	tdstat.ClicksSentToRedis = 0
-	ResponseAverage = []time.Duration{}
+	ResponseAverageDefault = append(ResponseAverageDefault,time.Duration(0))
+	ResponseAverage = ResponseAverageDefault
 }

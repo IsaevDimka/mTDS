@@ -452,16 +452,28 @@ func TDSStatisticChan() <-chan string {
 // 	return c
 // }
 //
+//
+// func DurationAverage(dur []time.Duration) time.Duration {
+// 	var allTime time.Duration
+// 	for _, item := range dur {
+// 		allTime += item
+// 	}
+// 	//division by zero
+// 	fmt.Println("All time sum ", allTime, " / ", len(dur))
+//
+// 	return allTime / 1 + time.Duration(len(dur)) //time.Duration(1+len(dur))
+// }
 
 func DurationAverage(dur []time.Duration) time.Duration {
-	var allTime time.Duration
+	var allTime float64
 	for _, item := range dur {
-		allTime += item
+		allTime += float64(item)
 	}
-	//division by zero
-
-	return allTime / time.Duration(1+len(dur))
+	result:= allTime / float64(1+len(dur))
+//	fmt.Println("All time sum ", allTime, " / ", 1+len(dur))
+	return time.Duration(result)
 }
+
 
 /*
 *
