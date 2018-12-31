@@ -155,10 +155,10 @@ func flowHandler(c echo.Context) error {
 					utils.PrintInfo("Action elapsed time", time.Since(start), tdsModuleName)
 				}
 
-				if len(config.ResponseAverage) <= 100 {
+				if len(utils.ResponseAverage) < 100 {
 					utils.ResponseAverage = append(utils.ResponseAverage, time.Since(start))
 				} else {
-					utils.ResponseAverage = nil
+					utils.ResponseAverage = utils.ResponseAverageDefault
 				}
 
 				//------------------------------------------------------------------------------------------------------
@@ -203,10 +203,10 @@ func flowHandler(c echo.Context) error {
 					utils.PrintInfo("Action elapsed time", time.Since(start), tdsModuleName)
 				}
 
-				if len(config.ResponseAverage) <= 100 {
+				if len(utils.ResponseAverage) < 100 {
 					utils.ResponseAverage = append(utils.ResponseAverage, time.Since(start))
 				} else {
-					utils.ResponseAverage = nil
+					utils.ResponseAverage = utils.ResponseAverageDefault
 				}
 
 				// ----------------------------------------------------------------------------------------------------
@@ -247,10 +247,10 @@ func flowHandler(c echo.Context) error {
 					utils.PrintInfo("Action elapsed time", time.Since(start), tdsModuleName)
 				}
 
-				if len(config.ResponseAverage) <= 100 {
+				if len(utils.ResponseAverage) < 100 {
 					utils.ResponseAverage = append(utils.ResponseAverage, time.Since(start))
 				} else {
-					utils.ResponseAverage = nil
+					utils.ResponseAverage = utils.ResponseAverageDefault
 				}
 
 				// ----------------------------------------------------------------------------------------------------
@@ -285,10 +285,10 @@ func flowHandler(c echo.Context) error {
 					utils.PrintInfo("Action elapsed time", time.Since(start), tdsModuleName)
 				}
 
-				if len(config.ResponseAverage) <= 100 {
+				if len(utils.ResponseAverage) < 100 {
 					utils.ResponseAverage = append(utils.ResponseAverage, time.Since(start))
 				} else {
-					utils.ResponseAverage = nil
+					utils.ResponseAverage = utils.ResponseAverageDefault
 				}
 				// ----------------------------------------------------------------------------------------------------
 				// FINAL

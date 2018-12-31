@@ -15,6 +15,7 @@ import (
 	"metatds/config"
 	"metatds/utils"
 	"strconv"
+	"github.com/fatih/structs"
 )
 
 const clickModuleName = "click.go"
@@ -61,48 +62,57 @@ restart:
 	}
 }
 
-/*
-	saving click to redis
-*/
 func (Click ClickData) Save() bool {
-	errFlowID := config.Redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "FlowID", Click.FlowID).Err()
-	errLandingID := config.Redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "LandingID", Click.LandingID).Err()
-	errPrelandingID := config.Redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "PrelandingID", Click.PrelandingID).Err()
-	errWebMasterID := config.Redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "WebMasterID", Click.WebMasterID).Err()
-	errWebMasterCurrencyID := config.Redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "WebMasterCurrencyID", Click.WebMasterCurrencyID).Err()
-	errOfferID := config.Redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "OfferID", Click.OfferID).Err()
-
-	errFlowHash := config.Redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "FlowHash", Click.FlowHash).Err()
-	errHash := config.Redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "Hash", Click.Hash).Err()
-	errReferer := config.Redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "Referer", Click.Referer).Err()
-	errTime := config.Redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "Time", Click.Time).Err()
-	errIP := config.Redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "IP", Click.IP).Err()
-	errUserAgent := config.Redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "UserAgent", Click.UserAgent).Err()
-	errURL := config.Redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "URL", Click.URL).Err()
-	errLocationLP := config.Redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "LocationLP", Click.LocationLP).Err()
-	errIsVisitedLP := config.Redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "IsVisitedLP", Click.IsVisitedLP).Err()
-
-	errLocationPL := config.Redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "LocationPL", Click.LocationPL).Err()
-	errIsVisitedPL := config.Redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "IsVisitedPL", Click.IsVisitedPL).Err()
-
-	errSub1 := config.Redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "Sub1", Click.Sub1).Err()
-	errSub2 := config.Redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "Sub2", Click.Sub2).Err()
-	errSub3 := config.Redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "Sub3", Click.Sub3).Err()
-	errSub4 := config.Redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "Sub4", Click.Sub4).Err()
-	errSub5 := config.Redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "Sub5", Click.Sub5).Err()
-
-	// TODO: надо придумать повеселее
-	if errFlowID != nil || errLandingID != nil || errPrelandingID != nil || errWebMasterID != nil ||
-		errWebMasterCurrencyID != nil || errOfferID != nil || errFlowHash != nil || errHash != nil ||
-		errReferer != nil || errTime != nil || errIP != nil || errUserAgent != nil || errURL != nil ||
-		errLocationLP != nil || errLocationPL != nil || errIsVisitedLP != nil || errIsVisitedPL != nil ||
-		errSub1 != nil || errSub2 != nil || errSub3 != nil || errSub4 != nil ||
-		errSub5 != nil {
+	c:=structs.Map(Click)
+	if err := config.Redisdb.HMSet(Click.FlowHash+":click:"+Click.Hash, c).Err(); err!=nil {
 		return false
-	} else {
-		return true
 	}
+	return true
 }
+
+//
+// /*
+// 	saving click to redis
+// */
+// func (Click ClickData) Save() bool {
+// 	errFlowID := config.Redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "FlowID", Click.FlowID).Err()
+// 	errLandingID := config.Redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "LandingID", Click.LandingID).Err()
+// 	errPrelandingID := config.Redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "PrelandingID", Click.PrelandingID).Err()
+// 	errWebMasterID := config.Redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "WebMasterID", Click.WebMasterID).Err()
+// 	errWebMasterCurrencyID := config.Redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "WebMasterCurrencyID", Click.WebMasterCurrencyID).Err()
+// 	errOfferID := config.Redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "OfferID", Click.OfferID).Err()
+//
+// 	errFlowHash := config.Redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "FlowHash", Click.FlowHash).Err()
+// 	errHash := config.Redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "Hash", Click.Hash).Err()
+// 	errReferer := config.Redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "Referer", Click.Referer).Err()
+// 	errTime := config.Redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "Time", Click.Time).Err()
+// 	errIP := config.Redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "IP", Click.IP).Err()
+// 	errUserAgent := config.Redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "UserAgent", Click.UserAgent).Err()
+// 	errURL := config.Redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "URL", Click.URL).Err()
+// 	errLocationLP := config.Redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "LocationLP", Click.LocationLP).Err()
+// 	errIsVisitedLP := config.Redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "IsVisitedLP", Click.IsVisitedLP).Err()
+//
+// 	errLocationPL := config.Redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "LocationPL", Click.LocationPL).Err()
+// 	errIsVisitedPL := config.Redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "IsVisitedPL", Click.IsVisitedPL).Err()
+//
+// 	errSub1 := config.Redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "Sub1", Click.Sub1).Err()
+// 	errSub2 := config.Redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "Sub2", Click.Sub2).Err()
+// 	errSub3 := config.Redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "Sub3", Click.Sub3).Err()
+// 	errSub4 := config.Redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "Sub4", Click.Sub4).Err()
+// 	errSub5 := config.Redisdb.HSet(Click.FlowHash+":click:"+Click.Hash, "Sub5", Click.Sub5).Err()
+//
+// 	// TODO: надо придумать повеселее
+// 	if errFlowID != nil || errLandingID != nil || errPrelandingID != nil || errWebMasterID != nil ||
+// 		errWebMasterCurrencyID != nil || errOfferID != nil || errFlowHash != nil || errHash != nil ||
+// 		errReferer != nil || errTime != nil || errIP != nil || errUserAgent != nil || errURL != nil ||
+// 		errLocationLP != nil || errLocationPL != nil || errIsVisitedLP != nil || errIsVisitedPL != nil ||
+// 		errSub1 != nil || errSub2 != nil || errSub3 != nil || errSub4 != nil ||
+// 		errSub5 != nil {
+// 		return false
+// 	} else {
+// 		return true
+// 	}
+// }
 
 func (Click ClickData) GetInfo(ClickHash string) ClickData {
 

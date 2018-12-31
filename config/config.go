@@ -18,7 +18,6 @@ import (
 	"gopkg.in/gcfg.v1"
 	"metatds/utils"
 	"os"
-	"time"
 )
 
 const configFileName = "settings.ini"
@@ -69,7 +68,6 @@ var Redisdb *redis.Client // Редис
 var IsRedisAlive = false
 var Telegram utils.TelegramAdapter // инстанс бота
 var TDSStatistic utils.TDSStats    // Инстанс статистики
-var ResponseAverage []time.Duration
 
 // Загрузка конфига и обработка параметров
 func InitConfig() {
