@@ -207,9 +207,9 @@ func main() {
 
 	customServer := &http.Server{
 		Addr:         ":" + strconv.Itoa(config.Cfg.General.Port),
-		ReadTimeout:  config.Cfg.General.HTTPTimeout * time.Second,
-		WriteTimeout: config.Cfg.General.HTTPTimeout * time.Second,
-		IdleTimeout:  config.Cfg.General.HTTPTimeout * time.Second,
+		ReadTimeout:  time.Duration(1+config.Cfg.General.HTTPTimeout) * time.Second,
+		WriteTimeout: time.Duration(1+config.Cfg.General.HTTPTimeout) * time.Second,
+		IdleTimeout:  time.Duration(1+config.Cfg.General.HTTPTimeout) * time.Second,
 	}
 
 	// customServer := &http.Server{

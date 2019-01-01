@@ -46,7 +46,7 @@ func init() {
 	}
 
 	// issue with too many open files
-	http.DefaultClient.Timeout = time.Second * Cfg.General.HTTPTimeout
+	http.DefaultClient.Timeout = time.Second * time.Duration(1+Cfg.General.HTTPTimeout)
 
 	// цепляем редис и потом, проверяем постоянно, как у него дела
 	RedisDBChan()
@@ -428,7 +428,7 @@ func GetSystemStatistics() string {
 			"\nOpened files           : " + openedFiles +
 			"\n\nREDIS" +
 			"\n\nConnection             : " + strconv.FormatBool(IsRedisAlive) +
-			"\nClicks sent            : " + strconv.Itoa(TDSStatistic.ClicksSentToRedis) +
+			"\nClicks sent            : " + humanize.Comma(int64(TDSStatistic.ClicksSentToRedis)) + //strconv.Itoa(TDSStatistic.ClicksSentToRedis) +
 			"\n"
 		return text
 	} else {
