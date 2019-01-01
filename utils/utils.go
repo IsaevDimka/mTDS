@@ -34,8 +34,6 @@ const charset = "abcdefghijklmnopqrstuvwxyz" +
 const WriteToLogOnly = true
 const LogFileName = "metatds.log"
 
-var SeededRand = rand.New(rand.NewSource(time.Now().UnixNano()))
-
 func BToMb(b uint64) uint64 {
 	return b / 1024 / 1024
 }
@@ -132,6 +130,7 @@ func JSONPretty(Data interface{}) string {
 
 // StringWithCharset this is very good function
 func StringWithCharset(length int, charset string) string {
+	var SeededRand = rand.New(rand.NewSource(time.Now().UnixNano()))
 	b := make([]byte, length)
 	for i := range b {
 		b[i] = charset[SeededRand.Intn(len(charset))]
