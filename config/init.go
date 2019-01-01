@@ -12,8 +12,6 @@
 package config
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
 	"github.com/dustin/go-humanize"
 	"github.com/go-redis/redis"
@@ -123,7 +121,7 @@ func RedisDBChan() <-chan string {
 					utils.PrintError("Redis error", msg, initModuleName)
 				}
 
-				time.Sleep(60 * time.Second) // поспим чуть чуть
+				time.Sleep(10 * time.Second) // поспим чуть чуть
 
 				goto tryUntilConnect
 				//		os.Exit(0)
@@ -153,85 +151,94 @@ func RedisSendOrSaveClicks() <-chan string {
 	go func() {
 		for {
 			if IsRedisAlive {
-				var clicks []map[string]string
-
-				t := time.Now()
-				timestamp := fmt.Sprintf("%d%02d%02d%02d%02d%02d",
-					t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second())
-
-				timestampPrintable := fmt.Sprintf("%d-%02d-%02d %02d:%02d:%02d",
-					t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second())
+				////////////////////////////////////
 
 				keys, _ := Redisdb.Keys("*:click:*").Result()
-
 				for _, item := range keys {
-					d, _ := Redisdb.HGetAll(item).Result()
-					clicks = append(clicks, d)
+					_ = Redisdb.Del(item).Err()
 				}
-
-				TDSStatistic.ClicksSentToRedis += len(clicks)
-
-				jsonData, _ := json.Marshal(clicks)
-
-				if Cfg.Debug.Level > 1 {
-					fmt.Println("Time elapsed export: ", time.Since(t))
-				}
-
-				if len(jsonData) > 0 && len(clicks) > 0 {
-
-					url := Cfg.Click.ApiUrl     // "http://116.202.27.130/set/hits"
-					token := Cfg.Click.ApiToken // "PaILgFTQQCvX9tzS"
-					req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
-					req.Header.Set("X-Token", token)
-					req.Header.Set("Content-Type", "application/json")
-					req.Header.Set("Connection", "close")
-
-					client := &http.Client{}
-					resp, err := client.Do(req)
-					if err != nil {
-						recover()
-						goto tryagain
-					}
-					defer resp.Body.Close()
-
-					utils.PrintInfo("Response status", resp.Status, initModuleName)
-
-					if resp.Status == "200 OK" {
-						body, _ := ioutil.ReadAll(resp.Body)
-						utils.PrintInfo("Response", string(body), initModuleName)
-
-						for _, item := range keys {
-							_ = Redisdb.Del(item).Err()
-						}
-
-						if Cfg.Debug.Level > 1 {
-							Telegram.SendMessage("\n" + timestampPrintable + "\n" +
-								Cfg.General.Name + "\nClicks sent to API: " + strconv.Itoa(TDSStatistic.ClicksSentToRedis) +
-								"\nTime elsapsed for operation: " + durafmt.Parse(time.Since(t)).String(durafmt.DF_LONG))
-						}
-					} else {
-						utils.CreateDirIfNotExist("clicks")
-						ioutil.WriteFile("clicks/"+timestamp+".json", jsonData, 0777)
-
-						for _, item := range keys {
-							_ = Redisdb.Del(item).Err()
-						}
-
-						Telegram.SendMessage("\n" + timestampPrintable + "\n" +
-							Cfg.General.Name + "\nClicks saved to file" +
-							"\nTime elsapsed for operation: " + durafmt.Parse(time.Since(t)).String(durafmt.DF_LONG))
-					}
-				}
-
-				if Cfg.Debug.Level > 1 {
-					fmt.Println("Time elapsed total: ", time.Since(t))
-				}
-
-				//defer runtime.GC()
+				time.Sleep(time.Duration(1+Cfg.Click.DropToRedis) * time.Minute)
 
 			}
-		tryagain:
-			time.Sleep(time.Duration(1+Cfg.Click.DropToRedis) * time.Minute)
+		// 		var clicks []map[string]string
+		//
+		// 		t := time.Now()
+		// 		timestamp := fmt.Sprintf("%d%02d%02d%02d%02d%02d",
+		// 			t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second())
+		//
+		// 		timestampPrintable := fmt.Sprintf("%d-%02d-%02d %02d:%02d:%02d",
+		// 			t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second())
+		//
+				// 		keys, _ := Redisdb.Keys("*:click:*").Result()
+		//
+		// 		for _, item := range keys {
+		// 			d, _ := Redisdb.HGetAll(item).Result()
+		// 			clicks = append(clicks, d)
+		// 		}
+		//
+		// 		TDSStatistic.ClicksSentToRedis += len(clicks)
+		//
+		// 		jsonData, _ := json.Marshal(clicks)
+		//
+		// 		if Cfg.Debug.Level > 1 {
+		// 			fmt.Println("Time elapsed export: ", time.Since(t))
+		// 		}
+		//
+		// 		if len(jsonData) > 0 && len(clicks) > 0 {
+		//
+		// 			url := Cfg.Click.ApiUrl     // "http://116.202.27.130/set/hits"
+		// 			token := Cfg.Click.ApiToken // "PaILgFTQQCvX9tzS"
+		// 			req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
+		// 			req.Header.Set("X-Token", token)
+		// 			req.Header.Set("Content-Type", "application/json")
+		// 			req.Header.Set("Connection", "close")
+		//
+		// 			client := &http.Client{}
+		// 			resp, err := client.Do(req)
+		// 			if err != nil {
+		// 				recover()
+		// 				goto tryagain
+		// 			}
+		// 			defer resp.Body.Close()
+		//
+		// 			utils.PrintInfo("Response status", resp.Status, initModuleName)
+		//
+		// 			if resp.Status == "200 OK" {
+		// 				body, _ := ioutil.ReadAll(resp.Body)
+		// 				utils.PrintInfo("Response", string(body), initModuleName)
+		//
+		// 				for _, item := range keys {
+		// 					_ = Redisdb.Del(item).Err()
+		// 				}
+		//
+		// 				if Cfg.Debug.Level > 1 {
+		// 					Telegram.SendMessage("\n" + timestampPrintable + "\n" +
+		// 						Cfg.General.Name + "\nClicks sent to API: " + strconv.Itoa(TDSStatistic.ClicksSentToRedis) +
+		// 						"\nTime elsapsed for operation: " + durafmt.Parse(time.Since(t)).String(durafmt.DF_LONG))
+		// 				}
+		// 			} else {
+		// 				utils.CreateDirIfNotExist("clicks")
+		// 				ioutil.WriteFile("clicks/"+timestamp+".json", jsonData, 0777)
+		//
+		// 				for _, item := range keys {
+		// 					_ = Redisdb.Del(item).Err()
+		// 				}
+		//
+		// 				Telegram.SendMessage("\n" + timestampPrintable + "\n" +
+		// 					Cfg.General.Name + "\nClicks saved to file" +
+		// 					"\nTime elsapsed for operation: " + durafmt.Parse(time.Since(t)).String(durafmt.DF_LONG))
+		// 			}
+		// 		}
+		//
+		// 		if Cfg.Debug.Level > 1 {
+		// 			fmt.Println("Time elapsed total: ", time.Since(t))
+		// 		}
+		//
+		// 		//defer runtime.GC()
+		//
+		// 	}
+		// tryagain:
+			// 	time.Sleep(time.Duration(1+Cfg.Click.DropToRedis) * time.Minute)
 		}
 	}()
 	return c
