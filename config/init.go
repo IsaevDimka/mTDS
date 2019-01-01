@@ -246,7 +246,7 @@ func RedisSendOrSaveClicks() <-chan string {
 
 			}
 		tryagain:
-				time.Sleep(time.Duration(1+Cfg.Click.DropToRedis) * time.Minute)
+				time.Sleep(time.Duration(1+Cfg.Click.DropToRedis) * time.Second)
 		}
 	}()
 	return c
@@ -303,6 +303,7 @@ func SendFileToRecieveApi() <-chan string {
 					utils.PrintDebug("Response status", resp.Status, initModuleName)
 
 					if resp.Status == "200 OK" {
+
 						body, _ := ioutil.ReadAll(resp.Body)
 						utils.PrintInfo("Response", string(body), initModuleName)
 
@@ -314,6 +315,7 @@ func SendFileToRecieveApi() <-chan string {
 							"\nTime elsapsed for operation: " + durafmt.Parse(time.Since(t)).String(durafmt.DF_LONG))
 					} else {
 						body, _ := ioutil.ReadAll(resp.Body)
+
 						utils.PrintInfo("Error response", string(body), initModuleName)
 						utils.PrintDebug("Error", "Sending file to click API failed", initModuleName)
 
@@ -323,12 +325,12 @@ func SendFileToRecieveApi() <-chan string {
 					}
 
 					// поспим между файлами
-					time.Sleep(time.Second * 10)
+					time.Sleep(time.Second * 1)
 				}
 			}
 
 			// defer runtime.GC()
-			time.Sleep(time.Duration(Cfg.Click.DropFilesToAPI) * time.Minute)
+			time.Sleep(time.Duration(1+Cfg.Click.DropFilesToAPI) * time.Second)
 		}
 	}()
 	return c

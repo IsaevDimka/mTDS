@@ -19,8 +19,8 @@ length = 10
 apiurl = "http://116.202.27.130/set/hits"
 apitoken = "PaILgFTQQCvX9tzS"
 ; Time to drop clicks to file from Redis
-droptoredis = 10
-DropFilesToAPI = 10
+droptoredis = 30 in seconds
+DropFilesToAPI = 30 in seconds
 
 ; redis configuration
 ; flows and clicks storage DB is default = 0
