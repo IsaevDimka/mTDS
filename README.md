@@ -4,6 +4,14 @@ __FEATURED TODO__
 
 __LAST CHANGES__
 
+> __01.01.2019__
++ tests to increase performance of randomization
++ additional configuration & management tools
++ memory profiling
++ cpu profiling
++ string generator fix
++ resend statistic send and file saving refactoring
+
 > __31.12.2018 22:29 (коммит новогодний) __
  + Improved average time calculatin
  + Improved saving click with redis HMSET
