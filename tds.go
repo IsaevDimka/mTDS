@@ -207,11 +207,10 @@ func main() {
 
 	customServer := &http.Server{
 		Addr:         ":" + strconv.Itoa(config.Cfg.General.Port),
-		ReadTimeout:  100 * time.Second,
-		WriteTimeout: 100 * time.Second,
-		IdleTimeout:  100 * time.Second,
+		ReadTimeout:  time.Duration(1+config.Cfg.General.HTTPTimeout) * time.Second,
+		WriteTimeout: time.Duration(1+config.Cfg.General.HTTPTimeout) * time.Second,
+		IdleTimeout:  time.Duration(1+config.Cfg.General.HTTPTimeout) * time.Second,
 	}
-
 
 	// customServer := &http.Server{
 	// 	Addr:         ":" + strconv.Itoa(config.Cfg.General.Port),
@@ -221,10 +220,12 @@ func main() {
 	// }
 
 	customServer.SetKeepAlivesEnabled(false)
-
 	router.HideBanner = true
 	router.Logger.SetLevel(log.OFF)
-	echopprof.Wrap(router)
+
+	if config.Cfg.Debug.Level > 0 {
+		echopprof.Wrap(router)
+	}
 
 	// run router
 	if config.Cfg.General.Port != 0 {
@@ -471,7 +472,7 @@ func UpdateFlowsListChan() <-chan string {
 				}
 
 				//defer runtime.GC() // startup garbage collector
-				time.Sleep(time.Duration(1+config.Cfg.Redis.UpdateFlows) * time.Minute)
+				time.Sleep(time.Duration(1+config.Cfg.Redis.UpdateFlows) * time.Second)
 			}
 		}
 	}()

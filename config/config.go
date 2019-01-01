@@ -31,6 +31,7 @@ type Config struct {
 		Port       int
 		ConfReload int
 		OS         string
+		HTTPTimeout int
 	}
 	Click struct {
 		Length         int
@@ -38,6 +39,7 @@ type Config struct {
 		ApiToken       string
 		DropToRedis    int
 		DropFilesToAPI int
+		MaxDropItems   int
 	}
 	Redis struct {
 		Host        string
@@ -110,6 +112,9 @@ func InitConfig() {
 					}
 					if Cfg.General.OS != "" {
 						fmt.Println("[ -- OS ]", Cfg.General.OS)
+					}
+					if Cfg.General.HTTPTimeout != 0 {
+						fmt.Println("[ -- HTTPTimeout ]", Cfg.General.HTTPTimeout)
 					} else {
 						fmt.Println("[ -- Empty ]")
 					}
@@ -132,6 +137,9 @@ func InitConfig() {
 					}
 					if Cfg.Click.DropFilesToAPI != 0 {
 						fmt.Println("[ -- DropFilesToAPI ]", Cfg.Click.DropFilesToAPI)
+					}
+					if Cfg.Click.MaxDropItems != 0 {
+						fmt.Println("[ -- MaxDropItems ]", Cfg.Click.MaxDropItems)
 					} else {
 						fmt.Println("[ -- Empty ]")
 					}
