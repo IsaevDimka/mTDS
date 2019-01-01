@@ -42,12 +42,24 @@ func BToKb(b uint64) uint64 {
 	return b / 1024
 }
 
+func WriteLog(FileName, Header, Module string, Message interface{}){
+	item := "[ " + Header + " ] " + fmt.Sprintf("%s", Message) + ", " + Module + "\n"
+	f, _ := os.OpenFile(FileName, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
+	f.WriteString(item)
+	f.Close()
+}
+
+func WriteCustomLog(FileName, Header string, Message interface{}){
+	item := Header  + fmt.Sprintf("%s", Message)
+	f, _ := os.OpenFile(FileName, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
+	f.WriteString(item)
+	f.Close()
+}
+
+
 func PrintError(header string, message interface{}, module string) {
 	if WriteToLogOnly {
-		item := "[ " + header + " ] " + fmt.Sprintf("%s", message) + ", " + module + "\n"
-		f, _ := os.OpenFile(LogFileName, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
-		f.WriteString(item)
-		f.Close()
+		WriteLog(LogFileName, header, module, message)
 	} else {
 		fmt.Fprintf(color.Output, "[ %s ]", color.RedString(header))
 		fmt.Println(" ", message, " - ", module)
@@ -56,10 +68,7 @@ func PrintError(header string, message interface{}, module string) {
 
 func PrintInfo(header string, message interface{}, module string) {
 	if WriteToLogOnly {
-		item := "[ " + header + " ] " + fmt.Sprintf("%s", message) + ", " + module + "\n"
-		f, _ := os.OpenFile(LogFileName, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
-		f.WriteString(item)
-		f.Close()
+		WriteLog(LogFileName, header, module, message)
 	} else {
 		fmt.Fprintf(color.Output, "[ %s ]", color.CyanString(header))
 		fmt.Println(" ", message, " - ", module)
@@ -68,10 +77,7 @@ func PrintInfo(header string, message interface{}, module string) {
 
 func PrintSuccess(header string, message interface{}, module string) {
 	if WriteToLogOnly {
-		item := "[ " + header + " ] " + fmt.Sprintf("%s", message) + ", " + module + "\n"
-		f, _ := os.OpenFile(LogFileName, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
-		f.WriteString(item)
-		f.Close()
+		WriteLog(LogFileName, header, module, message)
 	} else {
 		fmt.Fprintf(color.Output, "[ %s ]", color.GreenString(header))
 		fmt.Println(" ", message, " - ", module)
@@ -80,10 +86,7 @@ func PrintSuccess(header string, message interface{}, module string) {
 
 func PrintDebug(header string, message interface{}, module string) {
 	if WriteToLogOnly {
-		item := "[ " + header + " ] " + fmt.Sprintf("%s", message) + ", " + module + "\n"
-		f, _ := os.OpenFile(LogFileName, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
-		f.WriteString(item)
-		f.Close()
+		WriteLog(LogFileName, header, module, message)
 	} else {
 		fmt.Fprintf(color.Output, "[ %s ]", color.YellowString(header))
 		fmt.Println(" ", message, " - ", module)

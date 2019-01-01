@@ -47,20 +47,21 @@ type ClickData struct {
 }
 
 func (ClickData) GenerateCID() string {
-restart:
+//restart:
 	rnd := utils.RandomString(config.Cfg.Click.Length)
-//	return rnd
+	utils.WriteCustomLog("clicks.log","",rnd)
+	return rnd
 
-	if config.Cfg.Debug.Level > 1 {
-		utils.PrintInfo("Click ID", rnd, clickModuleName)
-	}
-
-	if clickHashExists(rnd) {
-		utils.PrintError("Click ID already exists", rnd, clickModuleName)
-		goto restart
-	} else {
-		return rnd
-	}
+	// if config.Cfg.Debug.Level > 1 {
+	// 	utils.PrintInfo("Click ID", rnd, clickModuleName)
+	// }
+	//
+	// if clickHashExists(rnd) {
+	// 	utils.PrintError("Click ID already exists", rnd, clickModuleName)
+	// 	goto restart
+	// } else {
+	// 	return rnd
+	// }
 }
 
 func (Click ClickData) Save() bool {
