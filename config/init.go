@@ -21,7 +21,6 @@ import (
 	"metatds/utils"
 	"net/http"
 	"os"
-	"path/filepath"
 	"runtime"
 	"strconv"
 	"time"
@@ -79,7 +78,7 @@ func init() {
 	RedisSendOrSaveClicks()
 
 	// File sender это ресенд если не удалось предыдущее
-	SendFileToRecieveApi()
+	//SendFileToRecieveApi()
 }
 
 /*
@@ -247,76 +246,76 @@ func GetSystemConfiguration() string {
 // Send -*.json stored in files to reciever API
 //
 
-func SendFileToRecieveApi() <-chan string {
-	c := make(chan string)
-	go func() {
-		for {
-			var fdsReplace string
-
-			t := time.Now()
-			timestampPrintable := fmt.Sprintf("%d-%02d-%02d %02d:%02d:%02d",
-				t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second())
-
-			fds, _ := filepath.Glob("clicks/*.json")
-
-			if len(fds) > 0 {
-
-				for _, item := range fds {
-
-					fdsReplace = filepath.Base(item)
-
-					// возможно надо проверку, но не уверен
-					fileData, _ := ioutil.ReadFile(item)
-
-					url := Cfg.Click.ApiUrl     // "http://116.202.27.130/set/hits"
-					token := Cfg.Click.ApiToken // "PaILgFTQQCvX9tzS"
-					req, err := http.NewRequest("POST", url, bytes.NewBuffer(fileData))
-					req.Header.Set("X-Token", token)
-					req.Header.Set("Content-Type", "application/json")
-					req.Header.Set("Connection", "close")
-
-					client := &http.Client{}
-					resp, err := client.Do(req)
-
-					if resp != nil {
-						recover()
-						// TODO this needs to be recovered from panic otherwise fails
-						fmt.Fprintln(os.Stderr, "can't GET page:", err)
-					}
-
-					defer resp.Body.Close()
-
-					utils.PrintDebug("Response status", resp.Status, initModuleName)
-
-					if resp.Status == "200 OK" {
-						body, _ := ioutil.ReadAll(resp.Body)
-						utils.PrintInfo("Response", string(body), initModuleName)
-
-						// удаляем файл, мы его успешно обработали
-						os.Remove(item)
-
-						Telegram.SendMessage("\n" + timestampPrintable + "\n" +
-							Cfg.General.Name + "\nResending file succedeed " + fdsReplace + " to API" +
-							"\nTime elsapsed for operation: " + durafmt.Parse(time.Since(t)).String(durafmt.DF_LONG))
-					} else {
-						utils.PrintDebug("Error", "Sending file to click API failed", initModuleName)
-
-						Telegram.SendMessage("\n" + timestampPrintable + "\n" +
-							Cfg.General.Name + "\nResending file failed " + fdsReplace + " to API" +
-							"\nTime elsapsed for operation: " + durafmt.Parse(time.Since(t)).String(durafmt.DF_LONG))
-					}
-
-					// поспим между файлами
-					time.Sleep(time.Second * 10)
-				}
-			}
-
-			// defer runtime.GC()
-			time.Sleep(time.Duration(Cfg.Click.DropFilesToAPI) * time.Minute)
-		}
-	}()
-	return c
-}
+// func SendFileToRecieveApi() <-chan string {
+// 	c := make(chan string)
+// 	go func() {
+// 		for {
+// 			var fdsReplace string
+//
+// 			t := time.Now()
+// 			timestampPrintable := fmt.Sprintf("%d-%02d-%02d %02d:%02d:%02d",
+// 				t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second())
+//
+// 			fds, _ := filepath.Glob("clicks/*.json")
+//
+// 			if len(fds) > 0 {
+//
+// 				for _, item := range fds {
+//
+// 					fdsReplace = filepath.Base(item)
+//
+// 					// возможно надо проверку, но не уверен
+// 					fileData, _ := ioutil.ReadFile(item)
+//
+// 					url := Cfg.Click.ApiUrl     // "http://116.202.27.130/set/hits"
+// 					token := Cfg.Click.ApiToken // "PaILgFTQQCvX9tzS"
+// 					req, err := http.NewRequest("POST", url, bytes.NewBuffer(fileData))
+// 					req.Header.Set("X-Token", token)
+// 					req.Header.Set("Content-Type", "application/json")
+// 					req.Header.Set("Connection", "close")
+//
+// 					client := &http.Client{}
+// 					resp, err := client.Do(req)
+//
+// 					if resp != nil {
+// 						recover()
+// 						// TODO this needs to be recovered from panic otherwise fails
+// 						fmt.Fprintln(os.Stderr, "can't GET page:", err)
+// 					}
+//
+// 					defer resp.Body.Close()
+//
+// 					utils.PrintDebug("Response status", resp.Status, initModuleName)
+//
+// 					if resp.Status == "200 OK" {
+// 						body, _ := ioutil.ReadAll(resp.Body)
+// 						utils.PrintInfo("Response", string(body), initModuleName)
+//
+// 						// удаляем файл, мы его успешно обработали
+// 						os.Remove(item)
+//
+// 						Telegram.SendMessage("\n" + timestampPrintable + "\n" +
+// 							Cfg.General.Name + "\nResending file succedeed " + fdsReplace + " to API" +
+// 							"\nTime elsapsed for operation: " + durafmt.Parse(time.Since(t)).String(durafmt.DF_LONG))
+// 					} else {
+// 						utils.PrintDebug("Error", "Sending file to click API failed", initModuleName)
+//
+// 						Telegram.SendMessage("\n" + timestampPrintable + "\n" +
+// 							Cfg.General.Name + "\nResending file failed " + fdsReplace + " to API" +
+// 							"\nTime elsapsed for operation: " + durafmt.Parse(time.Since(t)).String(durafmt.DF_LONG))
+// 					}
+//
+// 					// поспим между файлами
+// 					time.Sleep(time.Second * 10)
+// 				}
+// 			}
+//
+// 			// defer runtime.GC()
+// 			time.Sleep(time.Duration(Cfg.Click.DropFilesToAPI) * time.Minute)
+// 		}
+// 	}()
+// 	return c
+// }
 
 func GetSystemStatistics() string {
 	var text = "no stat"
