@@ -6,7 +6,6 @@ import (
 	"math/rand"
 	"metatds/config"
 	"metatds/utils"
-	"runtime"
 	"strings"
 	"time"
 )
@@ -306,13 +305,13 @@ func flowHandler(c echo.Context) error {
 			config.TDSStatistic.IncorrectRequest++ // add counter tick
 			// если нет клика или потока, то все привет
 			msg := []byte(`{"code":400, "message":"Insuficient parameters supplied"}`)
-			defer runtime.GC()
+			//defer runtime.GC()
 			return c.JSONBlob(400, msg)
 		}
 	} else {
 		// если нет редиски, то все привет
 		msg := []byte(`{"code":500, "message":"No connection to RedisDB"}`)
-		defer runtime.GC()
+		//defer runtime.GC()
 		return c.JSONBlob(400, msg)
 	}
 }

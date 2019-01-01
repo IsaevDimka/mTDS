@@ -21,6 +21,7 @@ import (
 	"github.com/predatorpc/durafmt"
 	"io/ioutil"
 	"net/http"
+	"runtime/debug"
 	"strconv"
 	"strings"
 	"time"
@@ -114,6 +115,11 @@ func main() {
 
 	router.GET("/stat", GetSystemStatkHandler)
 	router.GET("/conf", GetSystemConfHandler)
+
+	router.GET("/free", func (c echo.Context) error {
+		debug.FreeOSMemory()
+		return c.String(200, "ok")
+	})
 
 
 	customServer := &http.Server{

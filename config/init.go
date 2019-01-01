@@ -141,7 +141,7 @@ func RedisDBChan() <-chan string {
 			}
 
 			// defer runtime.GC()
-			time.Sleep(60 * time.Second) // поспим чуть чуть
+			time.Sleep(10 * time.Second) // поспим чуть чуть
 		}
 	}()
 
@@ -378,7 +378,7 @@ func GetSystemStatistics() string {
 			avgReq = durafmt.Parse(dur).String(durafmt.DF_LONG)
 		}
 
-		uniqueRequests := TDSStatistic.RedirectRequest - TDSStatistic.CookieRequest - TDSStatistic.IncorrectRequest
+		uniqueRequests := TDSStatistic.RedirectRequest - TDSStatistic.CookieRequest // - TDSStatistic.IncorrectRequest
 
 		text = "\n" + timeStamp + "\n" + Cfg.General.Name +
 			"\n\nINFO" +
