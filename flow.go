@@ -289,6 +289,7 @@ func flowHandler(c echo.Context) error {
 				if len(utils.ResponseAverage) < minimumStatCount {
 					utils.ResponseAverage = append(utils.ResponseAverage, time.Since(start))
 				} else {
+					//defer runtime.GC()
 					utils.ResponseAverage = utils.ResponseAverageDefault
 				}
 				// ----------------------------------------------------------------------------------------------------
@@ -298,7 +299,6 @@ func flowHandler(c echo.Context) error {
 				//	defer runtime.GC()
 					return c.Redirect(302, LandingTemplate)
 				} else {
-				//	defer runtime.GC()
 					return c.Blob(200, "image/png", pixel)
 				}
 			}

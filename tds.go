@@ -19,7 +19,6 @@ import (
 	"github.com/labstack/echo/middleware"
 	"github.com/labstack/gommon/log"
 	"github.com/predatorpc/durafmt"
-	"github.com/sevenNt/echo-pprof"
 	"io/ioutil"
 	"net/http"
 	"strconv"
@@ -116,18 +115,27 @@ func main() {
 	router.GET("/stat", GetSystemStatkHandler)
 	router.GET("/conf", GetSystemConfHandler)
 
+
 	customServer := &http.Server{
 		Addr:         ":" + strconv.Itoa(config.Cfg.General.Port),
-		ReadTimeout:  100 * time.Second,
-		WriteTimeout: 100 * time.Second,
-		IdleTimeout:  100 * time.Second,
+		ReadTimeout:  10 * time.Second,
+		WriteTimeout: 10 * time.Second,
+		IdleTimeout:  10 * time.Second,
 	}
+
+
+	// customServer := &http.Server{
+	// 	Addr:         ":" + strconv.Itoa(config.Cfg.General.Port),
+	// 	ReadTimeout:  100 * time.Second,
+	// 	WriteTimeout: 100 * time.Second,
+	// 	IdleTimeout:  100 * time.Second,
+	// }
 
 	customServer.SetKeepAlivesEnabled(false)
 
 	router.HideBanner = true
 	router.Logger.SetLevel(log.OFF)
-	echopprof.Wrap(router)
+	//echopprof.Wrap(router)
 
 	// run router
 	if config.Cfg.General.Port != 0 {
