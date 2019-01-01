@@ -49,7 +49,7 @@ type ClickData struct {
 func (ClickData) GenerateCID() string {
 //restart:
 	rnd := utils.RandomString(config.Cfg.Click.Length)
-	utils.WriteCustomLog("clicks.log","",rnd)
+	// utils.WriteCustomLog("clicks.log","",rnd)
 	return rnd
 
 	// if config.Cfg.Debug.Level > 1 {
