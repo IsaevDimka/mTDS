@@ -142,7 +142,7 @@ func flowHandler(c echo.Context) error {
 				// и куку тудаже если надо ее поставить
 				defer Info.Click.Save()
 				if cookieError != nil {
-					defer c.SetCookie(utils.SaveCookieToUser(Info.Click.Hash, Info.Click.LocationLP))
+					//defer c.SetCookie(utils.SaveCookieToUser(Info.Click.Hash, Info.Click.LocationLP))
 				}
 
 				//------------------------------------------------------------------------------------------------------
@@ -190,7 +190,7 @@ func flowHandler(c echo.Context) error {
 
 				defer Info.Click.Save()
 				if cookieError != nil {
-					defer c.SetCookie(utils.SaveCookieToUser(Info.Click.Hash, Info.Click.LocationLP))
+					//defer c.SetCookie(utils.SaveCookieToUser(Info.Click.Hash, Info.Click.LocationLP))
 				}
 
 				// ----------------------------------------------------------------------------------------------------
@@ -234,7 +234,7 @@ func flowHandler(c echo.Context) error {
 
 				defer Info.Click.Save()
 				if cookieError != nil {
-					defer c.SetCookie(utils.SaveCookieToUser(Info.Click.Hash, Info.Click.LocationLP))
+					//defer c.SetCookie(utils.SaveCookieToUser(Info.Click.Hash, Info.Click.LocationLP))
 				}
 
 				// ----------------------------------------------------------------------------------------------------
@@ -272,7 +272,7 @@ func flowHandler(c echo.Context) error {
 
 				defer Info.Click.Save()
 				if cookieError != nil {
-					defer c.SetCookie(utils.SaveCookieToUser(Info.Click.Hash, Info.Click.LocationLP))
+					//defer c.SetCookie(utils.SaveCookieToUser(Info.Click.Hash, Info.Click.LocationLP))
 				}
 
 				// ----------------------------------------------------------------------------------------------------
