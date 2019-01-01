@@ -46,7 +46,7 @@ func init() {
 	}
 
 	// issue with too many open files
-	http.DefaultClient.Timeout = time.Second * 10
+	http.DefaultClient.Timeout = time.Second * Cfg.General.HTTPTimeout
 
 	// цепляем редис и потом, проверяем постоянно, как у него дела
 	RedisDBChan()
@@ -174,7 +174,14 @@ func RedisSendOrSaveClicks() <-chan string {
 
 				//keys, _ := Redisdb.Keys("*:click:*").Result()
 
-				keys, _, _ := Redisdb.Scan(0, "*:click:*", 10000).Result()
+				var value int64
+				if Cfg.Click.MaxDropItems > 0 {
+					value = int64(Cfg.Click.MaxDropItems)
+				} else {
+					value = 10000
+				}
+
+				keys, _, _ := Redisdb.Scan(0, "*:click:*", value).Result()
 
 				for _, item := range keys {
 					d, _ := Redisdb.HGetAll(item).Result()
@@ -459,7 +466,7 @@ func TDSStatisticChan() <-chan string {
 
 			//defer runtime.GC()
 			// +1 its to avoid dumbs with zero multiplication
-			time.Sleep(time.Duration(1+Cfg.Telegram.MsgInterval*60) * time.Second) // поспим чуть чуть
+			time.Sleep(time.Duration(1+Cfg.Telegram.MsgInterval) * time.Second) // поспим чуть чуть
 		}
 	}()
 
@@ -493,7 +500,7 @@ func ReloadConfigChan() <-chan string {
 			// поспим чуть чуть
 			// +1 its to avoid dumbs with zero multiplication
 			//defer runtime.GC()
-			time.Sleep(time.Duration(1+Cfg.General.ConfReload*60) * time.Second)
+			time.Sleep(time.Duration(1+Cfg.General.ConfReload) * time.Second)
 		}
 	}()
 

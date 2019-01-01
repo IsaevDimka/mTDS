@@ -9,9 +9,11 @@ name = "TDS2 Dev Local"
 ; self router start options
 host = "localhost"
 port = 80
-; Config reload interval / time in minutes
-ConfReload = 1
+; Config reload interval / time in seconds
+ConfReload = 60
 OS = windows
+; in seconds for client&server both
+HTTPTimeout = 100
 
 ; Click hash desired length
 [click]
@@ -21,6 +23,7 @@ apitoken = "PaILgFTQQCvX9tzS"
 ; Time to drop clicks to file from Redis in seconds
 droptoredis = 30
 DropFilesToAPI = 30
+MaxDropItems = 50000
 
 ; redis configuration
 ; flows and clicks storage DB is default = 0
@@ -30,7 +33,7 @@ port = 6379
 login = ""
 password = ""
 ApiFlowsURL = "https://metacpa.ru/api/flow/GetFlows?timestamp="
-UpdateFlows = 10
+UpdateFlows = 600
 
 ; debug configuration
 [debug]
@@ -45,7 +48,7 @@ level = 1
 ; Telegram bot
 [telegram]
 ; Send message interval / time in minutes
-MsgInterval = 1
+MsgInterval = 60
 UseProxy = false
 ; Socks5 settings
 Socks5Proxy = "185.244.219.200:5443"
