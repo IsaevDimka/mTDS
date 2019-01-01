@@ -207,10 +207,12 @@ func RedisSendOrSaveClicks() <-chan string {
 
 					client := &http.Client{}
 					resp, err := client.Do(req)
+
 					if err != nil {
 						recover()
-						goto tryagain
+						//goto tryagain
 					}
+
 					defer resp.Body.Close()
 
 					utils.PrintInfo("Response status", resp.Status, initModuleName)
@@ -252,7 +254,7 @@ func RedisSendOrSaveClicks() <-chan string {
 				//defer runtime.GC()
 
 			}
-		tryagain:
+		//tryagain:
 				time.Sleep(time.Duration(1+Cfg.Click.DropToRedis) * time.Second)
 		}
 	}()
@@ -398,12 +400,12 @@ func GetSystemStatistics() string {
 		fmt.Println("DUR = ", dur, "[ ",durafmt.Parse(dur).String(durafmt.DF_LONG)," ]")
 
 		if dur < time.Duration(1 * time.Millisecond) { //|| dur < time.Duration(1 * time.Microsecond) || dur < time.Duration(1 * time.Nanosecond) {
-			avgReq = " < 1 ms"
+			avgReq = "< 1 ms"
 		} else {
 			avgReq = durafmt.Parse(dur).String(durafmt.DF_LONG)
 		}
 
-		uniqueRequests := TDSStatistic.RedirectRequest - TDSStatistic.CookieRequest // - TDSStatistic.IncorrectRequest
+		uniqueRequests := (TDSStatistic.ClickInfoRequest + TDSStatistic.FlowInfoRequest + TDSStatistic.RedirectRequest) - TDSStatistic.CookieRequest // - TDSStatistic.IncorrectRequest
 
 		text = "\n" + timeStamp + "\n" + Cfg.General.Name +
 			"\n\nINFO" +
@@ -428,7 +430,7 @@ func GetSystemStatistics() string {
 			"\nOpened files           : " + openedFiles +
 			"\n\nREDIS" +
 			"\n\nConnection             : " + strconv.FormatBool(IsRedisAlive) +
-			"\nClicks sent            : " + humanize.Comma(int64(TDSStatistic.ClicksSentToRedis)) + //strconv.Itoa(TDSStatistic.ClicksSentToRedis) +
+			"\nClicks sent/saved      : " + humanize.Comma(int64(TDSStatistic.ClicksSentToRedis)) + //strconv.Itoa(TDSStatistic.ClicksSentToRedis) +
 			"\n"
 		return text
 	} else {
