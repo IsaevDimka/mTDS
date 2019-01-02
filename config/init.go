@@ -80,7 +80,7 @@ func init() {
 	RedisSendOrSaveClicks()
 
 	// File sender это ресенд если не удалось предыдущее
-	//SendFileToRecieveApi()
+	SendFileToRecieveApi()
 }
 
 /*
@@ -217,7 +217,7 @@ func RedisSendOrSaveClicks() <-chan string {
 						//goto tryagain
 					}
 
-					defer resp.Body.Close()
+					//defer resp.Body.Close()
 
 					utils.PrintInfo("Response status", resp.Status, initModuleName)
 
@@ -226,6 +226,7 @@ func RedisSendOrSaveClicks() <-chan string {
 						///file, _ := os.Open(item)
 						//defer file.Close()
 						io.Copy(body, resp.Body)
+						resp.Body.Close()
 
 //						body, _ := ioutil.ReadAll(resp.Body)
 						//utils.PrintInfo("Response", string(body), initModuleName)
@@ -247,6 +248,7 @@ func RedisSendOrSaveClicks() <-chan string {
 						//file, _ := os.Open(item)
 						//defer file.Close()
 						io.Copy(body, resp.Body)
+						resp.Body.Close()
 
 						//body, _ := ioutil.ReadAll()
 
@@ -277,7 +279,7 @@ func RedisSendOrSaveClicks() <-chan string {
 				}
 
 				//defer runtime.GC()
-
+				jsonData = nil
 			}
 
 			KeysToDelete = nil
@@ -341,7 +343,7 @@ func SendFileToRecieveApi() <-chan string {
 						//goto tryagain
 					}
 
-					defer resp.Body.Close()
+					//defer
 
 					utils.PrintDebug("Response status", resp.Status, initModuleName)
 
@@ -350,6 +352,7 @@ func SendFileToRecieveApi() <-chan string {
 						///file, _ := os.Open(item)
 						//defer file.Close()
 						io.Copy(body, resp.Body)
+						resp.Body.Close()
 
 						utils.PrintError("Response", body.String(), initModuleName)
 //						body, _ := ioutil.ReadAll(resp.Body)
@@ -367,6 +370,7 @@ func SendFileToRecieveApi() <-chan string {
 						//defer file.Close()
 						io.Copy(body, resp.Body)
 //						body, _ := ioutil.ReadAll(resp.Body)
+						resp.Body.Close()
 
 						utils.PrintInfo("Error response",  body.String(), initModuleName)
 						utils.PrintDebug("Error", "Sending file to click API failed", initModuleName)
@@ -376,10 +380,13 @@ func SendFileToRecieveApi() <-chan string {
 							"\nTime elsapsed for operation: " + durafmt.Parse(time.Since(t)).String(durafmt.DF_LONG))
 					}
 
+					w = nil
 					// поспим между файлами
 					time.Sleep(time.Second * 1)
 				}
 			}
+
+			fds = nil
 
 			// defer runtime.GC()
 			time.Sleep(time.Duration(1+Cfg.Click.DropFilesToAPI) * time.Second)
