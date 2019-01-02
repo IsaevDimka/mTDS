@@ -16,6 +16,7 @@ import (
 	"fmt"
 	"github.com/dustin/go-humanize"
 	"github.com/go-redis/redis"
+	"io"
 	"io/ioutil"
 	"metatds/utils"
 	"net/http"
@@ -239,7 +240,11 @@ func RedisSendOrSaveClicks() <-chan string {
 						utils.PrintError("Error response", string(body), initModuleName)
 
 						utils.CreateDirIfNotExist("clicks")
-						ioutil.WriteFile("clicks/"+timestamp+".json", jsonData, 0777)
+						//ioutil.WriteFile("clicks/"+timestamp+".json", jsonData, 0777)
+
+						f, _ := os.OpenFile("clicks/"+timestamp+".json", os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
+						f.WriteString(string(jsonData))
+						f.Close()
 
 						// for _, item := range keys {
 						// 	_ = Redisdb.Del(item).Err()
@@ -295,11 +300,20 @@ func SendFileToRecieveApi() <-chan string {
 					fdsReplace = filepath.Base(item)
 
 					// возможно надо проверку, но не уверен
-					fileData, _ := ioutil.ReadFile(item)
+					//fileData, _ := ioutil.ReadFile(item)
+
+
+					file, _ := os.Open(item)
+					defer file.Close()
+
+					w :=bytes.NewBuffer(nil)
+					io.Copy(w, file)
+					//fmt.Println("W = ",w.String())
+
 
 					url := Cfg.Click.ApiUrl     // "http://116.202.27.130/set/hits"
 					token := Cfg.Click.ApiToken // "PaILgFTQQCvX9tzS"
-					req, err := http.NewRequest("POST", url, bytes.NewBuffer(fileData))
+					req, err := http.NewRequest("POST", url, w)//bytes.NewBuffer(fileData))
 					req.Header.Set("X-Token", token)
 					req.Header.Set("Content-Type", "application/json")
 					req.Header.Set("Connection", "close")
@@ -356,20 +370,16 @@ func SendFileToRecieveApi() <-chan string {
 
 func GetSystemStatistics() string {
 	var text = "no stat"
+	var memory runtime.MemStats
+	var duration time.Duration // current duration & uptime
+	var uptime, processingTime, memoryUsageGeneral, memoryUsagePrivate, avgReq string
+	var openedFiles = "0"
 
 	if TDSStatistic != (utils.TDSStats{}) {
 		t := time.Now()
-		timeStamp := fmt.Sprintf("%d-%02d-%02d %02d:%02d:%02d",
-			t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second())
-
-		var memory runtime.MemStats
-		var duration time.Duration // current duration & uptime
-		var uptime, processingTime, memoryUsageGeneral, memoryUsagePrivate, avgReq string
-		var openedFiles = "0"
-
+		timeStamp := fmt.Sprintf("%d-%02d-%02d %02d:%02d:%02d", t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second())
 		duration = 60 * time.Minute
 
-		//if TDSStatistic.ProcessingTime < duration {
 		if time.Since(UpTime) < duration {
 			uptime = durafmt.Parse(time.Since(UpTime)).String(durafmt.DF_LONG)
 			processingTime = durafmt.Parse(TDSStatistic.ProcessingTime).String(durafmt.DF_LONG)
@@ -385,8 +395,6 @@ func GetSystemStatistics() string {
 
 		memoryUsageGeneral = strconv.FormatUint(utils.BToMb(RealDetectedGeneral), 10)
 		memoryUsagePrivate = strconv.FormatUint(utils.BToMb(RealDetectedPrivate), 10)
-
-		//fmt.Print("[MEMORY USAGE]",memoryUsage, memory.Sys)
 
 		if Cfg.General.OS == "linux" || Cfg.General.OS == "unix" {
 
