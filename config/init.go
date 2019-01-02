@@ -164,6 +164,7 @@ func RedisSendOrSaveClicks() <-chan string {
 			//
 			// }
 				var clicks []map[string]string
+				var KeysToDelete []string
 
 				t := time.Now()
 				timestamp := fmt.Sprintf("%d%02d%02d%02d%02d%02d",
@@ -184,6 +185,7 @@ func RedisSendOrSaveClicks() <-chan string {
 				keys, _, _ := Redisdb.Scan(0, "*:click:*", value).Result()
 
 				for _, item := range keys {
+					KeysToDelete = append(KeysToDelete, item)
 					d, _ := Redisdb.HGetAll(item).Result()
 					clicks = append(clicks, d)
 				}
@@ -221,9 +223,11 @@ func RedisSendOrSaveClicks() <-chan string {
 						body, _ := ioutil.ReadAll(resp.Body)
 						utils.PrintInfo("Response", string(body), initModuleName)
 
-						for _, item := range keys {
-							_ = Redisdb.Del(item).Err()
-						}
+						//result:
+						// for _, item := range keys {
+						// 	_ = Redisdb.Del(item).Err()
+						// }
+						_ = Redisdb.MDel(KeysToDelete).Err()
 
 						if Cfg.Debug.Level > 1 {
 							Telegram.SendMessage("\n" + timestampPrintable + "\n" +
@@ -237,9 +241,11 @@ func RedisSendOrSaveClicks() <-chan string {
 						utils.CreateDirIfNotExist("clicks")
 						ioutil.WriteFile("clicks/"+timestamp+".json", jsonData, 0777)
 
-						for _, item := range keys {
-							_ = Redisdb.Del(item).Err()
-						}
+						// for _, item := range keys {
+						// 	_ = Redisdb.Del(item).Err()
+						// }
+
+						_ = Redisdb.MDel(KeysToDelete).Err()
 
 						Telegram.SendMessage("\n" + timestampPrintable + "\n" +
 							Cfg.General.Name + "\nClicks saved to file" +
@@ -301,10 +307,13 @@ func SendFileToRecieveApi() <-chan string {
 					client := &http.Client{}
 					resp, err := client.Do(req)
 
-					if resp != nil {
+					// if resp != nil {
+					// 	recover()
+					// }
+
+					if err != nil {
 						recover()
-						// TODO this needs to be recovered from panic otherwise fails
-						fmt.Fprintln(os.Stderr, "can't GET page:", err)
+						//goto tryagain
 					}
 
 					defer resp.Body.Close()
