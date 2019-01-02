@@ -13,7 +13,9 @@ package config
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/dustin/go-humanize"
 	"github.com/go-redis/redis"
 	"io"
@@ -25,9 +27,7 @@ import (
 	"runtime"
 	"strconv"
 	"time"
-	"encoding/json"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/predatorpc/durafmt"
 )
 
@@ -80,7 +80,7 @@ func init() {
 	RedisSendOrSaveClicks()
 
 	// File sender это ресенд если не удалось предыдущее
-	SendFileToRecieveApi()
+	//SendFileToRecieveApi()
 }
 
 /*
@@ -154,6 +154,9 @@ func RedisSendOrSaveClicks() <-chan string {
 
 	go func() {
 		for {
+			var clicks []map[string]string
+			var KeysToDelete []string
+
 			if IsRedisAlive {
 				////////////////////////////////////
 
@@ -164,8 +167,6 @@ func RedisSendOrSaveClicks() <-chan string {
 			// 	time.Sleep(time.Duration(1+Cfg.Click.DropToRedis) * time.Minute)
 			//
 			// }
-				var clicks []map[string]string
-				var KeysToDelete []string
 
 				t := time.Now()
 				timestamp := fmt.Sprintf("%d%02d%02d%02d%02d%02d",
@@ -221,8 +222,14 @@ func RedisSendOrSaveClicks() <-chan string {
 					utils.PrintInfo("Response status", resp.Status, initModuleName)
 
 					if resp.Status == "200 OK" {
-						body, _ := ioutil.ReadAll(resp.Body)
-						utils.PrintInfo("Response", string(body), initModuleName)
+						body :=bytes.NewBuffer(nil)
+						///file, _ := os.Open(item)
+						//defer file.Close()
+						io.Copy(body, resp.Body)
+
+//						body, _ := ioutil.ReadAll(resp.Body)
+						//utils.PrintInfo("Response", string(body), initModuleName)
+						utils.PrintError("Response", body.String(), initModuleName)
 
 						//result:
 						// for _, item := range keys {
@@ -236,8 +243,15 @@ func RedisSendOrSaveClicks() <-chan string {
 								"\nTime elsapsed for operation: " + durafmt.Parse(time.Since(t)).String(durafmt.DF_LONG))
 						}
 					} else {
-						body, _ := ioutil.ReadAll(resp.Body)
-						utils.PrintError("Error response", string(body), initModuleName)
+						body :=bytes.NewBuffer(nil)
+						//file, _ := os.Open(item)
+						//defer file.Close()
+						io.Copy(body, resp.Body)
+
+						//body, _ := ioutil.ReadAll()
+
+
+						utils.PrintError("Error response", body.String(), initModuleName)
 
 						utils.CreateDirIfNotExist("clicks")
 						//ioutil.WriteFile("clicks/"+timestamp+".json", jsonData, 0777)
@@ -265,16 +279,15 @@ func RedisSendOrSaveClicks() <-chan string {
 				//defer runtime.GC()
 
 			}
+
+			KeysToDelete = nil
+			clicks = nil
+
 		//tryagain:
 				time.Sleep(time.Duration(1+Cfg.Click.DropToRedis) * time.Second)
 		}
 	}()
 	return c
-}
-
-func GetSystemConfiguration() string {
-	text := spew.Sdump(Cfg)
-	return text
 }
 
 //
@@ -304,12 +317,10 @@ func SendFileToRecieveApi() <-chan string {
 
 
 					file, _ := os.Open(item)
-					defer file.Close()
-
 					w :=bytes.NewBuffer(nil)
 					io.Copy(w, file)
 					//fmt.Println("W = ",w.String())
-
+					file.Close()
 
 					url := Cfg.Click.ApiUrl     // "http://116.202.27.130/set/hits"
 					token := Cfg.Click.ApiToken // "PaILgFTQQCvX9tzS"
@@ -335,9 +346,14 @@ func SendFileToRecieveApi() <-chan string {
 					utils.PrintDebug("Response status", resp.Status, initModuleName)
 
 					if resp.Status == "200 OK" {
+						body :=bytes.NewBuffer(nil)
+						///file, _ := os.Open(item)
+						//defer file.Close()
+						io.Copy(body, resp.Body)
 
-						body, _ := ioutil.ReadAll(resp.Body)
-						utils.PrintInfo("Response", string(body), initModuleName)
+						utils.PrintError("Response", body.String(), initModuleName)
+//						body, _ := ioutil.ReadAll(resp.Body)
+						//utils.PrintInfo("Response", string(body), initModuleName)
 
 						// удаляем файл, мы его успешно обработали
 						os.Remove(item)
@@ -346,9 +362,13 @@ func SendFileToRecieveApi() <-chan string {
 							Cfg.General.Name + "\nResending file succedeed " + fdsReplace + " to API" +
 							"\nTime elsapsed for operation: " + durafmt.Parse(time.Since(t)).String(durafmt.DF_LONG))
 					} else {
-						body, _ := ioutil.ReadAll(resp.Body)
+						body :=bytes.NewBuffer(nil)
+						///file, _ := os.Open(item)
+						//defer file.Close()
+						io.Copy(body, resp.Body)
+//						body, _ := ioutil.ReadAll(resp.Body)
 
-						utils.PrintInfo("Error response", string(body), initModuleName)
+						utils.PrintInfo("Error response",  body.String(), initModuleName)
 						utils.PrintDebug("Error", "Sending file to click API failed", initModuleName)
 
 						Telegram.SendMessage("\n" + timestampPrintable + "\n" +
@@ -525,6 +545,13 @@ func ReloadConfigChan() <-chan string {
 
 	return c
 }
+
+
+func GetSystemConfiguration() string {
+	text := spew.Sdump(Cfg)
+	return text
+}
+
 
 //
 // Template for Channel by predator_pc
