@@ -17,7 +17,7 @@ import (
 *
 *
  */
- const minimumStatCount = 1000
+const minimumStatCount = 100
 
 func flowHandler(c echo.Context) error {
 	if config.IsRedisAlive {
