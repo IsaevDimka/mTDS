@@ -441,7 +441,7 @@ func GetSystemStatistics() string {
 
 		dur:=DurationAverage(utils.ResponseAverage)
 
-		fmt.Println("DUR = ", dur, "[ ",durafmt.Parse(dur).String(durafmt.DF_LONG)," ]")
+		//fmt.Println("DUR = ", dur, "[ ",durafmt.Parse(dur).String(durafmt.DF_LONG)," ]")
 
 		if dur < time.Duration(1 * time.Millisecond) { //|| dur < time.Duration(1 * time.Microsecond) || dur < time.Duration(1 * time.Nanosecond) {
 			avgReq = "< 1 ms"
@@ -525,7 +525,7 @@ func DurationAverage(dur []time.Duration) time.Duration {
 		allTime += float64(item)
 	}
 	result:= allTime / float64(1+len(dur))
-	fmt.Println("All time sum ", allTime, " / ", 1+len(dur))
+	//fmt.Println("All time sum ", allTime, " / ", 1+len(dur))
 	return time.Duration(result)
 }
 
