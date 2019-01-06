@@ -360,7 +360,6 @@ func UpdateFlowsListChan() <-chan string {
 				// getting current count of flows and if it isn't null then proceeed
 				//currentCount, _ := config.Redisdb.Keys("*:ID").Result()
 				fileData, err := ioutil.ReadFile(timestampFile)
-
 				if err == nil { //&& len(currentCount) > 0 {
 					// ---------------------------------------------------------------------------------------------------------------------
 					// LOADING WITH PARAMS OF LAST UPDATE
@@ -377,6 +376,8 @@ func UpdateFlowsListChan() <-chan string {
 					url := config.Cfg.Redis.ApiFlowsURL
 					req, err := http.Get(url + strings.Trim(string(fileData), "\r\n"))
 					req.Header.Set("Connection", "close")
+
+					// TODO: сделать обработку ошибки в случае если апи не доступно
 
 					if req != nil {
 						defer req.Body.Close()
