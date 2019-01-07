@@ -1,6 +1,8 @@
 package utils
 
-import "time"
+import (
+	"time"
+)
 
 var ResponseAverage []time.Duration
 var ResponseAverageDefault []time.Duration
@@ -33,6 +35,6 @@ func (tdstat TDSStats) Reset() {
 	tdstat.ProcessingTime = 0
 	tdstat.MemoryAllocated = 0
 	tdstat.ClicksSentToRedis = 0
-	ResponseAverageDefault = append(ResponseAverageDefault,time.Duration(0))
+	ResponseAverageDefault = append(ResponseAverageDefault, time.Duration(0))
 	ResponseAverage = ResponseAverageDefault
 }
