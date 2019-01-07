@@ -22,7 +22,7 @@ func GetSystemStatistics() string {
 
 	currentRPSstart := TDSStatistic.RedirectRequest
 	time.Sleep(1 * time.Second)
-	currentRPS := currentRPSstart - TDSStatistic.RedirectRequest
+	currentRPS := TDSStatistic.RedirectRequest - currentRPSstart
 
 	if TDSStatistic != (utils.TDSStats{}) {
 		duration = 60 * time.Minute
