@@ -12,7 +12,6 @@
 package utils
 
 import (
-	"metatds/stuff/other/utils"
 	"runtime"
 )
 
@@ -55,33 +54,33 @@ func MemMonitor() Monitor {
 	m.NumGoroutine = runtime.NumGoroutine()
 
 	// Misc memory stats
-	m.Alloc = utils.BToMb(rtm.Alloc)
-	m.TotalAlloc = utils.BToMb(rtm.TotalAlloc)
-	m.Sys = utils.BToMb(rtm.Sys)
-	m.Mallocs = utils.BToMb(rtm.Mallocs)
-	m.Frees = utils.BToMb(rtm.Frees)
+	m.Alloc = BToMb(rtm.Alloc)
+	m.TotalAlloc = BToMb(rtm.TotalAlloc)
+	m.Sys = BToMb(rtm.Sys)
+	m.Mallocs = BToMb(rtm.Mallocs)
+	m.Frees = BToMb(rtm.Frees)
 
-	m.HeapSys = utils.BToMb(rtm.HeapSys)
+	m.HeapSys = BToMb(rtm.HeapSys)
 
-	m.HeapAlloc = utils.BToMb(rtm.HeapAlloc)
-	m.HeapIdle = utils.BToMb(rtm.HeapIdle)
-	m.HeapInuse = utils.BToMb(rtm.HeapInuse)
+	m.HeapAlloc = BToMb(rtm.HeapAlloc)
+	m.HeapIdle = BToMb(rtm.HeapIdle)
+	m.HeapInuse = BToMb(rtm.HeapInuse)
 
-	m.RealDetected = utils.BToMb(rtm.Sys) + utils.BToMb(rtm.HeapSys) + utils.BToMb(rtm.HeapAlloc) + utils.BToMb(rtm.HeapInuse) - utils.BToMb(rtm.Alloc)
-	m.RealDetected2 = utils.BToMb(rtm.HeapSys) - utils.BToMb(rtm.Alloc)
+	m.RealDetected = BToMb(rtm.Sys) + BToMb(rtm.HeapSys) + BToMb(rtm.HeapAlloc) + BToMb(rtm.HeapInuse) - BToMb(rtm.Alloc)
+	m.RealDetected2 = BToMb(rtm.HeapSys) - BToMb(rtm.Alloc)
 
-	m.HeapReleased = utils.BToMb(rtm.HeapReleased)
-	m.HeapObjects = utils.BToMb(rtm.HeapObjects)
+	m.HeapReleased = BToMb(rtm.HeapReleased)
+	m.HeapObjects = BToMb(rtm.HeapObjects)
 
-	m.StackInuse = utils.BToMb(rtm.StackInuse)
-	m.StackSys = utils.BToMb(rtm.StackSys)
-	m.MSpanInuse = utils.BToMb(rtm.MSpanInuse)
-	m.MSpanSys = utils.BToMb(rtm.MSpanSys)
-	m.MCacheInuse = utils.BToMb(rtm.MCacheInuse)
-	m.MCacheSys = utils.BToMb(rtm.MCacheSys)
-	m.BuckHashSys = utils.BToMb(rtm.BuckHashSys)
-	m.GCSys = utils.BToMb(rtm.GCSys)
-	m.OtherSys = utils.BToMb(rtm.OtherSys)
+	m.StackInuse = BToMb(rtm.StackInuse)
+	m.StackSys = BToMb(rtm.StackSys)
+	m.MSpanInuse = BToMb(rtm.MSpanInuse)
+	m.MSpanSys = BToMb(rtm.MSpanSys)
+	m.MCacheInuse = BToMb(rtm.MCacheInuse)
+	m.MCacheSys = BToMb(rtm.MCacheSys)
+	m.BuckHashSys = BToMb(rtm.BuckHashSys)
+	m.GCSys = BToMb(rtm.GCSys)
+	m.OtherSys = BToMb(rtm.OtherSys)
 
 	// Live objects = Mallocs - Frees
 	m.LiveObjects = m.Mallocs - m.Frees
