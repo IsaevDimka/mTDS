@@ -12,6 +12,7 @@ __LAST CHANGES__
 + string generator fix
 + resend statistic send and file saving refactoring
 
+
 > __31.12.2018 22:29 (коммит новогодний) __
  + Improved average time calculatin
  + Improved saving click with redis HMSET
