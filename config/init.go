@@ -12,32 +12,27 @@
 package config
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
-	"github.com/davecgh/go-spew/spew"
-	"github.com/dustin/go-humanize"
-	"github.com/go-redis/redis"
-	"io"
-	"io/ioutil"
 	"metatds/utils"
 	"net/http"
-	"os"
-	"path/filepath"
-	"runtime"
-	"strconv"
 	"time"
-
-	"github.com/predatorpc/durafmt"
 )
 
 const initModuleName = "init.go"
 
 var UpTime time.Time
 
+//
+// Main initialization handle
+//
 func init() {
 	// get current timestamp
 	UpTime = time.Now()
+	utils.CURRENT_TIMESTAMP = fmt.Sprintf("%d-%02d-%02d %02d:%02d:%02d",
+		UpTime.Year(), UpTime.Month(), UpTime.Day(), UpTime.Hour(), UpTime.Minute(), UpTime.Second())
+
+	// поставищик текущей метки времени и ее строкового представления
+	CurrentTimeStampTicker()
 
 	// сначала загружаем настройки потом, цепляем все остальное
 	InitConfig()
@@ -57,10 +52,10 @@ func init() {
 	tlgrm := Telegram.Init(tlgrmRecipients, Cfg.Telegram.Socks5User, Cfg.Telegram.Socks5Password,
 		Cfg.Telegram.Socks5Proxy, Cfg.Telegram.ApiURL, Cfg.Telegram.Token, Cfg.Telegram.UseProxy)
 
-	timeStamp := fmt.Sprintf("%d-%02d-%02d %02d:%02d:%02d",
-		UpTime.Year(), UpTime.Month(), UpTime.Day(), UpTime.Hour(), UpTime.Minute(), UpTime.Second())
+	// timeStamp := fmt.Sprintf("%d-%02d-%02d %02d:%02d:%02d",
+	// 	UpTime.Year(), UpTime.Month(), UpTime.Day(), UpTime.Hour(), UpTime.Minute(), UpTime.Second())
 
-	Telegram.SendMessage("\n" + timeStamp + "\n" + Cfg.General.Name + "\nTDS Service started\n")
+	Telegram.SendMessage("\n" + utils.CURRENT_TIMESTAMP + "\n" + Cfg.General.Name + "\nTDS Service started\n")
 
 	if tlgrm {
 		if Cfg.Debug.Level > 0 {
@@ -83,412 +78,9 @@ func init() {
 	SendFileToRecieveApi()
 }
 
-/*
-*
-* Init Redis connection /Reload Redis connection if broken
-*
- */
-
-func RedisDBChan() <-chan string {
-	c := make(chan string)
-
-	go func() {
-		// get connection to Redis
-		Redisdb = redis.NewClient(&redis.Options{
-			Addr:     fmt.Sprintf("%s:%d", Cfg.Redis.Host, Cfg.Redis.Port),
-			Password: Cfg.Redis.Password, // password set
-			DB:       0,                  // use default DB
-		})
-		defer Redisdb.Close() // Если редис отвалится, потом конекция не повиснет
-
-		for {
-
-			// verifying config
-			// напечатаем его заодним на экран
-			if Cfg.Debug.Level > 0 && !IsRedisAlive {
-				msg := " Redis = " + Cfg.Redis.Host + ":" + strconv.Itoa(Cfg.Redis.Port) + ", Self = " +
-					Cfg.General.Host + ":" + strconv.Itoa(Cfg.General.Port)
-				if Cfg.Debug.Level > 0 && !IsRedisAlive {
-					utils.PrintSuccess("Config", msg, initModuleName)
-				}
-			}
-
-		tryUntilConnect: // try to reconnect until success
-			// check connection via Pong
-			pong, err := Redisdb.Ping().Result()
-
-			if err != nil {
-				IsRedisAlive = false
-				msg := "Can't connect to Redis server at " + Cfg.Redis.Host + ":" + strconv.Itoa(Cfg.Redis.Port)
-
-				if Cfg.Debug.Level > 0 {
-					utils.PrintError("Redis error", msg, initModuleName)
-				}
-
-				time.Sleep(10 * time.Second) // поспим чуть чуть
-
-				goto tryUntilConnect
-				//		os.Exit(0)
-			} else {
-				if Cfg.Debug.Level > 0 && !IsRedisAlive {
-					utils.PrintSuccess("Redis response", pong, initModuleName)
-				}
-
-				if Cfg.Debug.Level > 0 && !IsRedisAlive {
-					utils.PrintDebug("Completed", err, initModuleName)
-				}
-
-				IsRedisAlive = true
-			}
-
-			// defer runtime.GC()
-			time.Sleep(10 * time.Second) // поспим чуть чуть
-		}
-	}()
-
-	return c
-}
-
-func RedisSendOrSaveClicks() <-chan string {
-	c := make(chan string)
-
-	go func() {
-		for {
-			var clicks []map[string]string
-			var KeysToDelete []string
-
-			if IsRedisAlive {
-				////////////////////////////////////
-
-			// 	keys, _ := Redisdb.Keys("*:click:*").Result()
-			// 	for _, item := range keys {
-			// 		_ = Redisdb.Del(item).Err()
-			// 	}
-			// 	time.Sleep(time.Duration(1+Cfg.Click.DropToRedis) * time.Minute)
-			//
-			// }
-
-				t := time.Now()
-				timestamp := fmt.Sprintf("%d%02d%02d%02d%02d%02d",
-					t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second())
-
-				timestampPrintable := fmt.Sprintf("%d-%02d-%02d %02d:%02d:%02d",
-					t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second())
-
-				//keys, _ := Redisdb.Keys("*:click:*").Result()
-
-				var value int64
-				if Cfg.Click.MaxDropItems > 0 {
-					value = int64(Cfg.Click.MaxDropItems)
-				} else {
-					value = 10000
-				}
-
-				keys, _, _ := Redisdb.Scan(0, "*:click:*", value).Result()
-
-				for _, item := range keys {
-					KeysToDelete = append(KeysToDelete, item)
-					d, _ := Redisdb.HGetAll(item).Result()
-					clicks = append(clicks, d)
-				}
-
-				TDSStatistic.ClicksSentToRedis += len(clicks)
-
-				jsonData, _ := json.Marshal(clicks)
-
-				if Cfg.Debug.Level > 1 {
-					fmt.Println("Time elapsed export: ", time.Since(t))
-				}
-
-				if len(jsonData) > 0 && len(clicks) > 0 {
-
-					url := Cfg.Click.ApiUrl     // "http://116.202.27.130/set/hits"
-					token := Cfg.Click.ApiToken // "PaILgFTQQCvX9tzS"
-					req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
-					req.Header.Set("X-Token", token)
-					req.Header.Set("Content-Type", "application/json")
-					req.Header.Set("Connection", "close")
-
-					client := &http.Client{}
-					resp, err := client.Do(req)
-
-					if err != nil {
-						recover()
-						//goto tryagain
-					}
-
-					//defer resp.Body.Close()
-
-					utils.PrintInfo("Response status", resp.Status, initModuleName)
-
-					if resp.Status == "200 OK" {
-						body :=bytes.NewBuffer(nil)
-						///file, _ := os.Open(item)
-						//defer file.Close()
-						io.Copy(body, resp.Body)
-						resp.Body.Close()
-
-//						body, _ := ioutil.ReadAll(resp.Body)
-						//utils.PrintInfo("Response", string(body), initModuleName)
-						utils.PrintError("Response", body.String(), initModuleName)
-
-						//result:
-						// for _, item := range keys {
-						// 	_ = Redisdb.Del(item).Err()
-						// }
-						_ = Redisdb.MDel(KeysToDelete).Err()
-
-						if Cfg.Debug.Level > 1 {
-							Telegram.SendMessage("\n" + timestampPrintable + "\n" +
-								Cfg.General.Name + "\nClicks sent to API: " + strconv.Itoa(TDSStatistic.ClicksSentToRedis) +
-								"\nTime elsapsed for operation: " + durafmt.Parse(time.Since(t)).String(durafmt.DF_LONG))
-						}
-					} else {
-						body :=bytes.NewBuffer(nil)
-						//file, _ := os.Open(item)
-						//defer file.Close()
-						io.Copy(body, resp.Body)
-						resp.Body.Close()
-
-						//body, _ := ioutil.ReadAll()
-
-
-						utils.PrintError("Error response", body.String(), initModuleName)
-
-						utils.CreateDirIfNotExist("clicks")
-						//ioutil.WriteFile("clicks/"+timestamp+".json", jsonData, 0777)
-
-						f, _ := os.OpenFile("clicks/"+timestamp+".json", os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
-						f.WriteString(string(jsonData))
-						f.Close()
-
-						// for _, item := range keys {
-						// 	_ = Redisdb.Del(item).Err()
-						// }
-
-						_ = Redisdb.MDel(KeysToDelete).Err()
-
-						Telegram.SendMessage("\n" + timestampPrintable + "\n" +
-							Cfg.General.Name + "\nClicks saved to file" +
-							"\nTime elsapsed for operation: " + durafmt.Parse(time.Since(t)).String(durafmt.DF_LONG))
-					}
-				}
-
-				if Cfg.Debug.Level > 1 {
-					fmt.Println("Time elapsed total: ", time.Since(t))
-				}
-
-				//defer runtime.GC()
-				jsonData = nil
-			}
-
-			KeysToDelete = nil
-			clicks = nil
-
-		//tryagain:
-				time.Sleep(time.Duration(1+Cfg.Click.DropToRedis) * time.Second)
-		}
-	}()
-	return c
-}
-
 //
-// Send -*.json stored in files to reciever API
+// Telegram send statistic channel
 //
-
-func SendFileToRecieveApi() <-chan string {
-	c := make(chan string)
-	go func() {
-		for {
-			var fdsReplace string
-
-			t := time.Now()
-			timestampPrintable := fmt.Sprintf("%d-%02d-%02d %02d:%02d:%02d",
-				t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second())
-
-			fds, _ := filepath.Glob("clicks/*.json")
-
-			if len(fds) > 0 {
-
-				for _, item := range fds {
-
-					fdsReplace = filepath.Base(item)
-
-					// возможно надо проверку, но не уверен
-					//fileData, _ := ioutil.ReadFile(item)
-
-
-					file, _ := os.Open(item)
-					w :=bytes.NewBuffer(nil)
-					io.Copy(w, file)
-					//fmt.Println("W = ",w.String())
-					file.Close()
-
-					url := Cfg.Click.ApiUrl     // "http://116.202.27.130/set/hits"
-					token := Cfg.Click.ApiToken // "PaILgFTQQCvX9tzS"
-					req, err := http.NewRequest("POST", url, w)//bytes.NewBuffer(fileData))
-					req.Header.Set("X-Token", token)
-					req.Header.Set("Content-Type", "application/json")
-					req.Header.Set("Connection", "close")
-
-					client := &http.Client{}
-					resp, err := client.Do(req)
-
-					// if resp != nil {
-					// 	recover()
-					// }
-
-					if err != nil {
-						recover()
-						//goto tryagain
-					}
-
-					//defer
-
-					utils.PrintDebug("Response status", resp.Status, initModuleName)
-
-					if resp.Status == "200 OK" {
-						body :=bytes.NewBuffer(nil)
-						///file, _ := os.Open(item)
-						//defer file.Close()
-						io.Copy(body, resp.Body)
-						resp.Body.Close()
-
-						utils.PrintError("Response", body.String(), initModuleName)
-//						body, _ := ioutil.ReadAll(resp.Body)
-						//utils.PrintInfo("Response", string(body), initModuleName)
-
-						// удаляем файл, мы его успешно обработали
-						os.Remove(item)
-
-						Telegram.SendMessage("\n" + timestampPrintable + "\n" +
-							Cfg.General.Name + "\nResending file succedeed " + fdsReplace + " to API" +
-							"\nTime elsapsed for operation: " + durafmt.Parse(time.Since(t)).String(durafmt.DF_LONG))
-					} else {
-						body :=bytes.NewBuffer(nil)
-						///file, _ := os.Open(item)
-						//defer file.Close()
-						io.Copy(body, resp.Body)
-//						body, _ := ioutil.ReadAll(resp.Body)
-						resp.Body.Close()
-
-						utils.PrintInfo("Error response",  body.String(), initModuleName)
-						utils.PrintDebug("Error", "Sending file to click API failed", initModuleName)
-
-						Telegram.SendMessage("\n" + timestampPrintable + "\n" +
-							Cfg.General.Name + "\nResending file failed " + fdsReplace + " to API" +
-							"\nTime elsapsed for operation: " + durafmt.Parse(time.Since(t)).String(durafmt.DF_LONG))
-					}
-
-					w = nil
-					// поспим между файлами
-					time.Sleep(time.Second * 1)
-				}
-			}
-
-			fds = nil
-
-			// defer runtime.GC()
-			time.Sleep(time.Duration(1+Cfg.Click.DropFilesToAPI) * time.Second)
-		}
-	}()
-	return c
-}
-
-func GetSystemStatistics() string {
-	var text = "no stat"
-	var memory runtime.MemStats
-	var duration time.Duration // current duration & uptime
-	var uptime, processingTime, memoryUsageGeneral, memoryUsagePrivate, avgReq string
-	var openedFiles = "0"
-
-	if TDSStatistic != (utils.TDSStats{}) {
-		t := time.Now()
-		timeStamp := fmt.Sprintf("%d-%02d-%02d %02d:%02d:%02d", t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second())
-		duration = 60 * time.Minute
-
-		if time.Since(UpTime) < duration {
-			uptime = durafmt.Parse(time.Since(UpTime)).String(durafmt.DF_LONG)
-			processingTime = durafmt.Parse(TDSStatistic.ProcessingTime).String(durafmt.DF_LONG)
-		} else {
-			uptime = durafmt.Parse(time.Since(UpTime)).String(durafmt.DF_MIDDLE)
-			processingTime = durafmt.Parse(TDSStatistic.ProcessingTime).String(durafmt.DF_MIDDLE)
-		}
-
-		runtime.ReadMemStats(&memory)
-
-		RealDetectedGeneral := memory.Sys + memory.HeapSys + memory.HeapAlloc + memory.HeapInuse - memory.Alloc
-		RealDetectedPrivate := memory.HeapSys - memory.Alloc
-
-		memoryUsageGeneral = strconv.FormatUint(utils.BToMb(RealDetectedGeneral), 10)
-		memoryUsagePrivate = strconv.FormatUint(utils.BToMb(RealDetectedPrivate), 10)
-
-		if Cfg.General.OS == "linux" || Cfg.General.OS == "unix" {
-
-			pid := strconv.Itoa(os.Getpid())
-			fds, e := ioutil.ReadDir("/proc/" + pid + "/fd")
-
-			if e != nil && Cfg.Debug.Level > 0 {
-				utils.PrintError("Error", "reading process directory failed", initModuleName)
-			} else {
-				//utils.PrintInfo("PID", pid, initModuleName)
-			}
-
-			if len(fds) > 0 {
-				openedFiles = strconv.Itoa(len(fds))
-			}
-		}
-
-		dur:=DurationAverage(utils.ResponseAverage)
-
-		//fmt.Println("DUR = ", dur, "[ ",durafmt.Parse(dur).String(durafmt.DF_LONG)," ]")
-
-		if dur < time.Duration(1 * time.Millisecond) { //|| dur < time.Duration(1 * time.Microsecond) || dur < time.Duration(1 * time.Nanosecond) {
-			avgReq = "< 1 ms"
-		} else {
-			avgReq = durafmt.Parse(dur).String(durafmt.DF_LONG)
-		}
-
-		uniqueRequests := (TDSStatistic.ClickInfoRequest + TDSStatistic.FlowInfoRequest + TDSStatistic.RedirectRequest) - TDSStatistic.CookieRequest // - TDSStatistic.IncorrectRequest
-
-		text = "\n" + timeStamp + "\n" + Cfg.General.Name +
-			"\n\nINFO" +
-			"\n\nFlow update request    : " + strconv.Itoa(TDSStatistic.UpdatedFlows) +
-			"\nFlow appended          : " + strconv.Itoa(TDSStatistic.AppendedFlows) +
-			//"\nPixel request          : " + strconv.Itoa(TDSStatistic.PixelRequest) +
-			"\nClick Info request     : " + humanize.Comma(int64(TDSStatistic.ClickInfoRequest))+ //strconv.Itoa(TDSStatistic.ClickInfoRequest) +
-			"\nFlow Info request      : " + humanize.Comma(int64(TDSStatistic.FlowInfoRequest))+ //strconv.Itoa(TDSStatistic.FlowInfoRequest) +
-			"\nRedirect request       : " + humanize.Comma(int64(TDSStatistic.RedirectRequest)) + //strconv.Itoa(TDSStatistic.RedirectRequest) +
-			//			"\nRedis Stat request     : " + strconv.Itoa(TDSStatistic.RedisStatRequest) +
-			"\nIncorrect request      : " + humanize.Comma(int64(TDSStatistic.IncorrectRequest))+ //strconv.Itoa(TDSStatistic.IncorrectRequest) +
-			"\nCookies request        : " + humanize.Comma(int64(TDSStatistic.CookieRequest))+ //strconv.Itoa(TDSStatistic.CookieRequest) +
-			"\nUnique request (?)     : " + humanize.Comma(int64(uniqueRequests))+ //strconv.Itoa(uniqueRequests) +
-			"\n\nUp time                : " + uptime +
-			"\nProcessing time        : " + processingTime +
-			"\nAverage response time  : " + avgReq +
-			"\n\nSYSTEM INFO" +
-			"\n\nOperating system       : " + Cfg.General.OS +
-			"\nDebug level            : " + strconv.Itoa(Cfg.Debug.Level) +
-			"\nTotal memory allocated : " + memoryUsageGeneral + " Mb" +
-			"\nPrivate memory         : " + memoryUsagePrivate + " Mb" +
-			"\nOpened files           : " + openedFiles +
-			"\n\nREDIS" +
-			"\n\nConnection             : " + strconv.FormatBool(IsRedisAlive) +
-			"\nClicks sent/saved      : " + humanize.Comma(int64(TDSStatistic.ClicksSentToRedis)) + //strconv.Itoa(TDSStatistic.ClicksSentToRedis) +
-			"\n"
-		return text
-	} else {
-		TDSStatistic.Reset()
-		return text
-	}
-}
-
-/*
-*
-* Telegram send statistic channel
-*
- */
-
 func TDSStatisticChan() <-chan string {
 	c := make(chan string)
 
@@ -519,56 +111,38 @@ func TDSStatisticChan() <-chan string {
 	return c
 }
 
-func DurationAverage(dur []time.Duration) time.Duration {
-	var allTime float64
-	for _, item := range dur {
-		allTime += float64(item)
-	}
-	result:= allTime / float64(1+len(dur))
-	//fmt.Println("All time sum ", allTime, " / ", 1+len(dur))
-	return time.Duration(result)
-}
-
-
-/*
-*
-* Reload config channel
-*
- */
-
+//
+// Reload config channel
+//
 func ReloadConfigChan() <-chan string {
 	c := make(chan string)
-
 	go func() {
 		for {
 			// перезагружаем конфиг и идем спать
 			ReloadConfig()
-			// поспим чуть чуть
-			// +1 its to avoid dumbs with zero multiplication
-			//defer runtime.GC()
+			// поспим чуть чуть +1 its to avoid dumbs with zero multiplication
 			time.Sleep(time.Duration(1+Cfg.General.ConfReload) * time.Second)
 		}
 	}()
-
 	return c
 }
 
+//
+// TimeStamp ticker
+//
+func CurrentTimeStampTicker() <-chan string {
+	c := make(chan string)
+	go func() {
+		for {
+			t := time.Now()
+			utils.CURRENT_UNIXTIME = t
+			utils.CURRENT_TIMESTAMP = fmt.Sprintf("%d-%02d-%02d %02d:%02d:%02d",
+				t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second())
+			utils.CURRENT_TIMESTAMP_FS = fmt.Sprintf("%d%02d%02d%02d%02d%02d",
+				t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second())
 
-func GetSystemConfiguration() string {
-	text := spew.Sdump(Cfg)
-	return text
+			time.Sleep(time.Second * 1)
+		}
+	}()
+	return c
 }
-
-
-//
-// Template for Channel by predator_pc
-//
-// func ChannelWithSleepTemplate() <-chan string {
-// 	c := make(chan string)
-// 	go func() {
-// 		for {
-// 			time.Sleep(time.Minute * 10)
-// 		}
-// 	}()
-// 	return c
-// }

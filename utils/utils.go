@@ -34,6 +34,10 @@ const charset = "abcdefghijklmnopqrstuvwxyz" +
 const WriteToLogOnly = true
 const LogFileName = "metatds.log"
 
+var CURRENT_TIMESTAMP string
+var CURRENT_UNIXTIME time.Time
+var CURRENT_TIMESTAMP_FS string
+
 func BToMb(b uint64) uint64 {
 	return b / 1024 / 1024
 }
@@ -42,20 +46,19 @@ func BToKb(b uint64) uint64 {
 	return b / 1024
 }
 
-func WriteLog(FileName, Header, Module string, Message interface{}){
-	item := "[ " + Header + " ] " + fmt.Sprintf("%s", Message) + ", " + Module + "\n"
+func WriteLog(FileName, Header, Module string, Message interface{}) {
+	item := CURRENT_TIMESTAMP + " [ " + Header + " ] " + fmt.Sprintf("%s", Message) + ", " + Module + "\n"
 	f, _ := os.OpenFile(FileName, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
 	f.WriteString(item)
 	f.Close()
 }
 
-func WriteCustomLog(FileName, Header string, Message interface{}){
-	item := Header  + fmt.Sprintf("%s", Message)
+func WriteCustomLog(FileName, Header string, Message interface{}) {
+	item := Header + fmt.Sprintf("%s", Message)
 	f, _ := os.OpenFile(FileName, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
 	f.WriteString(item)
 	f.Close()
 }
-
 
 func PrintError(header string, message interface{}, module string) {
 	if WriteToLogOnly {

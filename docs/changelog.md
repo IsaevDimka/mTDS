@@ -45,18 +45,16 @@ __MetaTDS v.2 CHANGE LOG__
 + Functional dropped to packages
 
 > __16.12.2018__
-+ Telegram adapter
-+ Time bench for Each external calls/handlers
-+ Statistic export to Telegram MetaTDSBot
-+ Changed project directory tree
++ Telegram notifications for statistic / usage
++ Tested with GCCGO compiler over Ubuntu 18.04
++ Refactored directory structure
++ Minor fixes
 
-> __19.12.2018__
-+ fx 30 seconds drop connection
-+ Recovering when Cookie reading
-+ Redis temp func removeing objects 1h/rate
-+ Export list of clicks 
-+ Creating click with path to append
-  ClickHouse export format
+> __17.12.2018__
++ Time bench and statistics
++ Dynamic reload .ini file to get settings online
++ Sending custom stats to Telegram Bot
++ Import flows into Redis
 
 > __18.12.2018__
 + Failover refusing connections withing 5sec. IN/OUT
@@ -66,22 +64,98 @@ __MetaTDS v.2 CHANGE LOG__
 + Advanced setting cookie
 + Time usage statistics
 
-> __17.12.2018__
-+ Time bench and statistics
-+ Dynamic reload .ini file to get settings online
-+ Sending custom stats to Telegram Bot
-+ Import flows into Redis
+> __19.12.2018__
++ fx 30 seconds drop connection
++ Recovering when Cookie reading
++ Redis temp func removeing objects 1h/rate
++ Export list of clicks 
++ Creating click with path to append
+  ClickHouse export format
+  
 
-> __16.12.2018__
-+ Telegram notifications for statistic / usage
-+ Tested with GCCGO compiler over Ubuntu 18.04
-+ Refactored directory structure
-+ Minor fixes
+> __23.12.2018__
++ Improvements for Telegram Bot
++ Saving clicks from RedisDB to a files dir ./clicks/XXXXXXXXXX.json
++ Improvements for Statistics and memory usage params
++ Garbage collector implements
++ Mass testing analasys and fixes bugs depends on
+
+> __24.12.2018__
++ for more stabiliy and graceful deployment
+  `settings.ini` is not in a package anymore, now after deployment
+  you should rename `settings.dev` or `settings.prod` to `settings.ini
++ fixed bug with nil pointer when telegram can't connect to proxy
++ added library for memory/system monitoring  
+
+> __25.12.2018__
++ testing issues (too many open files)
++ count open files within statistic
++ absolute file path for `settings.ini`
++ added service configuration for system.d (thanks to `@pfirsov`) 
+
+> __26.12.2018__
++ Sending to API
++ Re-sending in case of failure to API
++ Log files optional to STDOUT 
++ Improvements for `system.d` start script
++ Statistics improvements + average time for respond
+
+> __27.12.2018__
++ Recieving flows from API for startup and for work
++ Re-sending in case of failure to API (clicks) tested
++ Additional time stamp saved to `last.update.time` 
++ Improvements for `system.d` start script
++ Statistics improvements + average time for respond
++ Options for flows and clicks @`settings.ini`
+
+> __30.12.2018__
++ Improved performance for responsing to context
++ Additional statistics /stat, /conf
++ Small refactoring
++ Additional configurable settings @`settings.ini`
++ Production testing
+
+> __31.12.2018 22:29 (коммит новогодний)__
++ Improved average time calculatin
++ Improved saving click with redis HMSET
++ Improved getting infos from all triiggers
+  lands / prelands / flows / clicks
++ reused profiling information
++ Humanize
++ fx with count of flows
+
+> __01.01.2019__
++ tests to increase performance of randomization
++ additional configuration & management tools
++ memory profiling
++ cpu profiling
++ string generator fix
++ resend statistic send and file saving refactoring
+
+> __02.01.2019__
+
++ Multi deleting from Redis by exec One command
++ File I/O reading improvements@go routines
+
+> __03.01.2019__
+
++ Multi deleting from Redis by exec One command
++ File I/O reading improvements@go routines
++ final testing on high-load with concurency 10000rps
+
+> __06.01.2019__
+
++ Multi deleting from Redis improvements
++ Reconstruced URL helper
++ final testing on high-load with concurency 1000rps/1billion requests
+
+> __07.01.2018__
++ Improved performance for importing flows
++ Additional statistics /stat, /conf
++ Small refactoring for init.go
++ Additional configurable settings @`settings.ini`
++ Production testing on +10000 rps
 
 __FEATURED TODO__
-+ Tool to import flows (mass/single)
 + Implementing pixel integration 
-+ Sending stats to MetaData API
-+ Saving to files is ready and depens on previous article
 + Mass load testing 
-+ Check dir for existence when saving clicks to ./clicks/XXXXXXX.json

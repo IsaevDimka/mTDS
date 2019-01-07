@@ -14,18 +14,13 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
 	"github.com/labstack/echo/middleware"
 	"github.com/labstack/gommon/log"
-	"github.com/predatorpc/durafmt"
 	"github.com/sevenNt/echo-pprof"
-	"io/ioutil"
 	"net/http"
 	"runtime"
 	"runtime/debug"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/labstack/echo"
@@ -36,70 +31,41 @@ import (
 
 const tdsModuleName = "tds.go"
 const timestampFile = "last.update.time"
+const defaultStartOfEpoch = "946684800"
 
 // Карта ключей которые мы хотим получить
 var keyMap = []string{"flow_hash", "click_hash", "sub1", "sub2", "sub3", "sub4", "sub5", "format",
 	"click_id", "flow_id", "preland_id", "land_id"} // support for old version of TDS
 
+// пиксель для тестов
 var pixel = []byte(`data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z/C/HgAGgwJ/lK3Q6wAAAABJRU5ErkJggg==`)
 
-// Тип для
+// Тип для полного потока с кликами
 type InfoData struct {
 	Flow  models.FlowData  // модель потока
 	Click models.ClickData // модель клика
 }
 
-/*
-*
-* Main GO package handler startup and settings
-*
- */
-
-
-type Monitor struct {
-	Alloc,
-	TotalAlloc,
-	Sys,
-	Mallocs,
-	Frees,
-	LiveObjects,
-	HeapSys,
-	HeapAlloc,
-	HeapIdle,
-	HeapInuse,
-	HeapReleased,
-	HeapObjects,
-	StackInuse,
-	StackSys,
-	MSpanInuse,
-	MSpanSys,
-	MCacheInuse,
-	MCacheSys,
-	BuckHashSys,
-	GCSys,
-	OtherSys,
-	PauseTotalNs uint64
-	NumGC        uint32
-	NumGoroutine int
-	RealDetected2,
-	RealDetected uint64
-}
-
+//
+// Main GO package handler startup and settings
+//
 func main() {
-
-	//go utils.MemMonitor(1)
+	// let's update our flows on start
 	UpdateFlowsListChan()
 
 	// Echo instance
 	router := echo.New()
+
 	// Middleware
 	//router.Use(middleware.Logger())
 	router.Use(middleware.Recover())
+
 	//avoid chrome to request favicon
 	router.GET("/favicon.ico", func(c echo.Context) error {
 		return c.Blob(200, "image/png", pixel)
 		//return c.String(404, "not found") //nothing
 	})
+
 	// Routes
 	router.GET("/", flowHandler)
 	router.GET("/:flow_hash", flowHandler)
@@ -148,62 +114,18 @@ func main() {
 	router.GET("/stat", GetSystemStatkHandler)
 	router.GET("/conf", GetSystemConfHandler)
 
-	router.GET("/free", func (c echo.Context) error {
+	router.GET("/free", func(c echo.Context) error {
 		debug.FreeOSMemory()
 		runtime.GC()
 		return c.String(200, "ok")
 	})
 
-	router.GET("/memstat", func (c echo.Context) error {
+	router.GET("/memstat", func(c echo.Context) error {
 
-			var m Monitor
-			var rtm runtime.MemStats
-			// Read full mem stats
-			runtime.ReadMemStats(&rtm)
-
-			// Number of goroutines
-			m.NumGoroutine = runtime.NumGoroutine()
-
-			// Misc memory stats
-			m.Alloc = utils.BToMb(rtm.Alloc)
-			m.TotalAlloc = utils.BToMb(rtm.TotalAlloc)
-			m.Sys = utils.BToMb(rtm.Sys)
-			m.Mallocs = utils.BToMb(rtm.Mallocs)
-			m.Frees = utils.BToMb(rtm.Frees)
-
-			m.HeapSys = utils.BToMb(rtm.HeapSys)
-
-			m.HeapAlloc = utils.BToMb(rtm.HeapAlloc)
-			m.HeapIdle = utils.BToMb(rtm.HeapIdle)
-			m.HeapInuse = utils.BToMb(rtm.HeapInuse)
-
-			m.RealDetected = utils.BToMb(rtm.Sys) + utils.BToMb(rtm.HeapSys) + utils.BToMb(rtm.HeapAlloc) + utils.BToMb(rtm.HeapInuse) - utils.BToMb(rtm.Alloc)
-			m.RealDetected2 = utils.BToMb(rtm.HeapSys) - utils.BToMb(rtm.Alloc)
-
-			m.HeapReleased = utils.BToMb(rtm.HeapReleased)
-			m.HeapObjects = utils.BToMb(rtm.HeapObjects)
-
-			m.StackInuse = utils.BToMb(rtm.StackInuse)
-			m.StackSys = utils.BToMb(rtm.StackSys)
-			m.MSpanInuse = utils.BToMb(rtm.MSpanInuse)
-			m.MSpanSys = utils.BToMb(rtm.MSpanSys)
-			m.MCacheInuse = utils.BToMb(rtm.MCacheInuse)
-			m.MCacheSys = utils.BToMb(rtm.MCacheSys)
-			m.BuckHashSys = utils.BToMb(rtm.BuckHashSys)
-			m.GCSys = utils.BToMb(rtm.GCSys)
-			m.OtherSys = utils.BToMb(rtm.OtherSys)
-
-			// Live objects = Mallocs - Frees
-			m.LiveObjects = m.Mallocs - m.Frees
-
-			// GC Stats
-			m.PauseTotalNs = rtm.PauseTotalNs
-			m.NumGC = rtm.NumGC
-
-			// Just encode to json and print
-			return c.String(200, utils.JSONPretty(m))
+		m := utils.MemMonitor()
+		// Just encode to json and print
+		return c.String(200, utils.JSONPretty(m))
 	})
-
 
 	customServer := &http.Server{
 		Addr:         ":" + strconv.Itoa(config.Cfg.General.Port),
@@ -211,13 +133,6 @@ func main() {
 		WriteTimeout: time.Duration(1+config.Cfg.General.HTTPTimeout) * time.Second,
 		IdleTimeout:  time.Duration(1+config.Cfg.General.HTTPTimeout) * time.Second,
 	}
-
-	// customServer := &http.Server{
-	// 	Addr:         ":" + strconv.Itoa(config.Cfg.General.Port),
-	// 	ReadTimeout:  100 * time.Second,
-	// 	WriteTimeout: 100 * time.Second,
-	// 	IdleTimeout:  100 * time.Second,
-	// }
 
 	customServer.SetKeepAlivesEnabled(false)
 	router.HideBanner = true
@@ -246,10 +161,12 @@ func GetSystemConfHandler(c echo.Context) error {
 	// защита от долбоебов
 	if agent == "MetaDevAgent" {
 		text := config.GetSystemConfiguration()
-		return c.HTML(200, "<html><head><title>TDS System statistics</title><script>"+
-			"setInterval(function(){window.location.reload(true)},5000);"+
-			"</script></head><body><pre>"+
-			text+"</pre></body></html>")
+		return c.HTML(200,
+			"<html><head><title>TDS System statistics</title><script>"+
+				"setInterval(function(){window.location.reload(true)},5000);"+
+				"</script></head><body><pre>"+
+				text+
+				"</pre></body></html>")
 
 	} else {
 		return c.String(404, "Not found on server")
@@ -261,221 +178,14 @@ func GetSystemStatkHandler(c echo.Context) error {
 	// защита от долбоебов
 	if agent == "MetaDevAgent" {
 		text := config.GetSystemStatistics()
-		return c.HTML(200, "<html><head><title>TDS System statistics</title><script>"+
-			"setInterval(function(){window.location.reload(true)},5000);"+
-			"</script></head><body><pre>"+
-			text+"</pre></body></html>")
+		return c.HTML(200,
+			"<html><head><title>TDS System statistics</title><script>"+
+				"setInterval(function(){window.location.reload(true)},5000);"+
+				"</script></head><body><pre>"+
+				text+
+				"</pre></body></html>")
 
 	} else {
 		return c.String(404, "Not found on server")
 	}
-}
-
-func ImportFlowsToRedis(jsonData []byte) (int, bool) {
-	Flows := make(map[string]models.FlowImportData)
-	if err := json.Unmarshal(jsonData, &Flows); err != nil {
-		if config.Cfg.Debug.Level > 1 {
-			utils.PrintDebug("Error", "Can`t decode JSON given", tdsModuleName)
-		}
-	} else {
-
-		for _, item := range Flows {
-
-			params:=make(map[string]interface{})
-
-			params["ID"] = item.ID
-			params["Hash"] = item.Hash
-			params["OfferID"] = item.OfferID
-			params["WebMasterID"] = item.WebMasterID
-			params["WebMasterCurrencyID"] = item.WebMasterCurrencyID
-
-			_ = config.Redisdb.HMSet(item.Hash, params).Err()
-
-			// _ = config.Redisdb.HSet(item.Hash,"ID", item.ID).Err()
-			// _ = config.Redisdb.HSet(item.Hash,"Hash", item.Hash).Err()
-			// _ = config.Redisdb.HSet(item.Hash,"OfferID", item.OfferID).Err()
-			// _ = config.Redisdb.HSet(item.Hash,"WebMasterID", item.WebMasterID).Err()
-			// _ = config.Redisdb.HSet(item.Hash,"WebMasterCurrencyID", item.WebMasterCurrencyID).Err()
-
-			if len(item.Lands) > 0 {
-				for _, lands := range item.Lands {
-					_ = config.Redisdb.HSet(item.Hash+":lands", strconv.Itoa(lands.ID), lands.URL).Err()
-					//_ = config.Redisdb.HSet(item.Hash+":lands", )
-					// _ = config.Redisdb.HSet(item.Hash+":land:"+strconv.Itoa(i), "id", lands.ID)
-					// _ = config.Redisdb.HSet(item.Hash+":land:"+strconv.Itoa(i), "url", lands.URL)
-
-				}
-			}
-
-		}
-
-		return len(Flows), true
-	}
-	return len(Flows), false
-}
-
-// func ImportFlowsToRedis(jsonData []byte) (int, bool) {
-// 	Flows := make(map[string]models.FlowImportData)
-// 	if err := json.Unmarshal(jsonData, &Flows); err != nil {
-// 		if config.Cfg.Debug.Level > 1 {
-// 			utils.PrintDebug("Error", "Can`t decode JSON given", tdsModuleName)
-// 		}
-// 	} else {
-//
-// 		for _, item := range Flows {
-//
-// 			_ = config.Redisdb.Set(item.Hash+":ID", item.ID, 0).Err()
-// 			_ = config.Redisdb.Set(item.Hash+":Hash", item.Hash, 0).Err()
-// 			_ = config.Redisdb.Set(item.Hash+":OfferID", item.OfferID, 0).Err()
-// 			_ = config.Redisdb.Set(item.Hash+":WebMasterID", item.WebMasterID, 0).Err()
-// 			_ = config.Redisdb.Set(item.Hash+":WebMasterCurrencyID", item.WebMasterCurrencyID, 0).Err()
-//
-// 			if len(item.Lands) > 0 {
-// 				for i, lands := range item.Lands {
-// 					_ = config.Redisdb.HSet(item.Hash+":land:"+strconv.Itoa(i), "id", lands.ID)
-// 					_ = config.Redisdb.HSet(item.Hash+":land:"+strconv.Itoa(i), "url", lands.URL)
-// 				}
-// 			}
-// 		}
-//
-// 		return len(Flows), true
-// 	}
-// 	return len(Flows), false
-// }
-
-const defaultStartOfEpoch = "946684800"
-
-func UpdateFlowsListChan() <-chan string {
-	c := make(chan string)
-	go func() {
-		for {
-			if config.IsRedisAlive {
-				var body []byte
-
-				t := time.Now()
-				timestampWriteable := strconv.FormatInt(time.Now().Unix(), 10)
-				timestampPrintable := fmt.Sprintf("%d-%02d-%02d %02d:%02d:%02d",
-					t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second())
-
-				// getting current count of flows and if it isn't null then proceeed
-				//currentCount, _ := config.Redisdb.Keys("*:ID").Result()
-				fileData, err := ioutil.ReadFile(timestampFile)
-				if err == nil { //&& len(currentCount) > 0 {
-					// ---------------------------------------------------------------------------------------------------------------------
-					// LOADING WITH PARAMS OF LAST UPDATE
-					// When TDS starting up first time we need to load all flows in it
-					// ---------------------------------------------------------------------------------------------------------------------
-					// if we can't parse this we should get all anyway
-					_, err := strconv.ParseInt(string(fileData), 10, 64)
-					if err != nil && config.Cfg.Debug.Level > 0 {
-						utils.PrintDebug("Error", "parsing timestamp from `"+timestampFile+"` failure", tdsModuleName)
-						fileData = []byte(defaultStartOfEpoch) // 2000-01-01
-					}
-
-					// performing request to our API
-					url := config.Cfg.Redis.ApiFlowsURL
-					req, err := http.Get(url + strings.Trim(string(fileData), "\r\n"))
-					req.Header.Set("Connection", "close")
-
-					// TODO: сделать обработку ошибки в случае если апи не доступно
-
-					if req != nil {
-						defer req.Body.Close()
-						body, _ = ioutil.ReadAll(req.Body)
-					}
-
-					if err != nil {
-						utils.PrintError("Redis import", "Can't create request to API to recieve flows", tdsModuleName)
-					}
-
-					if req.Status == "200 OK" {
-						if count, err := ImportFlowsToRedis(body); err != false {
-							config.TDSStatistic.AppendedFlows += count
-							config.TDSStatistic.UpdatedFlows++
-
-							config.Telegram.SendMessage("\n" + timestampPrintable + "\n" +
-								config.Cfg.General.Name + "\nRequested flows from API\n" +
-								"\nUpdated flows: " + strconv.Itoa(count) +
-								"\nTime elsapsed for operation: " + durafmt.Parse(time.Since(t)).String(durafmt.DF_LONG))
-
-							utils.PrintInfo("Redis import", "updated flows successful", tdsModuleName)
-
-							// saving current timestamp to file
-							ioutil.WriteFile(timestampFile, []byte(timestampWriteable), 0644)
-
-						} else {
-							// config.Telegram.SendMessage("```\n" + timestampPrintable + "\n" +
-							// 	config.Cfg.General.Name + "\nRequested flows from API\n" +
-							// 	"\nUpdated flows: nothing to update" +
-							// 	"\nTime elsapsed for operation: " + durafmt.Parse(time.Since(t)).String(durafmt.DF_LONG) +
-							// 	"```")
-						}
-
-					} else {
-						utils.PrintDebug("Error", "Recieving new flows failed", tdsModuleName)
-						//
-						// config.Telegram.SendMessage("```\n" + timestampPrintable + "\n" +
-						// 	config.Cfg.General.Name + "\nRequested flows from API\n" +
-						// 	"\nError: can't connect to API service" +
-						// 	"\nTime elsapsed for operation: " + durafmt.Parse(time.Since(t)).String(durafmt.DF_LONG) +
-						// 	"```")
-					}
-				} else {
-					// ---------------------------------------------------------------------------------------------------------------------
-					// DEFAULT LOADING
-					// When TDS starting up first time we need to load all flows in it
-					// ---------------------------------------------------------------------------------------------------------------------
-					fileData = []byte(defaultStartOfEpoch) // 2000-01-01
-
-					// performing request to our API
-					url := config.Cfg.Redis.ApiFlowsURL
-					req, err := http.Get(url + strings.Trim(string(fileData), "\r\n"))
-
-					if req != nil {
-						defer req.Body.Close()
-						body, _ = ioutil.ReadAll(req.Body)
-					}
-
-					if err != nil {
-						utils.PrintError("Redis import", "Can't create request to API to recieve flows", tdsModuleName)
-					}
-
-					if req.Status == "200 OK" {
-						if count, err := ImportFlowsToRedis(body); err != false {
-							config.TDSStatistic.UpdatedFlows++
-							// writing debug
-							config.Telegram.SendMessage("\n" + timestampPrintable + "\n" +
-								config.Cfg.General.Name + "\nRequested flows from API\n" +
-								"\nUpdated flows: " + strconv.Itoa(count) +
-								"\nTime elsapsed for operation: " + durafmt.Parse(time.Since(t)).String(durafmt.DF_LONG))
-
-							utils.PrintInfo("Redis import", "All flows loaded successful", tdsModuleName)
-
-							// saving current timestamp to file
-							ioutil.WriteFile(timestampFile, []byte(timestampWriteable), 0644)
-
-						} else {
-							// config.Telegram.SendMessage("```\n" + timestampPrintable + "\n" +
-							// 	config.Cfg.General.Name + "\nRequested flows from API\n" +
-							// 	"\nUpdated flows: 0 nothing to update" +
-							// 	"\nTime elsapsed for operation: " + durafmt.Parse(time.Since(t)).String(durafmt.DF_LONG) +
-							// 	"```")
-						}
-
-					} else {
-						utils.PrintDebug("Error", "Recieving new flows failed", tdsModuleName)
-						// config.Telegram.SendMessage("```\n" + timestampPrintable + "\n" +
-						// 	config.Cfg.General.Name + "\nRequested flows from API\n" +
-						// 	"\nUpdated flows: 0" +
-						// 	"\nTime elsapsed for operation: " + durafmt.Parse(time.Since(t)).String(durafmt.DF_LONG) +
-						// 	"```")
-					}
-				}
-
-				//defer runtime.GC() // startup garbage collector
-				time.Sleep(time.Duration(1+config.Cfg.Redis.UpdateFlows) * time.Second)
-			}
-		}
-	}()
-	return c
 }
