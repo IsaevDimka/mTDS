@@ -12,9 +12,8 @@
 package utils
 
 import (
-	"fmt"
+	"metatds/stuff/other/utils"
 	"runtime"
-	"time"
 )
 
 type Monitor struct {
@@ -39,68 +38,57 @@ type Monitor struct {
 	BuckHashSys,
 	GCSys,
 	OtherSys,
-	RealDetected2,
-
-	RealDetected,
-
 	PauseTotalNs uint64
-
 	NumGC        uint32
 	NumGoroutine int
+	RealDetected2,
+	RealDetected uint64
 }
 
-func MemMonitor(duration int) {
+func MemMonitor() Monitor {
 	var m Monitor
 	var rtm runtime.MemStats
-	var interval = time.Duration(duration) * time.Second
-	for {
-		<-time.After(interval)
+	// Read full mem stats
+	runtime.ReadMemStats(&rtm)
 
-		// Read full mem stats
-		runtime.ReadMemStats(&rtm)
+	// Number of goroutines
+	m.NumGoroutine = runtime.NumGoroutine()
 
-		// Number of goroutines
-		m.NumGoroutine = runtime.NumGoroutine()
+	// Misc memory stats
+	m.Alloc = utils.BToMb(rtm.Alloc)
+	m.TotalAlloc = utils.BToMb(rtm.TotalAlloc)
+	m.Sys = utils.BToMb(rtm.Sys)
+	m.Mallocs = utils.BToMb(rtm.Mallocs)
+	m.Frees = utils.BToMb(rtm.Frees)
 
-		// Misc memory stats
-		m.Alloc = BToKb(rtm.Alloc)
-		m.TotalAlloc = BToKb(rtm.TotalAlloc)
-		m.Sys = BToKb(rtm.Sys)
-		m.Mallocs = BToKb(rtm.Mallocs)
-		m.Frees = BToKb(rtm.Frees)
+	m.HeapSys = utils.BToMb(rtm.HeapSys)
 
-		m.HeapSys = BToKb(rtm.HeapSys)
+	m.HeapAlloc = utils.BToMb(rtm.HeapAlloc)
+	m.HeapIdle = utils.BToMb(rtm.HeapIdle)
+	m.HeapInuse = utils.BToMb(rtm.HeapInuse)
 
-		m.HeapAlloc = BToKb(rtm.HeapAlloc)
-		m.HeapIdle = BToKb(rtm.HeapIdle)
-		m.HeapInuse = BToKb(rtm.HeapInuse)
+	m.RealDetected = utils.BToMb(rtm.Sys) + utils.BToMb(rtm.HeapSys) + utils.BToMb(rtm.HeapAlloc) + utils.BToMb(rtm.HeapInuse) - utils.BToMb(rtm.Alloc)
+	m.RealDetected2 = utils.BToMb(rtm.HeapSys) - utils.BToMb(rtm.Alloc)
 
-		m.RealDetected = BToKb(rtm.Sys) + BToKb(rtm.HeapSys) + BToKb(rtm.HeapAlloc) + BToKb(rtm.HeapInuse) - BToKb(rtm.Alloc)
-		m.RealDetected2 = BToKb(rtm.HeapSys) - BToKb(rtm.Alloc)
+	m.HeapReleased = utils.BToMb(rtm.HeapReleased)
+	m.HeapObjects = utils.BToMb(rtm.HeapObjects)
 
-		m.HeapReleased = BToKb(rtm.HeapReleased)
-		m.HeapObjects = BToKb(rtm.HeapObjects)
+	m.StackInuse = utils.BToMb(rtm.StackInuse)
+	m.StackSys = utils.BToMb(rtm.StackSys)
+	m.MSpanInuse = utils.BToMb(rtm.MSpanInuse)
+	m.MSpanSys = utils.BToMb(rtm.MSpanSys)
+	m.MCacheInuse = utils.BToMb(rtm.MCacheInuse)
+	m.MCacheSys = utils.BToMb(rtm.MCacheSys)
+	m.BuckHashSys = utils.BToMb(rtm.BuckHashSys)
+	m.GCSys = utils.BToMb(rtm.GCSys)
+	m.OtherSys = utils.BToMb(rtm.OtherSys)
 
-		m.StackInuse = BToKb(rtm.StackInuse)
-		m.StackSys = BToKb(rtm.StackSys)
-		m.MSpanInuse = BToKb(rtm.MSpanInuse)
-		m.MSpanSys = BToKb(rtm.MSpanSys)
-		m.MCacheInuse = BToKb(rtm.MCacheInuse)
-		m.MCacheSys = BToKb(rtm.MCacheSys)
-		m.BuckHashSys = BToKb(rtm.BuckHashSys)
-		m.GCSys = BToKb(rtm.GCSys)
-		m.OtherSys = BToKb(rtm.OtherSys)
+	// Live objects = Mallocs - Frees
+	m.LiveObjects = m.Mallocs - m.Frees
 
-		// Live objects = Mallocs - Frees
-		m.LiveObjects = m.Mallocs - m.Frees
+	// GC Stats
+	m.PauseTotalNs = rtm.PauseTotalNs
+	m.NumGC = rtm.NumGC
 
-		// GC Stats
-		m.PauseTotalNs = rtm.PauseTotalNs
-		m.NumGC = rtm.NumGC
-
-		// Just encode to json and print
-		//b, _ := json.Marshal(m)
-		fmt.Println(JSONPretty(m))
-		//fmt.Printf("Total system memory: %d\n", memory.TotalMemory())
-	}
+	return m
 }
