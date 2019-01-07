@@ -20,6 +20,10 @@ func GetSystemStatistics() string {
 	var uptime, processingTime, memoryUsageGeneral, memoryUsagePrivate, avgReq string
 	var openedFiles = "0"
 
+	currentRPSstart := TDSStatistic.RedirectRequest
+	time.Sleep(1 * time.Second)
+	currentRPS := currentRPSstart - TDSStatistic.RedirectRequest
+
 	if TDSStatistic != (utils.TDSStats{}) {
 		duration = 60 * time.Minute
 
@@ -76,6 +80,7 @@ func GetSystemStatistics() string {
 			"\nIncorrect request      : " + humanize.Comma(int64(TDSStatistic.IncorrectRequest)) + //strconv.Itoa(TDSStatistic.IncorrectRequest) +
 			"\nCookies request        : " + humanize.Comma(int64(TDSStatistic.CookieRequest)) + //strconv.Itoa(TDSStatistic.CookieRequest) +
 			"\nUnique request (?)     : " + humanize.Comma(int64(uniqueRequests)) + //strconv.Itoa(uniqueRequests) +
+			"\nCurrent rate           : " + humanize.Comma(int64(currentRPS)) + " rps" +
 			"\n\nUp time                : " + uptime +
 			"\nProcessing time        : " + processingTime +
 			"\nAverage response time  : " + avgReq +
