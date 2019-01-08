@@ -11,6 +11,10 @@ import (
 	"time"
 )
 
+var RPSStat []int
+var RPSStatDefault []int
+
+const minimumStatCountRPS = 100
 const sysstatModuleName = "sysstat.go"
 
 func GetSystemStatistics() string {
@@ -23,6 +27,14 @@ func GetSystemStatistics() string {
 	currentRPSstart := TDSStatistic.RedirectRequest
 	time.Sleep(1 * time.Second)
 	currentRPS := TDSStatistic.RedirectRequest - currentRPSstart
+
+	if len(RPSStat) < minimumStatCountRPS {
+		RPSStat = append(RPSStat, currentRPS)
+	} else {
+		RPSStat = RPSStatDefault
+	}
+
+	averageRPS:=RPSAverage(RPSStat)
 
 	if TDSStatistic != (utils.TDSStats{}) {
 		duration = 60 * time.Minute
@@ -70,7 +82,7 @@ func GetSystemStatistics() string {
 
 		text = "\n" + utils.CURRENT_TIMESTAMP + "\n" + Cfg.General.Name +
 			"\n\nINFO" +
-			"\n\nFlow update request    : " + strconv.Itoa(TDSStatistic.UpdatedFlows) +
+			"\nFlow update request    : " + strconv.Itoa(TDSStatistic.UpdatedFlows) +
 			"\nFlow appended          : " + strconv.Itoa(TDSStatistic.AppendedFlows) +
 			//"\nPixel request          : " + strconv.Itoa(TDSStatistic.PixelRequest) +
 			"\nClick Info request     : " + humanize.Comma(int64(TDSStatistic.ClickInfoRequest)) + //strconv.Itoa(TDSStatistic.ClickInfoRequest) +
@@ -80,18 +92,19 @@ func GetSystemStatistics() string {
 			"\nIncorrect request      : " + humanize.Comma(int64(TDSStatistic.IncorrectRequest)) + //strconv.Itoa(TDSStatistic.IncorrectRequest) +
 			"\nCookies request        : " + humanize.Comma(int64(TDSStatistic.CookieRequest)) + //strconv.Itoa(TDSStatistic.CookieRequest) +
 			"\nUnique request (?)     : " + humanize.Comma(int64(uniqueRequests)) + //strconv.Itoa(uniqueRequests) +
-			"\nCurrent rate           : " + humanize.Comma(int64(currentRPS)) + " rps" +
-			"\n\nUp time                : " + uptime +
-			"\nProcessing time        : " + processingTime +
-			"\nAverage response time  : " + avgReq +
-			"\n\nSYSTEM INFO" +
-			"\n\nOperating system       : " + Cfg.General.OS +
+			"\n\nSYSTEM" +
+			"\nOperating system       : " + Cfg.General.OS +
 			"\nDebug level            : " + strconv.Itoa(Cfg.Debug.Level) +
 			"\nTotal memory allocated : " + memoryUsageGeneral + " Mb" +
 			"\nPrivate memory         : " + memoryUsagePrivate + " Mb" +
 			"\nOpened files           : " + openedFiles +
+			"\nCurrent rate           : " + humanize.Comma(int64(currentRPS)) + " rps" +
+			"\nAverage rate           : " + strconv.Itoa(averageRPS) + " rps" +
+			"\nUptime                 : " + uptime +
+			"\nProcessing time        : " + processingTime +
+			"\nAverage response time  : " + avgReq +
 			"\n\nREDIS" +
-			"\n\nConnection             : " + strconv.FormatBool(IsRedisAlive) +
+			"\nConnection             : " + strconv.FormatBool(IsRedisAlive) +
 			"\nClicks sent/saved      : " + humanize.Comma(int64(TDSStatistic.ClicksSentToRedis)) + //strconv.Itoa(TDSStatistic.ClicksSentToRedis) +
 			"\n"
 		return text
