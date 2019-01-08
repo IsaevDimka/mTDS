@@ -1,9 +1,11 @@
 package config
 
 import (
+	"fmt"
 	"github.com/dustin/go-humanize"
 	"github.com/predatorpc/durafmt"
 	"io/ioutil"
+	"math"
 	"metatds/utils"
 	"os"
 	"runtime"
@@ -24,6 +26,12 @@ func GetSystemStatistics() string {
 	var uptime, processingTime, memoryUsageGeneral, memoryUsagePrivate, avgReq string
 	var openedFiles = "0"
 
+	StatisticCounter, err := Redisdb.Get("StatisticCounter").Result()
+	if err!=nil {
+		_ = Redisdb.Set("StatisticCounter", 0, 0).Err()
+		StatisticCounter = "0"
+	}
+
 	currentRPSstart := TDSStatistic.RedirectRequest
 	time.Sleep(1 * time.Second)
 	currentRPS := TDSStatistic.RedirectRequest - currentRPSstart
@@ -34,7 +42,7 @@ func GetSystemStatistics() string {
 		RPSStat = RPSStatDefault
 	}
 
-	averageRPS:=RPSAverage(RPSStat)
+	averageRPS := RPSAverage(RPSStat)
 
 	if TDSStatistic != (utils.TDSStats{}) {
 		duration = 60 * time.Minute
@@ -72,13 +80,19 @@ func GetSystemStatistics() string {
 		}
 
 		dur := DurationAverage(utils.ResponseAverage)
+
 		if dur < time.Duration(1*time.Millisecond) { //|| dur < time.Duration(1 * time.Microsecond) || dur < time.Duration(1 * time.Nanosecond) {
-			avgReq = "< 1 ms"
+			avgReq = "< 1 msec"
 		} else {
 			avgReq = durafmt.Parse(dur).String(durafmt.DF_LONG)
 		}
 
 		uniqueRequests := (TDSStatistic.ClickInfoRequest + TDSStatistic.FlowInfoRequest + TDSStatistic.RedirectRequest) - TDSStatistic.CookieRequest // - TDSStatistic.IncorrectRequest
+
+		//setting stat to redis
+		_ = Redisdb.HSet("SystemStatistic",StatisticCounter,"["+StatisticCounter+","+
+										fmt.Sprintf("%.0f", (math.Round(dur.Seconds() * 1000)))+","+
+										strconv.Itoa(averageRPS)+","+strconv.Itoa(currentRPS)+"]").Err()
 
 		text = "\n" + utils.CURRENT_TIMESTAMP + "\n" + Cfg.General.Name +
 			"\n\nINFO" +
@@ -95,8 +109,8 @@ func GetSystemStatistics() string {
 			"\n\nSYSTEM" +
 			"\nOperating system       : " + Cfg.General.OS +
 			"\nDebug level            : " + strconv.Itoa(Cfg.Debug.Level) +
-			"\nTotal memory allocated : " + memoryUsageGeneral + " Mb" +
-			"\nPrivate memory         : " + memoryUsagePrivate + " Mb" +
+			"\nTotal memory allocated : " + memoryUsageGeneral + " mb" +
+			"\nPrivate memory         : " + memoryUsagePrivate + " mb" +
 			"\nOpened files           : " + openedFiles +
 			"\nCurrent rate           : " + humanize.Comma(int64(currentRPS)) + " rps" +
 			"\nAverage rate           : " + strconv.Itoa(averageRPS) + " rps" +
@@ -107,9 +121,19 @@ func GetSystemStatistics() string {
 			"\nConnection             : " + strconv.FormatBool(IsRedisAlive) +
 			"\nClicks sent/saved      : " + humanize.Comma(int64(TDSStatistic.ClicksSentToRedis)) + //strconv.Itoa(TDSStatistic.ClicksSentToRedis) +
 			"\n"
+
+		_ = Redisdb.Incr("StatisticCounter").Err()
+
 		return text
 	} else {
 		TDSStatistic.Reset()
+
+		//setting counter up
+		_, err := Redisdb.Get("StatisticCounter").Result()
+		if err!=nil {
+			_ = Redisdb.Set("StatisticCounter", 0, 0).Err()
+		}
+
 		return text
 	}
 }

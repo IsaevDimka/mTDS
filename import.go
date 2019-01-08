@@ -108,13 +108,13 @@ func UpdateFlowsListChan() <-chan string {
 
 								utils.PrintInfo("Redis import", "updated flows successful", importModuleName)
 								// saving current timestamp to file
-								ioutil.WriteFile(timestampFile, []byte(timestampWriteable), 0644)
+								_ = ioutil.WriteFile(timestampFile, []byte(timestampWriteable), 0644)
 							} else {
 								utils.PrintDebug("Error", "Normal bootstrap: Writing to Redis failed or empty response", importModuleName)
 							}
 
 						} else {
-							utils.PrintDebug("Error", "Recieving new flows failed", importModuleName)
+							utils.PrintDebug("Error", "Receiving new flows failed", importModuleName)
 						}
 					}
 				} else {
@@ -132,10 +132,10 @@ func UpdateFlowsListChan() <-chan string {
 						// setting header in case of API request is not NIL
 						req.Header.Set("Connection", "close")
 						// reading the body
-						io.Copy(body, req.Body)
+						_, _ = io.Copy(body, req.Body)
 						// closing anyway now
 						// defer is not needed cause we get an exception before
-						req.Body.Close()
+						_ = req.Body.Close()
 					}
 
 					if err != nil {
