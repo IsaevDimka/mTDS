@@ -232,7 +232,7 @@ func GetSystemExtendedStatHandler(c echo.Context) error {
 
 		for i, item:=range dataKeys {
 			fmt.Println(i,item,"\n")
-			convertedID:=strconv.Itoa(i)
+			convertedID:=strconv.Itoa(item)
 			ResultingMap = append(ResultingMap, dataFromRedis[convertedID])
 		}
 
