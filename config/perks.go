@@ -36,3 +36,15 @@ func DurationAverage(dur []time.Duration) time.Duration {
 	result := allTime / float64(1+len(dur))
 	return time.Duration(result)
 }
+
+//
+// average responder for stat by time of execution
+//
+func RPSAverage(RPSStat []int) int {
+	var allStat float64
+	for _, item := range RPSStat {
+		allStat += float64(item)
+	}
+	result := allStat / float64(1+len(RPSStat))
+	return int(result)
+}

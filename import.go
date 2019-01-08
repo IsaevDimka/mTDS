@@ -110,7 +110,7 @@ func UpdateFlowsListChan() <-chan string {
 								// saving current timestamp to file
 								ioutil.WriteFile(timestampFile, []byte(timestampWriteable), 0644)
 							} else {
-								utils.PrintDebug("Error", "Writing to Redis failed", importModuleName)
+								utils.PrintDebug("Error", "Normal bootstrap: Writing to Redis failed or empty response", importModuleName)
 							}
 
 						} else {
@@ -161,7 +161,7 @@ func UpdateFlowsListChan() <-chan string {
 							}
 
 						} else {
-							utils.PrintDebug("Error", "Recieving new flows failed", importModuleName)
+							utils.PrintDebug("Error", "Emergency bootstrap: Writing to Redis failed or empty response", importModuleName)
 						}
 					}
 				}
