@@ -2,7 +2,14 @@ __FEATURED TODO__
 + Development testing
 + Production testing
 
-__LAST CHANGES__
+__LAST CHANGES__ (other changes see `docs/changelog.txt`)
+
+> __08.01.2019__
+
++ Improved statistics for average RPS
++ Advanced template based stat output
++ Additional params to watch for stat
++ fx
 
 > __07.01.2018__
 + Improved performance for importing flows
