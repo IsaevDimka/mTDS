@@ -14,13 +14,19 @@
 package main
 
 import (
+	"bytes"
+	"fmt"
 	"github.com/labstack/echo/middleware"
 	"github.com/labstack/gommon/log"
 	"github.com/sevenNt/echo-pprof"
+	"io"
 	"net/http"
+	"os"
 	"runtime"
 	"runtime/debug"
+	"sort"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/labstack/echo"
@@ -111,7 +117,8 @@ func main() {
 	router.GET("/c/info/:click_hash", clickHandler)
 	router.GET("/c/list", ListClickHandler)
 
-	router.GET("/stat", GetSystemStatkHandler)
+	router.GET("/stat", GetSystemStatHandler)
+	router.GET("/extstat", GetSystemExtendedStatHandler)
 	router.GET("/conf", GetSystemConfHandler)
 
 	router.GET("/free", func(c echo.Context) error {
@@ -173,19 +180,85 @@ func GetSystemConfHandler(c echo.Context) error {
 	}
 }
 
-func GetSystemStatkHandler(c echo.Context) error {
+func GetSystemStatHandler(c echo.Context) error {
 	agent := c.Request().UserAgent()
 	// защита от долбоебов
 	if agent == "MetaDevAgent" {
 		text := config.GetSystemStatistics()
 		return c.HTML(200,
 			"<html><head><title>TDS System statistics</title><script>"+
-				"setInterval(function(){window.location.reload(true)},5000);"+
-				"</script></head><body><pre>"+
-				text+
-				"</pre></body></html>")
+			"setInterval(function(){window.location.reload(true)},10000);"+
+			"</script></head><body><pre>"+
+			text+
+			"</pre></body></html>")
 
 	} else {
 		return c.String(404, "Not found on server")
 	}
+}
+
+func GetSystemExtendedStatHandler(c echo.Context) error {
+	//agent := c.Request().UserAgent()
+	// защита от долбоебов
+	//if agent == "MetaDevAgent" {
+		text := config.GetSystemStatistics()
+
+		w := bytes.NewBuffer(nil)
+		file, _ := os.Open("tmpl/sysstat.tmpl")
+		io.Copy(w, file)
+		file.Close()
+
+		s:= w.String()
+
+		// increase by one
+
+		dataFromRedis, _:=config.Redisdb.HGetAll("SystemStatistic").Result()
+
+		var dataForGraph string
+		var dataKeys []int
+
+		for i, _:=range dataFromRedis {
+			convertedID, _ := strconv.Atoi(i)
+			dataKeys = append(dataKeys, convertedID)
+		}
+
+		sort.Ints(dataKeys)
+
+//	fmt.Println("KEYS  = ",dataKeys)
+
+
+	//ResultingMap:=make(map[int][]string)
+	var ResultingMap []string
+
+		for i, item:=range dataKeys {
+			fmt.Println(i,item,"\n")
+			convertedID:=strconv.Itoa(i)
+			ResultingMap = append(ResultingMap, dataFromRedis[convertedID])
+		}
+
+	fmt.Println("KEYS  = ",ResultingMap)
+
+	//		spew.Dump(ResultingMap)
+
+
+//		sort.Strings(dataFromRedis)
+
+		for _, item:=range ResultingMap {
+//			if i == "0" {
+				dataForGraph += item + ",\n"
+//			} else {
+				//dataForGraph += ","+item + "\n"
+			//}
+		}
+
+/*		data := "[0, 0, 3],   [1, 10, 6],  [2, 23, 23],  [3, 17, 232],  [4, 18, 23],  [5, 9, 23],"+
+			    "[6, 11, 14],  [7, 27, 5],  [8, 33, 8],  [9, 40, 0],  [10, 32, 123], [11, 35, 40]"
+*/
+		result:=strings.Replace(s,"{{DATA}}",dataForGraph, -1)
+		result=strings.Replace(result,"{{SYSSTAT}}",text, -1)
+		return c.HTML(200, result)
+
+	// } else {
+	// 	return c.String(404, "Not found on server")
+	// }
 }

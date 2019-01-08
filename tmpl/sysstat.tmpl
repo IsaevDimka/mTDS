@@ -1,0 +1,55 @@
+<html>
+<head>
+  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+  <script>
+    google.charts.load('current', {packages: ['corechart', 'line']});
+    google.charts.setOnLoadCallback(drawBackgroundColor);
+
+    function drawBackgroundColor() {
+    var data = new google.visualization.DataTable();
+    data.addColumn('number', 'X');
+    data.addColumn('number', 'Response time');
+    data.addColumn('number', 'Average RPS');
+    data.addColumn('number', 'Current RPS');
+
+    data.addRows([
+	    {{DATA}}
+    ]);
+
+	    var options = {
+	          title: 'TDS Performance',
+		    hAxis: {
+			    title: 'Time'
+		    },
+		    vAxis: {
+			   title: 'Requests'
+	            },
+		    backgroundColor: '#ffffff',
+		   legend: { position: 'bottom' },
+//	       	  curveType: 'function'
+			  width: 900,
+		        height: 500
+		};
+
+	    var chart = new google.visualization.LineChart(document.getElementById('chart_div'));
+	    chart.draw(data, options);
+    }
+   </script>
+</head>
+<body>
+
+<table border=0 cellspacing=0 cellpadding=0>
+<tr>
+<td>
+	<textarea rows=33 cols=50 style="overflow:hidden;resize:none;" readonly>
+	{{SYSSTAT}}
+	</textarea>
+</td>
+<td>
+	<div id="chart_div"></div>
+</td>
+</tr>
+</table>
+
+</body>
+</html>
