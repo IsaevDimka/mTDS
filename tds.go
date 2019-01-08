@@ -231,12 +231,12 @@ func GetSystemExtendedStatHandler(c echo.Context) error {
 	var ResultingMap []string
 
 		for i, item:=range dataKeys {
-			fmt.Println(i,item,"\n")
-			convertedID:=strconv.Itoa(i)
+			//fmt.Println(i,item,"\n")
+			convertedID:=strconv.Itoa(item)
 			ResultingMap = append(ResultingMap, dataFromRedis[convertedID])
 		}
 
-	fmt.Println("KEYS  = ",ResultingMap)
+	//fmt.Println("KEYS  = ",ResultingMap)
 
 	//		spew.Dump(ResultingMap)
 
