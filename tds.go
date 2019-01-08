@@ -15,7 +15,6 @@ package main
 
 import (
 	"bytes"
-	"fmt"
 	"github.com/labstack/echo/middleware"
 	"github.com/labstack/gommon/log"
 	"github.com/sevenNt/echo-pprof"
@@ -230,7 +229,7 @@ func GetSystemExtendedStatHandler(c echo.Context) error {
 	//ResultingMap:=make(map[int][]string)
 	var ResultingMap []string
 
-		for i, item:=range dataKeys {
+		for _, item:=range dataKeys {
 			//fmt.Println(i,item,"\n")
 			convertedID:=strconv.Itoa(item)
 			ResultingMap = append(ResultingMap, dataFromRedis[convertedID])
