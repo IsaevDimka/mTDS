@@ -186,10 +186,10 @@ func GetSystemStatHandler(c echo.Context) error {
 		text := config.GetSystemStatistics()
 		return c.HTML(200,
 			"<html><head><title>TDS System statistics</title><script>"+
-			"setInterval(function(){window.location.reload(true)},10000);"+
-			"</script></head><body><pre>"+
-			text+
-			"</pre></body></html>")
+				"setInterval(function(){window.location.reload(true)},10000);"+
+				"</script></head><body><pre>"+
+				text+
+				"</pre></body></html>")
 
 	} else {
 		return c.String(404, "Not found on server")
@@ -200,62 +200,60 @@ func GetSystemExtendedStatHandler(c echo.Context) error {
 	//agent := c.Request().UserAgent()
 	// защита от долбоебов
 	//if agent == "MetaDevAgent" {
-		text := config.GetSystemStatistics()
+	text := config.GetSystemStatistics()
 
-		w := bytes.NewBuffer(nil)
-		file, _ := os.Open("tmpl/sysstat.tmpl")
-		io.Copy(w, file)
-		file.Close()
+	w := bytes.NewBuffer(nil)
+	file, _ := os.Open("tmpl/sysstat.tmpl")
+	_, _ = io.Copy(w, file)
+	_ = file.Close()
 
-		s:= w.String()
+	s := w.String()
 
-		// increase by one
+	// increase by one
 
-		dataFromRedis, _:=config.Redisdb.HGetAll("SystemStatistic").Result()
+	dataFromRedis, _ := config.Redisdb.HGetAll("SystemStatistic").Result()
 
-		var dataForGraph string
-		var dataKeys []int
+	var dataForGraph string
+	var dataKeys []int
 
-		for i, _:=range dataFromRedis {
-			convertedID, _ := strconv.Atoi(i)
-			dataKeys = append(dataKeys, convertedID)
-		}
+	for i, _ := range dataFromRedis {
+		convertedID, _ := strconv.Atoi(i)
+		dataKeys = append(dataKeys, convertedID)
+	}
 
-		sort.Ints(dataKeys)
+	sort.Ints(dataKeys)
 
-//	fmt.Println("KEYS  = ",dataKeys)
-
+	//	fmt.Println("KEYS  = ",dataKeys)
 
 	//ResultingMap:=make(map[int][]string)
 	var ResultingMap []string
 
-		for _, item:=range dataKeys {
-			//fmt.Println(i,item,"\n")
-			convertedID:=strconv.Itoa(item)
-			ResultingMap = append(ResultingMap, dataFromRedis[convertedID])
-		}
+	for _, item := range dataKeys {
+		//fmt.Println(i,item,"\n")
+		convertedID := strconv.Itoa(item)
+		ResultingMap = append(ResultingMap, dataFromRedis[convertedID])
+	}
 
 	//fmt.Println("KEYS  = ",ResultingMap)
 
 	//		spew.Dump(ResultingMap)
 
+	//		sort.Strings(dataFromRedis)
 
-//		sort.Strings(dataFromRedis)
+	for _, item := range ResultingMap {
+		//			if i == "0" {
+		dataForGraph += item + ",\n"
+		//			} else {
+		//dataForGraph += ","+item + "\n"
+		//}
+	}
 
-		for _, item:=range ResultingMap {
-//			if i == "0" {
-				dataForGraph += item + ",\n"
-//			} else {
-				//dataForGraph += ","+item + "\n"
-			//}
-		}
-
-/*		data := "[0, 0, 3],   [1, 10, 6],  [2, 23, 23],  [3, 17, 232],  [4, 18, 23],  [5, 9, 23],"+
-			    "[6, 11, 14],  [7, 27, 5],  [8, 33, 8],  [9, 40, 0],  [10, 32, 123], [11, 35, 40]"
-*/
-		result:=strings.Replace(s,"{{DATA}}",dataForGraph, -1)
-		result=strings.Replace(result,"{{SYSSTAT}}",text, -1)
-		return c.HTML(200, result)
+	/*		data := "[0, 0, 3],   [1, 10, 6],  [2, 23, 23],  [3, 17, 232],  [4, 18, 23],  [5, 9, 23],"+
+	"[6, 11, 14],  [7, 27, 5],  [8, 33, 8],  [9, 40, 0],  [10, 32, 123], [11, 35, 40]"
+	*/
+	result := strings.Replace(s, "{{DATA}}", dataForGraph, -1)
+	result = strings.Replace(result, "{{SYSSTAT}}", text, -1)
+	return c.HTML(200, result)
 
 	// } else {
 	// 	return c.String(404, "Not found on server")

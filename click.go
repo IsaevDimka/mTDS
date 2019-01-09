@@ -18,23 +18,12 @@ import (
 *
 * allClicksHandler - returns JSON for all current Redis clicks for all Flows http://tds/c/all
 * clickHandler - returns JSON for seleted Click HASH as param http://tds/c/PARAM
-* flowHandler - 1. Finds Flow by Flow HASH as param
-*               2. Generates CID
-*               3. returns JSON for selected || redirect (302) depends on GET param "format"
 *
-*                http://tds/r/FLOW_HASH/sub1...sub2/other?get_params=other
-*                http://tds/r/?flow_hash=FLOW_HASH&sub1=param...&sub5=param&other?get_params=other
-*
-/*****************************************************************************************************
+/*****************************************************************************************************/
 
-/*
-*
-*
-* Get all Clicks at current time from Redis
-*
-*
-*/
-
+//
+// Get all Clicks at current time from Redis
+//
 func ListClickHandler(c echo.Context) error {
 	if config.IsRedisAlive {
 		start := time.Now()
@@ -80,14 +69,9 @@ func ListClickHandler(c echo.Context) error {
 	}
 }
 
-/*
-*
-*
-* Get Single Click from Redis
-*
-*
- */
-
+//
+// Get Single Click from Redis
+//
 func clickHandler(c echo.Context) error {
 	if config.IsRedisAlive {
 		var Click models.ClickData

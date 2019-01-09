@@ -1,3 +1,14 @@
+/****************************************************************************************************
+*
+* Flow import module, special for Meta CPA, Ltd.
+* by Michael S. Merzlyakov AFKA predator_pc@09012019
+* version v2.0.5
+*
+* created at 04122018
+* last edit: 09012019
+*
+*****************************************************************************************************/
+
 package main
 
 import (
@@ -37,6 +48,18 @@ func ImportFlowsToRedis(jsonData []byte) (int, bool) {
 			if len(item.Lands) > 0 {
 				for _, lands := range item.Lands {
 					_ = config.Redisdb.HSet(item.Hash+":lands", strconv.Itoa(lands.ID), lands.URL).Err()
+				}
+			}
+
+			if len(item.Prelands) > 0 {
+				for _, prelands := range item.Prelands {
+					_ = config.Redisdb.HSet(item.Hash+":prelands", strconv.Itoa(prelands.ID), prelands.URL).Err()
+				}
+			}
+
+			if len(item.Counters) > 0 {
+				for _, counters := range item.Counters {
+					_ = config.Redisdb.HSet(item.Hash+":counters", counters.Name, strconv.Itoa(counters.ID)).Err()
 				}
 			}
 		}
@@ -84,10 +107,10 @@ func UpdateFlowsListChan() <-chan string {
 						// setting header in case of API request is not NIL
 						req.Header.Set("Connection", "close")
 						// reading the body
-						io.Copy(body, req.Body)
+						_, _ = io.Copy(body, req.Body)
 						// closing anyway now
 						// defer is not needed cause we get an exception before
-						req.Body.Close()
+						_ = req.Body.Close()
 					}
 
 					if err != nil && config.Cfg.Debug.Level > 0 {
@@ -155,7 +178,7 @@ func UpdateFlowsListChan() <-chan string {
 
 								utils.PrintInfo("Redis import", "All flows loaded successful", importModuleName)
 								// saving current timestamp to file
-								ioutil.WriteFile(timestampFile, []byte(timestampWriteable), 0644)
+								_ = ioutil.WriteFile(timestampFile, []byte(timestampWriteable), 0644)
 							} else {
 								utils.PrintDebug("Error", "Writing to Redis failed", importModuleName)
 							}
