@@ -1,3 +1,20 @@
+/****************************************************************************************************
+*
+* Flow handler module, special for Meta CPA, Ltd.
+* by Michael S. Merzlyakov AFKA predator_pc@09012019
+* version v2.0.5
+*
+* created at 04122018
+* last edit: 09012019
+* flowHandler - 1. Finds Flow by Flow HASH as param
+*               2. Generates CID
+*               3. returns JSON for selected || redirect (302) depends on GET param "format"
+*
+*                http://tds/r/FLOW_HASH/sub1...sub2/other?get_params=other
+*                http://tds/r/?flow_hash=FLOW_HASH&sub1=param...&sub5=param&other?get_params=other
+*
+*****************************************************************************************************/
+
 package main
 
 import (
@@ -10,13 +27,10 @@ import (
 	"time"
 )
 
-/*
-*
-* Get Flow information in JSON ir Redirect to some selected location
-* and Redirect handler all in one
-*
-*
- */
+//
+// Get Flow information in JSON ir Redirect to some selected location
+// and Redirect handler all in one
+//
 const minimumStatCount = 100
 
 func flowHandler(c echo.Context) error {
@@ -165,10 +179,10 @@ func flowHandler(c echo.Context) error {
 				// Финал редиректим
 				//------------------------------------------------------------------------------------------------------//------------------------------------------------------------------------------------------------------
 				if !config.Cfg.Debug.Test {
-				//	defer runtime.GC()
+					//	defer runtime.GC()
 					return c.Redirect(302, LandingTemplate)
 				} else {
-				//	defer runtime.GC()
+					//	defer runtime.GC()
 					return c.Blob(200, "image/png", pixel)
 				}
 			}
@@ -213,10 +227,10 @@ func flowHandler(c echo.Context) error {
 				// FINAL
 				// ----------------------------------------------------------------------------------------------------
 				if !config.Cfg.Debug.Test {
-				//	defer runtime.GC()
+					//	defer runtime.GC()
 					return c.Redirect(302, PrelandingTemplate)
 				} else {
-				//	defer runtime.GC()
+					//	defer runtime.GC()
 					return c.Blob(200, "image/png", pixel)
 				}
 			}
@@ -295,7 +309,7 @@ func flowHandler(c echo.Context) error {
 				// FINAL
 				// ----------------------------------------------------------------------------------------------------
 				if !config.Cfg.Debug.Test {
-				//	defer runtime.GC()
+					//	defer runtime.GC()
 					return c.Redirect(302, LandingTemplate)
 				} else {
 					return c.Blob(200, "image/png", pixel)
