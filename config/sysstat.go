@@ -27,7 +27,7 @@ func GetSystemStatistics() string {
 	var openedFiles = "0"
 
 	StatisticCounter, err := Redisdb.Get("StatisticCounter").Result()
-	if err!=nil {
+	if err != nil {
 		_ = Redisdb.Set("StatisticCounter", 0, 0).Err()
 		StatisticCounter = "0"
 	}
@@ -90,9 +90,9 @@ func GetSystemStatistics() string {
 		uniqueRequests := (TDSStatistic.ClickInfoRequest + TDSStatistic.FlowInfoRequest + TDSStatistic.RedirectRequest) - TDSStatistic.CookieRequest // - TDSStatistic.IncorrectRequest
 
 		//setting stat to redis
-		_ = Redisdb.HSet("SystemStatistic",StatisticCounter,"["+StatisticCounter+","+
-										fmt.Sprintf("%.0f", (math.Round(dur.Seconds() * 1000)))+","+
-										strconv.Itoa(averageRPS)+","+strconv.Itoa(currentRPS)+"]").Err()
+		_ = Redisdb.HSet("SystemStatistic", StatisticCounter, "["+StatisticCounter+","+
+			fmt.Sprintf("%.0f", (math.Round(dur.Seconds()*1000)))+","+
+			strconv.Itoa(averageRPS)+","+strconv.Itoa(currentRPS)+"]").Err()
 
 		text = "\n" + utils.CURRENT_TIMESTAMP + "\n" + Cfg.General.Name +
 			"\n\nINFO" +
@@ -113,7 +113,7 @@ func GetSystemStatistics() string {
 			"\nPrivate memory         : " + memoryUsagePrivate + " mb" +
 			"\nOpened files           : " + openedFiles +
 			"\nCurrent rate           : " + humanize.Comma(int64(currentRPS)) + " rps" +
-			"\nAverage rate           : " + strconv.Itoa(averageRPS) + " rps" +
+			"\nAverage rate           : " + humanize.Comma(int64(averageRPS)) + " rps" + //strconv.Itoa(averageRPS) + " rps" +
 			"\nUptime                 : " + uptime +
 			"\nProcessing time        : " + processingTime +
 			"\nAverage response time  : " + avgReq +
@@ -130,7 +130,7 @@ func GetSystemStatistics() string {
 
 		//setting counter up
 		_, err := Redisdb.Get("StatisticCounter").Result()
-		if err!=nil {
+		if err != nil {
 			_ = Redisdb.Set("StatisticCounter", 0, 0).Err()
 		}
 
