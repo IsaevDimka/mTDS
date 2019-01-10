@@ -39,7 +39,7 @@ const timestampFile = "last.update.time"
 const defaultStartOfEpoch = "946684800"
 
 // Карта ключей которые мы хотим получить
-var keyMap = []string{"flow_hash", "click_hash", "sub1", "sub2", "sub3", "sub4", "sub5", "format",
+var keyMap = []string{"flow_hash", "click_hash", "sub1", "sub2", "sub3", "sub4", "sub5", "format", "f",
 	"click_id", "flow_id", "preland_id", "land_id"} // support for old version of TDS
 
 // пиксель для тестов

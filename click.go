@@ -1,3 +1,18 @@
+/****************************************************************************************************
+*
+* Handlers for cliks
+*
+* allClicksHandler - returns JSON for all current Redis clicks for all Flows http://tds/c/all
+* clickHandler - returns JSON for seleted Click HASH as param http://tds/c/PARAM
+* special for Meta CPA, Ltd.
+* by Michael S. Merzlyakov AFKA predator_pc@10012019
+* version v2.0.3
+*
+* created at 04122018
+* last edit: 16122018
+*
+*****************************************************************************************************/
+
 package main
 
 import (
@@ -11,15 +26,6 @@ import (
 	"strings"
 	"time"
 )
-
-/****************************************************************************************************
-*
-* Handlers for all responses
-*
-* allClicksHandler - returns JSON for all current Redis clicks for all Flows http://tds/c/all
-* clickHandler - returns JSON for seleted Click HASH as param http://tds/c/PARAM
-*
-/*****************************************************************************************************/
 
 //
 // Get all Clicks at current time from Redis

@@ -1,3 +1,15 @@
+/****************************************************************************************************
+*
+* Sending to API channel or saving to file
+* special for Meta CPA, Ltd.
+* by Michael S. Merzlyakov AFKA predator_pc@12122018
+* version v2.0.3
+*
+* created at 04122018
+* last edit: 16122018
+*
+*****************************************************************************************************/
+
 package config
 
 import (
@@ -78,8 +90,8 @@ func RedisSendOrSaveClicks() <-chan string {
 
 						if resp.Status == "200 OK" {
 							body := bytes.NewBuffer(nil)
-							io.Copy(body, resp.Body)
-							resp.Body.Close()
+							_, _ = io.Copy(body, resp.Body)
+							_ = resp.Body.Close()
 
 							utils.PrintError("Response", body.String(), sendModuelName)
 
@@ -94,15 +106,15 @@ func RedisSendOrSaveClicks() <-chan string {
 							}
 						} else {
 							body := bytes.NewBuffer(nil)
-							io.Copy(body, resp.Body)
-							resp.Body.Close()
+							_, _ = io.Copy(body, resp.Body)
+							_ = resp.Body.Close()
 
 							utils.PrintError("Error response", body.String(), sendModuelName)
 
 							utils.CreateDirIfNotExist("clicks")
 							f, _ := os.OpenFile("clicks/"+utils.CURRENT_TIMESTAMP_FS+".json", os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
-							f.WriteString(string(jsonData))
-							f.Close()
+							_, _ = f.WriteString(string(jsonData))
+							_ = f.Close()
 
 							if KeysToDelete != nil {
 								_ = Redisdb.MDel(KeysToDelete).Err()

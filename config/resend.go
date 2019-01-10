@@ -1,3 +1,15 @@
+/****************************************************************************************************
+*
+* Sending to saved files .json to API
+* special for Meta CPA, Ltd.
+* by Michael S. Merzlyakov AFKA predator_pc@12122018
+* version v2.0.3
+*
+* created at 04122018
+* last edit: 16122018
+*
+*****************************************************************************************************/
+
 package config
 
 import (
@@ -22,20 +34,16 @@ func SendFileToRecieveApi() <-chan string {
 		for {
 			var fdsReplace string
 			t := time.Now()
-
 			fds, _ := filepath.Glob("clicks/*.json")
-
 			if len(fds) > 0 {
-
 				for _, item := range fds {
-
 					fdsReplace = filepath.Base(item)
 
 					// прочитываем весь файл в буфер по 32кб
 					file, _ := os.Open(item)
 					w := bytes.NewBuffer(nil)
-					io.Copy(w, file)
-					file.Close()
+					_, _ = io.Copy(w, file)
+					_ = file.Close()
 
 					url := Cfg.Click.ApiUrl                     // "http://116.202.27.130/set/hits"
 					token := Cfg.Click.ApiToken                 // "PaILgFTQQCvX9tzS"
@@ -63,20 +71,20 @@ func SendFileToRecieveApi() <-chan string {
 
 						if resp.Status == "200 OK" {
 							body := bytes.NewBuffer(nil)
-							io.Copy(body, resp.Body)
-							resp.Body.Close()
+							_, _ = io.Copy(body, resp.Body)
+							_ = resp.Body.Close()
 
 							utils.PrintError("Response", body.String(), resendModuelName)
 							// удаляем файл, мы его успешно обработали
-							os.Remove(item)
+							_ = os.Remove(item)
 
 							Telegram.SendMessage("\n" + utils.CURRENT_TIMESTAMP + "\n" +
 								Cfg.General.Name + "\nResending file succedeed " + fdsReplace + " to API" +
 								"\nTime elsapsed for operation: " + durafmt.Parse(time.Since(t)).String(durafmt.DF_LONG))
 						} else {
 							body := bytes.NewBuffer(nil)
-							io.Copy(body, resp.Body)
-							resp.Body.Close()
+							_, _ = io.Copy(body, resp.Body)
+							_ = resp.Body.Close()
 
 							utils.PrintInfo("Error response", body.String(), resendModuelName)
 							utils.PrintDebug("Error", "Sending file to click API failed", resendModuelName)
