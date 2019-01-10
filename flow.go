@@ -144,7 +144,7 @@ func flowHandler(c echo.Context) error {
 			// редирект на лендинг
 			// LAND
 			// ----------------------------------------------------------------------------------------------------
-			if strings.Join(resultMap["format"], "") == "land" {
+			if strings.Join(resultMap["format"], "") == "land" || strings.Join(resultMap["f"], "") == "1" {
 				// добиваем клик нужной инфой, теперь можем его записывать
 				Info.Click.LandingID = LandingTemplateID
 				Info.Click.PrelandingID = 0
@@ -179,10 +179,8 @@ func flowHandler(c echo.Context) error {
 				// Финал редиректим
 				//------------------------------------------------------------------------------------------------------//------------------------------------------------------------------------------------------------------
 				if !config.Cfg.Debug.Test {
-					//	defer runtime.GC()
 					return c.Redirect(302, LandingTemplate)
 				} else {
-					//	defer runtime.GC()
 					return c.Blob(200, "image/png", pixel)
 				}
 			}
@@ -190,7 +188,7 @@ func flowHandler(c echo.Context) error {
 			// PRELAND
 			// редирект на пре-лендинг
 			// ----------------------------------------------------------------------------------------------------
-			if strings.Join(resultMap["format"], "") == "preland" {
+			if strings.Join(resultMap["format"], "") == "preland" || strings.Join(resultMap["f"], "") == "0" {
 				if len(Info.Flow.Prelands) <= 0 {
 					config.TDSStatistic.IncorrectRequest++ // add counter tick
 					msg := []byte(`{"code":400, "message":"No pre-landing templates found"}`)
@@ -227,10 +225,8 @@ func flowHandler(c echo.Context) error {
 				// FINAL
 				// ----------------------------------------------------------------------------------------------------
 				if !config.Cfg.Debug.Test {
-					//	defer runtime.GC()
 					return c.Redirect(302, PrelandingTemplate)
 				} else {
-					//	defer runtime.GC()
 					return c.Blob(200, "image/png", pixel)
 				}
 			}
@@ -238,7 +234,7 @@ func flowHandler(c echo.Context) error {
 			// JSON FORMAT
 			// отдать данные потока в джейсоне красиво
 			// ----------------------------------------------------------------------------------------------------
-			if strings.Join(resultMap["format"], "") == "json" {
+			if strings.Join(resultMap["format"], "") == "json" || strings.Join(resultMap["f"], "") == "json" {
 				Info.Click.LandingID = LandingTemplateID
 				Info.Click.LocationLP = LandingTemplate
 				Info.Click.IsVisitedLP = 0
@@ -271,19 +267,29 @@ func flowHandler(c echo.Context) error {
 				// FINAL
 				// ----------------------------------------------------------------------------------------------------
 				s := utils.JSONPretty(Info)
-				//defer runtime.GC()
 				return c.String(200, s)
 			} else {
 				// ----------------------------------------------------------------------------------------------------
-				// OLD School
+				// Auto-differential version of previous parts
 				// ----------------------------------------------------------------------------------------------------
-				// если никаких ключей нет, то пробрасываем дальше (по старой схеме)
-				// на первый выбраный домен из списка если несколько или на первый
-				// ----------------------------------------------------------------------------------------------------
-				Info.Click.LandingID = LandingTemplateID
-				Info.Click.PrelandingID = 0
-				Info.Click.LocationLP = LandingTemplate
+				var decision int
+				decision = -1
 
+				if len(Info.Flow.Prelands) > 0 {
+					Info.Click.LandingID = 0
+					Info.Click.PrelandingID = PrelandingTemplateID
+					Info.Click.LocationPL = PrelandingTemplate
+					decision = 0
+					goto goon
+				}
+
+				if len(Info.Flow.Lands) > 0 {
+					Info.Click.LandingID = LandingTemplateID
+					Info.Click.PrelandingID = 0
+					Info.Click.LocationLP = LandingTemplate
+					decision = 1
+				}
+			goon:
 				defer Info.Click.Save()
 				if cookieError != nil {
 					defer c.SetCookie(utils.SaveCookieToUser(Info.Click.Hash, Info.Click.LocationLP))
@@ -302,30 +308,76 @@ func flowHandler(c echo.Context) error {
 				if len(utils.ResponseAverage) < minimumStatCount {
 					utils.ResponseAverage = append(utils.ResponseAverage, time.Since(start))
 				} else {
-					//defer runtime.GC()
 					utils.ResponseAverage = utils.ResponseAverageDefault
 				}
+
 				// ----------------------------------------------------------------------------------------------------
 				// FINAL
 				// ----------------------------------------------------------------------------------------------------
 				if !config.Cfg.Debug.Test {
-					//	defer runtime.GC()
-					return c.Redirect(302, LandingTemplate)
+					if decision == 0 {
+						return c.Redirect(302, PrelandingTemplate)
+					}
+					if decision == 1 {
+						return c.Redirect(302, LandingTemplate)
+					} else {
+						msg := []byte(`{"code":400, "message":"Can't detect arguments"}`)
+						return c.JSONBlob(400, msg)
+					}
 				} else {
 					return c.Blob(200, "image/png", pixel)
 				}
+
+				// ----------------------------------------------------------------------------------------------------
+				// OLD School
+				// ----------------------------------------------------------------------------------------------------
+				// если никаких ключей нет, то пробрасываем дальше (по старой схеме)
+				// на первый выбраный домен из списка если несколько или на первый
+				// ----------------------------------------------------------------------------------------------------
+				//
+				// Info.Click.LandingID = LandingTemplateID
+				// Info.Click.PrelandingID = 0
+				// Info.Click.LocationLP = LandingTemplate
+				//
+				// defer Info.Click.Save()
+				// if cookieError != nil {
+				// 	defer c.SetCookie(utils.SaveCookieToUser(Info.Click.Hash, Info.Click.LocationLP))
+				// }
+				//
+				// // ----------------------------------------------------------------------------------------------------
+				// // STATS
+				// // ----------------------------------------------------------------------------------------------------
+				// config.TDSStatistic.RedirectRequest++ // add counter tick
+				// config.TDSStatistic.ProcessingTime += time.Since(start)
+				//
+				// if config.Cfg.Debug.Level > 1 {
+				// 	utils.PrintInfo("Action elapsed time", time.Since(start), tdsModuleName)
+				// }
+				//
+				// if len(utils.ResponseAverage) < minimumStatCount {
+				// 	utils.ResponseAverage = append(utils.ResponseAverage, time.Since(start))
+				// } else {
+				// 	//defer runtime.GC()
+				// 	utils.ResponseAverage = utils.ResponseAverageDefault
+				// }
+				// // ----------------------------------------------------------------------------------------------------
+				// // FINAL
+				// // ----------------------------------------------------------------------------------------------------
+				// if !config.Cfg.Debug.Test {
+				// 	return c.Redirect(302, LandingTemplate)
+				// } else {
+				// 	return c.Blob(200, "image/png", pixel)
+				// }
 			}
 		} else {
 			config.TDSStatistic.IncorrectRequest++ // add counter tick
 			// если нет клика или потока, то все привет
 			msg := []byte(`{"code":400, "message":"Insuficient parameters supplied"}`)
-			//defer runtime.GC()
 			return c.JSONBlob(400, msg)
 		}
 	} else {
 		// если нет редиски, то все привет
 		msg := []byte(`{"code":500, "message":"No connection to RedisDB"}`)
-		//defer runtime.GC()
 		return c.JSONBlob(400, msg)
 	}
 }
