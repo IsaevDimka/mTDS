@@ -279,14 +279,16 @@ func flowHandler(c echo.Context) error {
 					Info.Click.LandingID = 0
 					Info.Click.PrelandingID = PrelandingTemplateID
 					Info.Click.LocationPL = PrelandingTemplate
+					Info.Click.IsVisitedPL = 1
 					decision = 0
 					goto goon
 				}
 
 				if len(Info.Flow.Lands) > 0 {
-					Info.Click.LandingID = LandingTemplateID
 					Info.Click.PrelandingID = 0
+					Info.Click.LandingID = LandingTemplateID
 					Info.Click.LocationLP = LandingTemplate
+					Info.Click.IsVisitedLP = 1
 					decision = 1
 				}
 			goon:
