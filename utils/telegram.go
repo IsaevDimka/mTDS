@@ -12,12 +12,12 @@
 package utils
 
 import (
+	"bytes"
 	"fmt"
 	"golang.org/x/net/proxy"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
-	"os"
 )
 
 type TelegramAdapter struct {
@@ -50,6 +50,8 @@ func (tg *TelegramAdapter) Init(Ch []string, User, Password, Proxy, SendURL, Sen
 func (tg *TelegramAdapter) SendMessage(text string) bool {
 	if tg.isActive {
 
+		body := bytes.NewBuffer(nil)
+
 		httpTransport := &http.Transport{}
 		httpClient := &http.Client{Transport: httpTransport}
 
@@ -62,7 +64,7 @@ func (tg *TelegramAdapter) SendMessage(text string) bool {
 			// create a socks5 dialer
 			dialer, err := proxy.SOCKS5("tcp", tg.ProxyAddress, authorization, proxy.Direct)
 			if err != nil {
-				fmt.Fprintln(os.Stderr, "can't connect to the proxy:", err)
+				fmt.Println("[ ERROR ] can't connect to the proxy: ", err)
 			}
 
 			// set our socks5 as the dialer
@@ -74,28 +76,46 @@ func (tg *TelegramAdapter) SendMessage(text string) bool {
 		for _, item := range tg.Chats {
 			if !tg.UseProxy {
 				req, err := http.Get(tg.URL + tg.Token + "/sendMessage?parse_mode=markdown&chat_id=" + item + "&text=" + url.QueryEscape(markDownedText))
-				req.Header.Set("Connection", "close")
+
+				if err != nil {
+					recover()
+					fmt.Println("[ ERROR] can't create request 0: ", err)
+				}
 
 				if req != nil {
-					defer req.Body.Close()
-					ioutil.ReadAll(req.Body)
+					// setting header in case of API request is not NIL
+					req.Header.Set("Connection", "close")
+					// reading the body
+					_, _ = io.Copy(body, req.Body)
+					// closing anyway now
+					// defer is not needed cause we get an exception before
+					_ = req.Body.Close()
 				}
-				if err != nil {
-					fmt.Fprintln(os.Stderr, "can't create request:", err)
-				}
+
 			} else {
 				req, err := http.NewRequest("GET", tg.URL+tg.Token+"/sendMessage?parse_mode=markdown&chat_id="+item+"&text="+url.QueryEscape(markDownedText), nil)
-				req.Header.Set("Connection", "close")
+
+				if err != nil {
+					recover()
+					fmt.Println("[ ERROR] can't create request 1: ", err)
+				} else {
+					// we shouldn't write to request if doesn't created
+					req.Header.Set("Connection", "close")
+				}
 
 				// use the http client to fetch the page
 				resp, err := httpClient.Do(req)
+
 				if err != nil {
-					// TODO this needs to be recovered from panic otherwise fails
-					fmt.Fprintln(os.Stderr, "can't GET page:", err)
+					recover()
+					fmt.Println("[ ERROR] can't create request 2: ", err)
+				} else {
+					_, _ = io.Copy(body, resp.Body)
+					_ = resp.Body.Close()
 				}
-				defer resp.Body.Close()
 			}
 		}
+		body = nil
 		return true
 	}
 	return false
