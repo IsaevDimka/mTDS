@@ -15,7 +15,7 @@ import (
 	"fmt"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/go-redis/redis"
-//	"github.com/predatorpc/redis"
+	//	"github.com/predatorpc/redis"
 	"gopkg.in/gcfg.v1"
 	"metatds/utils"
 	"os"
@@ -27,12 +27,14 @@ const configModuleName = "config.go"
 // Config Тип для хранения конфига
 type Config struct {
 	General struct {
-		Name       string
-		Host       string
-		Port       int
-		ConfReload int
-		OS         string
+		Name        string
+		Host        string
+		Port        int
+		ConfReload  int
+		OS          string
 		HTTPTimeout int
+		SSLCert     string
+		SSLKey      string
 	}
 	Click struct {
 		Length         int
@@ -113,6 +115,12 @@ func InitConfig() {
 					}
 					if Cfg.General.OS != "" {
 						fmt.Println("[ -- OS ]", Cfg.General.OS)
+					}
+					if Cfg.General.SSLCert != "" {
+						fmt.Println("[ -- SSLCert ]", Cfg.General.SSLCert)
+					}
+					if Cfg.General.SSLKey != "" {
+						fmt.Println("[ -- SSLKey ]", Cfg.General.SSLKey)
 					}
 					if Cfg.General.HTTPTimeout != 0 {
 						fmt.Println("[ -- HTTPTimeout ]", Cfg.General.HTTPTimeout)
