@@ -117,27 +117,30 @@ func UpdateFlowsListChan() <-chan string {
 						utils.PrintError("Redis import", "Can't create request to API to recieve flows: \n URL = "+
 							url+strings.Trim(string(fileData), "\r\n"), importModuleName)
 					} else {
+						if req != nil {
+							if req.Status == "200 OK" {
+								count, err := ImportFlowsToRedis(body.Bytes())
+								if err != false {
+									config.TDSStatistic.AppendedFlows += count
+									config.TDSStatistic.UpdatedFlows++
 
-						if req.Status == "200 OK" {
-							count, err := ImportFlowsToRedis(body.Bytes())
-							if err != false {
-								config.TDSStatistic.AppendedFlows += count
-								config.TDSStatistic.UpdatedFlows++
+									config.Telegram.SendMessage("\n" + utils.CURRENT_TIMESTAMP + "\n" +
+										config.Cfg.General.Name + "\nRequested flows from API\n" +
+										"\nUpdated flows: " + strconv.Itoa(count) +
+										"\nTime elsapsed for operation: " + durafmt.Parse(time.Since(t)).String(durafmt.DF_LONG))
 
-								config.Telegram.SendMessage("\n" + utils.CURRENT_TIMESTAMP + "\n" +
-									config.Cfg.General.Name + "\nRequested flows from API\n" +
-									"\nUpdated flows: " + strconv.Itoa(count) +
-									"\nTime elsapsed for operation: " + durafmt.Parse(time.Since(t)).String(durafmt.DF_LONG))
+									utils.PrintInfo("Redis import", "updated flows successful", importModuleName)
+									// saving current timestamp to file
+									_ = ioutil.WriteFile(timestampFile, []byte(timestampWriteable), 0644)
+								} else {
+									utils.PrintDebug("Error", "Normal bootstrap: Writing to Redis failed or empty response", importModuleName)
+								}
 
-								utils.PrintInfo("Redis import", "updated flows successful", importModuleName)
-								// saving current timestamp to file
-								_ = ioutil.WriteFile(timestampFile, []byte(timestampWriteable), 0644)
 							} else {
-								utils.PrintDebug("Error", "Normal bootstrap: Writing to Redis failed or empty response", importModuleName)
+								utils.PrintDebug("Error", "Receiving new flows failed", importModuleName)
 							}
-
 						} else {
-							utils.PrintDebug("Error", "Receiving new flows failed", importModuleName)
+							utils.PrintDebug("Error", "1 Can't read response: Receiving new flows failed", importModuleName)
 						}
 					}
 				} else {
@@ -165,26 +168,29 @@ func UpdateFlowsListChan() <-chan string {
 						utils.PrintError("Redis import", "Can't create request to API to recieve flows: \n URL = "+
 							url+strings.Trim(string(fileData), "\r\n"), importModuleName)
 					} else {
+						if req != nil {
+							if req.Status == "200 OK" {
+								count, err := ImportFlowsToRedis(body.Bytes())
+								if err != false {
+									config.TDSStatistic.UpdatedFlows++
+									// writing debug
+									config.Telegram.SendMessage("\n" + utils.CURRENT_TIMESTAMP + "\n" +
+										config.Cfg.General.Name + "\nRequested flows from API\n" +
+										"\nUpdated flows: " + strconv.Itoa(count) +
+										"\nTime elsapsed for operation: " + durafmt.Parse(time.Since(t)).String(durafmt.DF_LONG))
 
-						if req.Status == "200 OK" {
-							count, err := ImportFlowsToRedis(body.Bytes())
-							if err != false {
-								config.TDSStatistic.UpdatedFlows++
-								// writing debug
-								config.Telegram.SendMessage("\n" + utils.CURRENT_TIMESTAMP + "\n" +
-									config.Cfg.General.Name + "\nRequested flows from API\n" +
-									"\nUpdated flows: " + strconv.Itoa(count) +
-									"\nTime elsapsed for operation: " + durafmt.Parse(time.Since(t)).String(durafmt.DF_LONG))
+									utils.PrintInfo("Redis import", "All flows loaded successful", importModuleName)
+									// saving current timestamp to file
+									_ = ioutil.WriteFile(timestampFile, []byte(timestampWriteable), 0644)
+								} else {
+									utils.PrintDebug("Error", "Writing to Redis failed", importModuleName)
+								}
 
-								utils.PrintInfo("Redis import", "All flows loaded successful", importModuleName)
-								// saving current timestamp to file
-								_ = ioutil.WriteFile(timestampFile, []byte(timestampWriteable), 0644)
 							} else {
-								utils.PrintDebug("Error", "Writing to Redis failed", importModuleName)
+								utils.PrintDebug("Error", "Emergency bootstrap: Writing to Redis failed or empty response", importModuleName)
 							}
-
 						} else {
-							utils.PrintDebug("Error", "Emergency bootstrap: Writing to Redis failed or empty response", importModuleName)
+							utils.PrintDebug("Error", "0 Can't read response: Receiving new flows failed", importModuleName)
 						}
 					}
 				}

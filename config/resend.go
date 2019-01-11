@@ -67,31 +67,35 @@ func SendFileToRecieveApi() <-chan string {
 						}
 					} else {
 
-						utils.PrintDebug("Response status", resp.Status, resendModuelName)
+						if resp != nil {
+							utils.PrintDebug("Response status", resp.Status, resendModuelName)
 
-						if resp.Status == "200 OK" {
-							body := bytes.NewBuffer(nil)
-							_, _ = io.Copy(body, resp.Body)
-							_ = resp.Body.Close()
+							if resp.Status == "200 OK" {
+								body := bytes.NewBuffer(nil)
+								_, _ = io.Copy(body, resp.Body)
+								_ = resp.Body.Close()
 
-							utils.PrintError("Response", body.String(), resendModuelName)
-							// удаляем файл, мы его успешно обработали
-							_ = os.Remove(item)
+								utils.PrintError("Response", body.String(), resendModuelName)
+								// удаляем файл, мы его успешно обработали
+								_ = os.Remove(item)
 
-							Telegram.SendMessage("\n" + utils.CURRENT_TIMESTAMP + "\n" +
-								Cfg.General.Name + "\nResending file succedeed " + fdsReplace + " to API" +
-								"\nTime elsapsed for operation: " + durafmt.Parse(time.Since(t)).String(durafmt.DF_LONG))
+								Telegram.SendMessage("\n" + utils.CURRENT_TIMESTAMP + "\n" +
+									Cfg.General.Name + "\nResending file succedeed " + fdsReplace + " to API" +
+									"\nTime elsapsed for operation: " + durafmt.Parse(time.Since(t)).String(durafmt.DF_LONG))
+							} else {
+								body := bytes.NewBuffer(nil)
+								_, _ = io.Copy(body, resp.Body)
+								_ = resp.Body.Close()
+
+								utils.PrintInfo("Error response", body.String(), resendModuelName)
+								utils.PrintDebug("Error", "Sending file to click API failed", resendModuelName)
+
+								Telegram.SendMessage("\n" + utils.CURRENT_TIMESTAMP + "\n" +
+									Cfg.General.Name + "\nResending file failed " + fdsReplace + " to API" +
+									"\nTime elsapsed for operation: " + durafmt.Parse(time.Since(t)).String(durafmt.DF_LONG))
+							}
 						} else {
-							body := bytes.NewBuffer(nil)
-							_, _ = io.Copy(body, resp.Body)
-							_ = resp.Body.Close()
-
-							utils.PrintInfo("Error response", body.String(), resendModuelName)
-							utils.PrintDebug("Error", "Sending file to click API failed", resendModuelName)
-
-							Telegram.SendMessage("\n" + utils.CURRENT_TIMESTAMP + "\n" +
-								Cfg.General.Name + "\nResending file failed " + fdsReplace + " to API" +
-								"\nTime elsapsed for operation: " + durafmt.Parse(time.Since(t)).String(durafmt.DF_LONG))
+							utils.PrintDebug("Error", "0 Can't read response: Sending clicks failed", resendModuelName)
 						}
 					}
 

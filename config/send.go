@@ -86,43 +86,48 @@ func RedisSendOrSaveClicks() <-chan string {
 						}
 					} else {
 
-						utils.PrintInfo("Response status", resp.Status, sendModuelName)
+						if resp != nil {
 
-						if resp.Status == "200 OK" {
-							body := bytes.NewBuffer(nil)
-							_, _ = io.Copy(body, resp.Body)
-							_ = resp.Body.Close()
+							utils.PrintInfo("Response status", resp.Status, sendModuelName)
 
-							utils.PrintError("Response", body.String(), sendModuelName)
+							if resp.Status == "200 OK" {
+								body := bytes.NewBuffer(nil)
+								_, _ = io.Copy(body, resp.Body)
+								_ = resp.Body.Close()
 
-							if KeysToDelete != nil {
-								_ = Redisdb.MDel(KeysToDelete).Err()
-							}
+								utils.PrintError("Response", body.String(), sendModuelName)
 
-							if Cfg.Debug.Level > 1 {
+								if KeysToDelete != nil {
+									_ = Redisdb.MDel(KeysToDelete).Err()
+								}
+
+								if Cfg.Debug.Level > 1 {
+									Telegram.SendMessage("\n" + utils.CURRENT_TIMESTAMP + "\n" +
+										Cfg.General.Name + "\nClicks sent to API: " + strconv.Itoa(TDSStatistic.ClicksSentToRedis) +
+										"\nTime elsapsed for operation: " + durafmt.Parse(time.Since(t)).String(durafmt.DF_LONG))
+								}
+							} else {
+								body := bytes.NewBuffer(nil)
+								_, _ = io.Copy(body, resp.Body)
+								_ = resp.Body.Close()
+
+								utils.PrintError("Error response", body.String(), sendModuelName)
+
+								utils.CreateDirIfNotExist("clicks")
+								f, _ := os.OpenFile("clicks/"+utils.CURRENT_TIMESTAMP_FS+".json", os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
+								_, _ = f.WriteString(string(jsonData))
+								_ = f.Close()
+
+								if KeysToDelete != nil {
+									_ = Redisdb.MDel(KeysToDelete).Err()
+								}
+
 								Telegram.SendMessage("\n" + utils.CURRENT_TIMESTAMP + "\n" +
-									Cfg.General.Name + "\nClicks sent to API: " + strconv.Itoa(TDSStatistic.ClicksSentToRedis) +
+									Cfg.General.Name + "\nClicks saved to file" +
 									"\nTime elsapsed for operation: " + durafmt.Parse(time.Since(t)).String(durafmt.DF_LONG))
 							}
 						} else {
-							body := bytes.NewBuffer(nil)
-							_, _ = io.Copy(body, resp.Body)
-							_ = resp.Body.Close()
-
-							utils.PrintError("Error response", body.String(), sendModuelName)
-
-							utils.CreateDirIfNotExist("clicks")
-							f, _ := os.OpenFile("clicks/"+utils.CURRENT_TIMESTAMP_FS+".json", os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
-							_, _ = f.WriteString(string(jsonData))
-							_ = f.Close()
-
-							if KeysToDelete != nil {
-								_ = Redisdb.MDel(KeysToDelete).Err()
-							}
-
-							Telegram.SendMessage("\n" + utils.CURRENT_TIMESTAMP + "\n" +
-								Cfg.General.Name + "\nClicks saved to file" +
-								"\nTime elsapsed for operation: " + durafmt.Parse(time.Since(t)).String(durafmt.DF_LONG))
+							utils.PrintError("Error response", "Can't read response...", sendModuelName)
 						}
 					}
 				}
