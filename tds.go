@@ -18,6 +18,7 @@ import (
 	"github.com/labstack/echo/middleware"
 	"github.com/labstack/gommon/log"
 	"github.com/sevenNt/echo-pprof"
+	"golang.org/x/crypto/acme/autocert"
 	"io"
 	"net/http"
 	"os"
@@ -60,6 +61,10 @@ func main() {
 
 	// Echo instance
 	router := echo.New()
+
+	//router.AutoTLSManager.HostPolicy = autocert.HostWhitelist("<DOMAIN>")
+	// Cache certificates
+	router.AutoTLSManager.Cache = autocert.DirCache("./.cache")
 
 	// Middleware
 	//router.Use(middleware.Logger())
@@ -146,6 +151,14 @@ func main() {
 
 	if config.Cfg.Debug.Level > 0 {
 		echopprof.Wrap(router)
+	}
+
+	// router.AutoTLSManager
+	if config.Cfg.General.OS != "windows" {
+		go func() {
+			router.Logger.Fatal(router.StartTLS(":443", config.Cfg.General.SSLCert, config.Cfg.General.SSLKey))
+		}()
+		// go router.Logger.Fatal(router.StartAutoTLS(":443"))
 	}
 
 	// run router
