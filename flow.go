@@ -48,11 +48,22 @@ func flowHandler(c echo.Context) error {
 		// Читаем куку
 		//------------------------------------------------------------------------------------------------------
 		CID, cookieError := c.Cookie("CID")
+
+		ClickID := strings.Join(resultMap["click_id"],"")
+		ClickHash := strings.Join(resultMap["click_hash"],"")
+
 		if cookieError == nil {
 			if config.Cfg.Debug.Level > 1 {
 				utils.PrintInfo("Cookie", "CID = "+CID.Value, tdsModuleName)
 			}
-			Info.Click.Hash = CID.Value
+			if ClickID != "" {
+				Info.Click.Hash = ClickID
+			}
+			if ClickHash !="" {
+				Info.Click.Hash = ClickHash
+			} else {
+				Info.Click.Hash = CID.Value
+			}
 			config.TDSStatistic.CookieRequest++
 		} else {
 			if config.Cfg.Debug.Level > 1 {
@@ -60,11 +71,10 @@ func flowHandler(c echo.Context) error {
 			}
 			// генерим СИД
 			Info.Click.Hash = Info.Click.GenerateCID()
+			//------------------------------------------------------------------------------------------------------
+			resultMap["click_hash"] = append(resultMap["click_hash"], Info.Click.Hash) // запишем сразу в наш массив
+			resultMap["click_id"] = append(resultMap["click_id"], Info.Click.Hash)     // support for old version TDS
 		}
-		//------------------------------------------------------------------------------------------------------
-
-		resultMap["click_hash"] = append(resultMap["click_hash"], Info.Click.Hash) // запишем сразу в наш массив
-		resultMap["click_id"] = append(resultMap["click_id"], Info.Click.Hash)     // support for old version TDS
 
 		//------------------------------------------------------------------------------------------------------
 		// Тут вот может быть можно ускорить
