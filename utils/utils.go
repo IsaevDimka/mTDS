@@ -5,7 +5,7 @@
 * version v2.0.3
 *
 * created at 04122018
-* last edit: 16122018
+* last edit: 13012018
 *
 *****************************************************************************************************/
 
@@ -49,22 +49,22 @@ func BToKb(b uint64) uint64 {
 func WriteLog(FileName, Header, Module string, Message interface{}) {
 	item := CURRENT_TIMESTAMP + " [ " + Header + " ] " + fmt.Sprintf("%s", Message) + ", " + Module + "\n"
 	f, _ := os.OpenFile(FileName, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
-	f.WriteString(item)
-	f.Close()
+	_, _ = f.WriteString(item)
+	_ = f.Close()
 }
 
 func WriteCustomLog(FileName, Header string, Message interface{}) {
 	item := Header + fmt.Sprintf("%s", Message)
 	f, _ := os.OpenFile(FileName, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
-	f.WriteString(item)
-	f.Close()
+	_, _ = f.WriteString(item)
+	_ = f.Close()
 }
 
 func PrintError(header string, message interface{}, module string) {
 	if WriteToLogOnly {
 		WriteLog(LogFileName, header, module, message)
 	} else {
-		fmt.Fprintf(color.Output, "[ %s ]", color.RedString(header))
+		_, _ = fmt.Fprintf(color.Output, "[ %s ]", color.RedString(header))
 		fmt.Println(" ", message, " - ", module)
 	}
 }
@@ -73,7 +73,7 @@ func PrintInfo(header string, message interface{}, module string) {
 	if WriteToLogOnly {
 		WriteLog(LogFileName, header, module, message)
 	} else {
-		fmt.Fprintf(color.Output, "[ %s ]", color.CyanString(header))
+		_, _ = fmt.Fprintf(color.Output, "[ %s ]", color.CyanString(header))
 		fmt.Println(" ", message, " - ", module)
 	}
 }
@@ -82,7 +82,7 @@ func PrintSuccess(header string, message interface{}, module string) {
 	if WriteToLogOnly {
 		WriteLog(LogFileName, header, module, message)
 	} else {
-		fmt.Fprintf(color.Output, "[ %s ]", color.GreenString(header))
+		_, _ = fmt.Fprintf(color.Output, "[ %s ]", color.GreenString(header))
 		fmt.Println(" ", message, " - ", module)
 	}
 }
@@ -91,7 +91,7 @@ func PrintDebug(header string, message interface{}, module string) {
 	if WriteToLogOnly {
 		WriteLog(LogFileName, header, module, message)
 	} else {
-		fmt.Fprintf(color.Output, "[ %s ]", color.YellowString(header))
+		_, _ = fmt.Fprintf(color.Output, "[ %s ]", color.YellowString(header))
 		fmt.Println(" ", message, " - ", module)
 	}
 }
@@ -130,7 +130,7 @@ func JSONPretty(Data interface{}) string {
 	var out bytes.Buffer //буфер конвертации джейсона в красивый джейсон
 	jsonData, _ := json.Marshal(Data)
 	jsonData = bytes.Replace(jsonData, []byte("\\u0026"), []byte("&"), -1)
-	json.Indent(&out, jsonData, "", "    ")
+	_ = json.Indent(&out, jsonData, "", "    ")
 	return out.String()
 }
 

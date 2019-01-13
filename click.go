@@ -9,7 +9,7 @@
 * version v2.0.3
 *
 * created at 04122018
-* last edit: 16122018
+* last edit: 13012018
 *
 *****************************************************************************************************/
 
@@ -62,15 +62,11 @@ func ListClickHandler(c echo.Context) error {
 		utils.PrintInfo("Action elapsed time", time.Since(start), tdsModuleName)
 
 		// TODO Здесь должен возвращаться контент тайп джейсон
-
-		runtime.GC()
 		return c.String(200, s)
 	} else {
 		config.TDSStatistic.IncorrectRequest++ // add counter tick
 		// если нет редиски, то все привет
 		msg := []byte(`{"code":500, "message":"No connection to RedisDB"}`)
-
-		runtime.GC()
 		return c.JSONBlob(400, msg)
 	}
 }
@@ -113,6 +109,7 @@ func clickHandler(c echo.Context) error {
 
 func clickBuild(c echo.Context) error {
 	var Click models.ClickData
+	var Flow models.FlowData
 
 	if config.IsRedisAlive { // собираем данные для сейва в базу
 		resultMap := utils.URIByMap(c, keyMap) // вот в этот массив
@@ -123,31 +120,26 @@ func clickBuild(c echo.Context) error {
 		Click.Hash = strings.Join(resultMap["click_hash"], "")
 		Click.FlowHash = strings.Join(resultMap["flow_hash"], "")
 
+		// Костыли для старого стиля обращений
+		if Click.Hash == "" {
+			Click.Hash = strings.Join(resultMap["click_id"], "")
+		}
+		if Click.FlowHash == "" {
+			Click.FlowHash = strings.Join(resultMap["flow_id"], "")
+		}
+
 		resultMap["click_id"] = append(resultMap["click_id"], Click.Hash)
 
 		if Click.Hash != "" && Click.FlowHash != "" {
 
-			FlowID, _ := config.Redisdb.Get(Click.FlowHash + ":ID").Result()
-			convertedID, _ := strconv.Atoi(FlowID)
-			Click.FlowID = convertedID
-
-			FlowWebMasterID, _ := config.Redisdb.Get(Click.FlowHash + ":WebMasterID").Result()
-			convertedID, _ = strconv.Atoi(FlowWebMasterID)
-			Click.WebMasterID = convertedID
-
-			FlowWebMasterCurrencyID, _ := config.Redisdb.Get(Click.FlowHash + ":WebMasterCurrencyID").Result()
-			convertedID, _ = strconv.Atoi(FlowWebMasterCurrencyID)
-			Click.WebMasterCurrencyID = convertedID
-
-			FlowOfferID, _ := config.Redisdb.Get(Click.FlowHash + ":OfferID").Result()
-			convertedID, _ = strconv.Atoi(FlowOfferID)
-			Click.OfferID = convertedID
-
-			t := time.Now()
+			Flow = Flow.GetInfo(Click.FlowHash) // получить всю инфу о потоке
+			Click.FlowID = Flow.ID
+			Click.WebMasterID = Flow.WebMasterID
+			Click.WebMasterCurrencyID = Flow.WebMasterCurrencyID
+			Click.OfferID = Flow.OfferID
 
 			Click.UserAgent = c.Request().UserAgent()
-			Click.Time = fmt.Sprintf("%d-%02d-%02d %02d:%02d:%02d",
-				t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second())
+			Click.Time = utils.CURRENT_TIMESTAMP
 			Click.URL = "http://" + config.Cfg.General.Host + c.Request().RequestURI
 			Click.IP = c.Request().RemoteAddr
 			Click.Referer = c.Request().Referer()
@@ -158,46 +150,35 @@ func clickBuild(c echo.Context) error {
 			Click.Sub4 = strings.Join(resultMap["sub4"], "")
 			Click.Sub5 = strings.Join(resultMap["sub5"], "")
 
-			Prelands, _ := config.Redisdb.Keys(Click.FlowHash + ":preland:*").Result()
+			// TODO: Возможна оптимизация по прямому обращению к индексу искомого ленда или преленда
+			Prelands, _ := config.Redisdb.HGetAll(Click.FlowHash + ":prelands").Result()
 			PrelandingTemplate := ""
 
-			for _, key := range Prelands {
-				PrelandingTemplateID, _ := config.Redisdb.HGet(key, "id").Result()
-
+			for PrelandingTemplateID, key := range Prelands {
 				if PrelandingTemplateID == PrelandID {
-					PrelandingTemplate, _ = config.Redisdb.HGet(key, "url").Result()
-
+					PrelandingTemplate = key
 					for _, item := range keyMap {
 						PrelandingTemplate = strings.Replace(PrelandingTemplate, fmt.Sprintf("{%s}", item),
 							strings.Trim(fmt.Sprintf("%s", resultMap[item]), " ]["), 1)
-
-						fmt.Println("[ REPLACE ] = ", PrelandingTemplate)
 					}
 				}
 			}
 
-			fmt.Println("[ XXX ] = ", PrelandingTemplate)
-
 			Click.LocationPL = PrelandingTemplate
-			convertedID, _ = strconv.Atoi(PrelandID)
+			convertedID, _ := strconv.Atoi(PrelandID)
 			Click.PrelandingID = convertedID
 			Click.IsVisitedPL = 1
 
-			Lands, _ := config.Redisdb.Keys(Click.FlowHash + ":land:*").Result()
+			// TODO: Возможна оптимизация по прямому обращению к индексу искомого ленда или преленда
+			Lands, _ := config.Redisdb.HGetAll(Click.FlowHash + ":lands").Result()
 			LandingTemplate := ""
 
-			for _, key := range Lands {
-				LandingTemplateID, _ := config.Redisdb.HGet(key, "id").Result()
-
+			for LandingTemplateID, key := range Lands {
 				if LandingTemplateID == LandID {
-					LandingTemplate, _ = config.Redisdb.HGet(key, "url").Result()
-
+					LandingTemplate = key
 					for _, item := range keyMap {
-
 						LandingTemplate = strings.Replace(LandingTemplate, fmt.Sprintf("{%s}", item),
 							strings.Trim(fmt.Sprintf("%s", resultMap[item]), " ]["), 1)
-
-						fmt.Println("[ REPLACE ] = ", LandingTemplate)
 					}
 				}
 			}
@@ -208,10 +189,8 @@ func clickBuild(c echo.Context) error {
 			Click.IsVisitedLP = 1
 
 			defer Click.Save()
-			runtime.GC()
 		} else {
 			msg := []byte(`{"code":400, "message":"No flow or click hashes found"}`)
-			runtime.GC()
 			return c.JSONBlob(400, msg)
 		}
 	} else {
@@ -221,7 +200,5 @@ func clickBuild(c echo.Context) error {
 	}
 
 	s := utils.JSONPretty(Click)
-
-	runtime.GC()
 	return c.String(200, s)
 }

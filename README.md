@@ -4,19 +4,11 @@ __FEATURED TODO__
 
 __LAST CHANGES__ (other changes see `docs/changelog.txt`)
 
-> __08.01.2019__
-
-+ Improved statistics for average RPS
-+ Advanced template based stat output
-+ Additional params to watch for stat
-+ fx
-
-> __07.01.2018__
-+ Improved performance for importing flows
-+ Additional statistics /stat, /conf
-+ Small refactoring for init.go
-+ Additional configurable settings @`settings.ini`
-+ Production testing on +10000 rps
+> __13.01.2019__
++ Imporved building a click by parameters
++ Optimization for reading flow infos
++ Reformating some code + fx
++ Preparing to release
 
 __INSTALLATION__
 

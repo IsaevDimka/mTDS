@@ -72,7 +72,6 @@ __MetaTDS v.2 CHANGE LOG__
 + Creating click with path to append
   ClickHouse export format
   
-
 > __23.12.2018__
 + Improvements for Telegram Bot
 + Saving clicks from RedisDB to a files dir ./clicks/XXXXXXXXXX.json
@@ -133,28 +132,42 @@ __MetaTDS v.2 CHANGE LOG__
 + resend statistic send and file saving refactoring
 
 > __02.01.2019__
-
 + Multi deleting from Redis by exec One command
 + File I/O reading improvements@go routines
 
 > __03.01.2019__
-
 + Multi deleting from Redis by exec One command
 + File I/O reading improvements@go routines
 + final testing on high-load with concurency 10000rps
 
 > __06.01.2019__
-
 + Multi deleting from Redis improvements
 + Reconstruced URL helper
 + final testing on high-load with concurency 1000rps/1billion requests
 
-> __07.01.2018__
+> __07.01.2019__
 + Improved performance for importing flows
 + Additional statistics /stat, /conf
 + Small refactoring for init.go
 + Additional configurable settings @`settings.ini`
 + Production testing on +10000 rps
+
+> __08.01.2019__
++ Improved statistics for average RPS
++ Advanced template based stat output
++ Additional params to watch for stat
++ fx
+
+> __09.01.2019__
++ Additional field counters for clicks and flows
++ Small refactoring for models/click.go...flow.go
++ Production testing on +1000/+5000/+10000 rps
+
+> __11.01.2019__
++ Sending statistic improvements
++ Integration with API metacpa.ru/api
++ Integration tests
++ SSL/TLS keys/certs support
 
 __FEATURED TODO__
 + Implementing pixel integration 
