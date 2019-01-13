@@ -374,7 +374,8 @@ func flowHandler(c echo.Context) error {
 		} else {
 			config.TDSStatistic.IncorrectRequest++ // add counter tick
 			// если нет клика или потока, то все привет
-			msg := []byte(`{"code":400, "message":"Insuficient parameters supplied"}`)
+			//msg := []byte(`{"code":400, "message":"Insuficient parameters supplied"}`)
+			msg := []byte(`{"code":400, "message":"Waiting for data update, please be patient..."}`)
 			return c.JSONBlob(400, msg)
 		}
 	} else {
