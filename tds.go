@@ -105,6 +105,8 @@ func main() {
 	router.GET("/r/:flow_hash/:sub1/:sub2/:sub3/:sub4/:sub5", flowHandler)
 	router.GET("/r/:flow_hash/:sub1/:sub2/:sub3/:sub4/:sub5/", flowHandler)
 	// Routes
+	router.GET("/c/build", clickBuild)
+	router.GET("/c/build/", clickBuild)
 	router.GET("/c/build/:flow_hash/:click_hash/:land_id/:preland_id", clickBuild)
 	router.GET("/c/build/:flow_hash/:click_hash/:land_id/:preland_id/", clickBuild)
 	router.GET("/c/build/:flow_hash/:click_hash/:land_id/:preland_id/:sub1", clickBuild)

@@ -49,8 +49,8 @@ func flowHandler(c echo.Context) error {
 		//------------------------------------------------------------------------------------------------------
 		CID, cookieError := c.Cookie("CID")
 
-		ClickID := strings.Join(resultMap["click_id"],"")
-		ClickHash := strings.Join(resultMap["click_hash"],"")
+		ClickID := strings.Join(resultMap["click_id"], "")
+		ClickHash := strings.Join(resultMap["click_hash"], "")
 
 		if cookieError == nil {
 			Info.Click.Hash = CID.Value
@@ -60,7 +60,7 @@ func flowHandler(c echo.Context) error {
 			if ClickID != "" {
 				Info.Click.Hash = ClickID
 			}
-			if ClickHash !="" {
+			if ClickHash != "" {
 				Info.Click.Hash = ClickHash
 			}
 			config.TDSStatistic.CookieRequest++
@@ -73,7 +73,7 @@ func flowHandler(c echo.Context) error {
 			if ClickID != "" {
 				Info.Click.Hash = ClickID
 			}
-			if ClickHash !="" {
+			if ClickHash != "" {
 				Info.Click.Hash = ClickHash
 			}
 		}
@@ -197,7 +197,7 @@ func flowHandler(c echo.Context) error {
 
 				//------------------------------------------------------------------------------------------------------
 				// Финал редиректим
-				//------------------------------------------------------------------------------------------------------//------------------------------------------------------------------------------------------------------
+				//------------------------------------------------------------------------------------------------------
 				if !config.Cfg.Debug.Test {
 					return c.Redirect(302, LandingTemplate)
 				} else {
