@@ -31,19 +31,19 @@ type ClickData struct {
 	FlowHash            string
 	Hash                string
 	IP                  string
-	URL                 string
-	Time                string
-	Referer             string
-	UserAgent           string
-	LocationLP          string
-	IsVisitedLP         int
-	LocationPL          string
-	IsVisitedPL         int
-	Sub1                string
-	Sub2                string
-	Sub3                string
-	Sub4                string
-	Sub5                string
+	//	URL                 string
+	Time        string
+	Referer     string
+	UserAgent   string
+	LocationLP  string
+	IsVisitedLP int
+	LocationPL  string
+	IsVisitedPL int
+	Sub1        string
+	Sub2        string
+	Sub3        string
+	Sub4        string
+	Sub5        string
 }
 
 func (ClickData) GenerateCID() string {
@@ -106,7 +106,9 @@ func (Click ClickData) GetInfo(ClickHash string) ClickData {
 	Click.Time, _ = config.Redisdb.HGet(Click.FlowHash+":click:"+Click.Hash, "Time").Result()
 	Click.IP, _ = config.Redisdb.HGet(Click.FlowHash+":click:"+Click.Hash, "IP").Result()
 	Click.UserAgent, _ = config.Redisdb.HGet(Click.FlowHash+":click:"+Click.Hash, "UserAgent").Result()
-	Click.URL, _ = config.Redisdb.HGet(Click.FlowHash+":click:"+Click.Hash, "URL").Result()
+
+	//Click.URL, _ = config.Redisdb.HGet(Click.FlowHash+":click:"+Click.Hash, "URL").Result()
+
 	Click.LocationLP, _ = config.Redisdb.HGet(Click.FlowHash+":click:"+Click.Hash, "LocationLP").Result()
 	ClickIsVisitedLP, _ := config.Redisdb.HGet(Click.FlowHash+":click:"+Click.Hash, "IsVisitedLP").Result()
 	convertedID, _ = strconv.Atoi(ClickIsVisitedLP)

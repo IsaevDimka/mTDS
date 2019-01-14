@@ -140,7 +140,9 @@ func clickBuild(c echo.Context) error {
 
 			Click.UserAgent = c.Request().UserAgent()
 			Click.Time = utils.CURRENT_TIMESTAMP
-			Click.URL = "http://" + config.Cfg.General.Host + c.Request().RequestURI
+
+			//Click.URL = "http://" + config.Cfg.General.Host + c.Request().RequestURI
+
 			Click.IP = c.Request().RemoteAddr
 			Click.Referer = c.Request().Referer()
 

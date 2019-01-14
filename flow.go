@@ -106,7 +106,8 @@ func flowHandler(c echo.Context) error {
 		Info.Click.OfferID = Info.Flow.OfferID
 
 		// грузим субаки
-		Info.Click.URL = "http://" + config.Cfg.General.Host + c.Request().RequestURI
+		//Info.Click.URL = "http://" + config.Cfg.General.Host + c.Request().RequestURI
+
 		Info.Click.Sub1 = strings.Join(resultMap["sub1"], "")
 		Info.Click.Sub2 = strings.Join(resultMap["sub2"], "")
 		Info.Click.Sub3 = strings.Join(resultMap["sub3"], "")
