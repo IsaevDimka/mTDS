@@ -27,7 +27,7 @@
 	            },
 		    backgroundColor: '#ffffff',
 		   legend: { position: 'bottom' },
-//	       	  curveType: 'function'
+	       	  //curveType: 'function'
 			  width: 900,
 		        height: 500
 		};
@@ -41,12 +41,20 @@
 
 <table border=0 cellspacing=0 cellpadding=0>
 <tr>
-<td>
-	<textarea rows=33 cols=50 style="overflow:hidden;resize:none;" readonly>
+<td align=right>
+	<textarea rows=33 cols=55 style="overflow:hidden;resize:none; border: 0px;" readonly>
 	{{SYSSTAT}}
 	</textarea>
 </td>
-<td>
+<td align=right>
+	<textarea rows=33 cols=35 style="overflow:hidden;resize:none; border: 0px;" readonly>
+
+Memory usage:
+
+{{MEM}}
+	</textarea>
+</td>
+<td align=left>
 	<div id="chart_div"></div>
 </td>
 </tr>
