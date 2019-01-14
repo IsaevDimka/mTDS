@@ -89,11 +89,28 @@ func GetSystemStatistics() string {
 
 		uniqueRequests := (TDSStatistic.ClickInfoRequest + TDSStatistic.FlowInfoRequest + TDSStatistic.RedirectRequest) - TDSStatistic.CookieRequest // - TDSStatistic.IncorrectRequest
 
-		//setting stat to redis
-		_ = Redisdb.HSet("SystemStatistic", StatisticCounter, "["+StatisticCounter+","+
-			fmt.Sprintf("%.0f", (math.Round(dur.Seconds()*1000)))+","+
-			strconv.Itoa(averageRPS)+","+strconv.Itoa(currentRPS)+"]").Err()
+		//auto update statistics in graph
+		convertedID, _ := strconv.Atoi(StatisticCounter)
+		if convertedID < minimumStatCountRPS {
+			fmt.Println("Appending", convertedID)
+			_ = Redisdb.HSet("SystemStatistic", StatisticCounter, "["+StatisticCounter+","+
+				fmt.Sprintf("%.0f", (math.Round(dur.Seconds()*1000)))+","+
+				strconv.Itoa(averageRPS)+","+strconv.Itoa(currentRPS)+"]").Err()
+		} else {
+			convertedID = convertedID - minimumStatCountRPS
+			fmt.Println("Removing before this", convertedID)
 
+			for i := 0; i < convertedID; i++ {
+				_ = Redisdb.HDel("SystemStatistic", strconv.Itoa(i)).Err()
+			}
+
+			fmt.Println("Appending", StatisticCounter)
+			_ = Redisdb.HSet("SystemStatistic", StatisticCounter, "["+StatisticCounter+","+
+				fmt.Sprintf("%.0f", (math.Round(dur.Seconds()*1000)))+","+
+				strconv.Itoa(averageRPS)+","+strconv.Itoa(currentRPS)+"]").Err()
+		}
+
+		// allow to overwrite statistics
 		text = "\n" + utils.CURRENT_TIMESTAMP + "\n" + Cfg.General.Name +
 			"\n\nINFO" +
 			"\nFlow update request    : " + strconv.Itoa(TDSStatistic.UpdatedFlows) +

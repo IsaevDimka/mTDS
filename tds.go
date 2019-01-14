@@ -266,7 +266,13 @@ func GetSystemExtendedStatHandler(c echo.Context) error {
 	/*		data := "[0, 0, 3],   [1, 10, 6],  [2, 23, 23],  [3, 17, 232],  [4, 18, 23],  [5, 9, 23],"+
 	"[6, 11, 14],  [7, 27, 5],  [8, 33, 8],  [9, 40, 0],  [10, 32, 123], [11, 35, 40]"
 	*/
-	result := strings.Replace(s, "{{DATA}}", dataForGraph, -1)
+
+	m := utils.MemMonitor()
+	// Just encode to json and print
+	memoryStats := utils.JSONPretty(m)
+
+	result := strings.Replace(s, "{{MEM}}", memoryStats, -1)
+	result = strings.Replace(result, "{{DATA}}", dataForGraph, -1)
 	result = strings.Replace(result, "{{SYSSTAT}}", text, -1)
 	return c.HTML(200, result)
 
