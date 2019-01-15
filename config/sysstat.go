@@ -92,19 +92,19 @@ func GetSystemStatistics() string {
 		//auto update statistics in graph
 		convertedID, _ := strconv.Atoi(StatisticCounter)
 		if convertedID < minimumStatCountRPS {
-			fmt.Println("Appending", convertedID)
+			//			fmt.Println("Appending", convertedID)
 			_ = Redisdb.HSet("SystemStatistic", StatisticCounter, "["+StatisticCounter+","+
 				fmt.Sprintf("%.0f", (math.Round(dur.Seconds()*1000)))+","+
 				strconv.Itoa(averageRPS)+","+strconv.Itoa(currentRPS)+"]").Err()
 		} else {
 			convertedID = convertedID - minimumStatCountRPS
-			fmt.Println("Removing before this", convertedID)
+			//fmt.Println("Removing before this", convertedID)
 
 			for i := 0; i < convertedID; i++ {
 				_ = Redisdb.HDel("SystemStatistic", strconv.Itoa(i)).Err()
 			}
 
-			fmt.Println("Appending", StatisticCounter)
+			//			fmt.Println("Appending", StatisticCounter)
 			_ = Redisdb.HSet("SystemStatistic", StatisticCounter, "["+StatisticCounter+","+
 				fmt.Sprintf("%.0f", (math.Round(dur.Seconds()*1000)))+","+
 				strconv.Itoa(averageRPS)+","+strconv.Itoa(currentRPS)+"]").Err()
