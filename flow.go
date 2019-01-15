@@ -93,6 +93,8 @@ func flowHandler(c echo.Context) error {
 		var resultHash string
 		if strings.Join(resultMap["flow_hash"], "") == "" {
 			resultHash = strings.Join(resultMap["flow_id"], "")
+		} else {
+			resultHash = strings.Join(resultMap["flow_hash"], "")
 		}
 
 		Info.Flow = Info.Flow.GetInfo(resultHash) // получить всю инфу о потоке
