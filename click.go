@@ -111,24 +111,28 @@ func clickBuild(c echo.Context) error {
 	var Click models.ClickData
 	var Flow models.FlowData
 
+	resultMap := utils.URIByMap(c, keyMap) // вот в этот массив
+
 	if config.IsRedisAlive { // собираем данные для сейва в базу
-		resultMap := utils.URIByMap(c, keyMap) // вот в этот массив
 
 		PrelandID := strings.Join(resultMap["preland_id"], "")
 		LandID := strings.Join(resultMap["land_id"], "")
 
+		// вот это место
 		Click.Hash = strings.Join(resultMap["click_hash"], "")
-		Click.FlowHash = strings.Join(resultMap["flow_hash"], "")
 
-		// Костыли для старого стиля обращений
 		if Click.Hash == "" {
 			Click.Hash = strings.Join(resultMap["click_id"], "")
+		} else {
+			//////////////////////////////////////////
+			resultMap["click_id"] = append(resultMap["click_id"], Click.Hash)
 		}
+
+		Click.FlowHash = strings.Join(resultMap["flow_hash"], "")
+		// Костыли для старого стиля обращений
 		if Click.FlowHash == "" {
 			Click.FlowHash = strings.Join(resultMap["flow_id"], "")
 		}
-
-		resultMap["click_id"] = append(resultMap["click_id"], Click.Hash)
 
 		if Click.Hash != "" && Click.FlowHash != "" {
 
@@ -201,6 +205,13 @@ func clickBuild(c echo.Context) error {
 		return c.JSONBlob(400, msg)
 	}
 
-	s := utils.JSONPretty(Click)
-	return c.String(200, s)
+	//	fmt.Println(resultMap)
+
+	if strings.Join(resultMap["format"], "") == "lp" || strings.Join(resultMap["f"], "") == "lp" {
+		return c.Redirect(302, Click.LocationLP)
+	} else {
+		s := utils.JSONPretty(Click)
+		return c.String(200, s)
+	}
+
 }

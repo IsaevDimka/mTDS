@@ -89,7 +89,13 @@ func flowHandler(c echo.Context) error {
 		//------------------------------------------------------------------------------------------------------
 		// Тут вот может быть можно ускорить
 		//------------------------------------------------------------------------------------------------------
-		Info.Flow = Info.Flow.GetInfo(strings.Join(resultMap["flow_hash"], "")) // получить всю инфу о потоке
+
+		var resultHash string
+		if strings.Join(resultMap["flow_hash"], "") == "" {
+			resultHash = strings.Join(resultMap["flow_id"], "")
+		}
+
+		Info.Flow = Info.Flow.GetInfo(resultHash) // получить всю инфу о потоке
 		//------------------------------------------------------------------------------------------------------
 		Info.Click.Time = fmt.Sprintf("%d-%02d-%02d %02d:%02d:%02d", start.Year(), start.Month(), start.Day(), start.Hour(), start.Minute(), start.Second())
 
@@ -118,7 +124,8 @@ func flowHandler(c echo.Context) error {
 		//------------------------------------------------------------------------------------------------------
 		// Подготовка всей инфы
 		//------------------------------------------------------------------------------------------------------
-		if strings.Join(resultMap["flow_hash"], "") != "" && strings.Join(resultMap["click_hash"], "") != "" && Info.Flow.ID > 0 {
+		if (strings.Join(resultMap["flow_hash"], "") != "" || strings.Join(resultMap["flow_id"], "") != "") &&
+			(strings.Join(resultMap["click_hash"], "") != "" || strings.Join(resultMap["click_id"], "") != "") && Info.Flow.ID > 0 {
 
 			//------------------------------------------------------------------------------------------------------
 			// Выбор лендингов и прелендингов куда буем редиректить, если лендов нет, то вообще заканчиваем цирк
@@ -165,7 +172,7 @@ func flowHandler(c echo.Context) error {
 			// редирект на лендинг
 			// LAND
 			// ----------------------------------------------------------------------------------------------------
-			if strings.Join(resultMap["format"], "") == "land" || strings.Join(resultMap["f"], "") == "1" {
+			if strings.Join(resultMap["format"], "") == "lp" || strings.Join(resultMap["f"], "") == "lp" {
 				// добиваем клик нужной инфой, теперь можем его записывать
 				Info.Click.LandingID = LandingTemplateID
 				Info.Click.PrelandingID = 0
@@ -209,7 +216,7 @@ func flowHandler(c echo.Context) error {
 			// PRELAND
 			// редирект на пре-лендинг
 			// ----------------------------------------------------------------------------------------------------
-			if strings.Join(resultMap["format"], "") == "preland" || strings.Join(resultMap["f"], "") == "0" {
+			if strings.Join(resultMap["format"], "") == "pl" || strings.Join(resultMap["f"], "") == "pl" {
 				if len(Info.Flow.Prelands) <= 0 {
 					config.TDSStatistic.IncorrectRequest++ // add counter tick
 					msg := []byte(`{"code":400, "message":"No pre-landing templates found"}`)
@@ -255,7 +262,8 @@ func flowHandler(c echo.Context) error {
 			// JSON FORMAT
 			// отдать данные потока в джейсоне красиво
 			// ----------------------------------------------------------------------------------------------------
-			if strings.Join(resultMap["format"], "") == "json" || strings.Join(resultMap["f"], "") == "json" {
+			if strings.Join(resultMap["format"], "") == "json" || strings.Join(resultMap["f"], "") == "json" ||
+				strings.Join(resultMap["format"], "") == "j" || strings.Join(resultMap["f"], "") == "j" {
 				Info.Click.LandingID = LandingTemplateID
 				Info.Click.LocationLP = LandingTemplate
 				Info.Click.IsVisitedLP = 0
@@ -397,6 +405,7 @@ func flowHandler(c echo.Context) error {
 			// если нет клика или потока, то все привет
 			//msg := []byte(`{"code":400, "message":"Insuficient parameters supplied"}`)
 			msg := []byte(`{"code":400, "message":"Waiting for data update, please be patient..."}`)
+			//fmt.Println(resultMap)
 			return c.JSONBlob(400, msg)
 		}
 	} else {
