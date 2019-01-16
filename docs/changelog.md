@@ -169,6 +169,31 @@ __MetaTDS v.2 CHANGE LOG__
 + Integration tests
 + SSL/TLS keys/certs support
 
+> __13.01.2019__
++ Imporved building a click by parameters
++ Optimization for reading flow infos
++ Reformating some code + fx
++ Preparing to release
+
+> __14.01.2019__
++ Imporved statistics template
++ Optimization statistics
++ Preparing to release
+
+> __15.01.2019__
++ Optimized all flows current/new work with
+  new params flow_hash/click_hash
++ Performing to load current clicks to redis for
+  direct flows
++ URL reformatting /c /r
++ Preparing to release
+
+> __16.01.2019__
++ Optimized settings to USE SSL yes|no  
++ Settings to backup clicks yes|no 
++ Preparing to release
++ fx settings
+
 __FEATURED TODO__
 + Implementing pixel integration 
 + Mass load testing 
