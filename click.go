@@ -205,7 +205,7 @@ func clickBuild(c echo.Context) error {
 		return c.JSONBlob(400, msg)
 	}
 
-	//	fmt.Println(resultMap)
+	//fmt.Println(resultMap)
 
 	if strings.Join(resultMap["format"], "") == "lp" || strings.Join(resultMap["f"], "") == "lp" {
 		return c.Redirect(302, Click.LocationLP)

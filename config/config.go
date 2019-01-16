@@ -33,6 +33,7 @@ type Config struct {
 		ConfReload  int
 		OS          string
 		HTTPTimeout int
+		SSL         bool
 		SSLCert     string
 		SSLKey      string
 	}
@@ -43,6 +44,7 @@ type Config struct {
 		DropToRedis    int
 		DropFilesToAPI int
 		MaxDropItems   int
+		BackupClicks   bool
 	}
 	Redis struct {
 		Host        string
@@ -116,6 +118,9 @@ func InitConfig() {
 					if Cfg.General.OS != "" {
 						fmt.Println("[ -- OS ]", Cfg.General.OS)
 					}
+					if Cfg.General.SSL != false {
+						fmt.Println("[ -- SSL ]", Cfg.General.SSL)
+					}
 					if Cfg.General.SSLCert != "" {
 						fmt.Println("[ -- SSLCert ]", Cfg.General.SSLCert)
 					}
@@ -146,6 +151,9 @@ func InitConfig() {
 					}
 					if Cfg.Click.DropFilesToAPI != 0 {
 						fmt.Println("[ -- DropFilesToAPI ]", Cfg.Click.DropFilesToAPI)
+					}
+					if Cfg.Click.BackupClicks != false {
+						fmt.Println("[ -- BackupClicks ]", Cfg.Click.BackupClicks)
 					}
 					if Cfg.Click.MaxDropItems != 0 {
 						fmt.Println("[ -- MaxDropItems ]", Cfg.Click.MaxDropItems)

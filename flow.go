@@ -273,10 +273,13 @@ func flowHandler(c echo.Context) error {
 				Info.Click.LocationPL = PrelandingTemplate
 				Info.Click.IsVisitedPL = 1
 
+				// TODO ???
+				//				if ClickID == "" && ClickHash == "" {
 				defer Info.Click.Save()
 				if cookieError != nil {
 					defer c.SetCookie(utils.SaveCookieToUser(Info.Click.Hash, Info.Click.LocationLP))
 				}
+				//				}
 
 				// ----------------------------------------------------------------------------------------------------
 				// STATS
@@ -307,7 +310,7 @@ func flowHandler(c echo.Context) error {
 				decision = -1
 
 				if len(Info.Flow.Prelands) > 0 {
-					Info.Click.LandingID = 0
+					Info.Click.LandingID = LandingTemplateID
 					Info.Click.PrelandingID = PrelandingTemplateID
 					Info.Click.LocationPL = PrelandingTemplate
 					Info.Click.IsVisitedPL = 1
@@ -322,6 +325,7 @@ func flowHandler(c echo.Context) error {
 					Info.Click.IsVisitedLP = 1
 					decision = 1
 				}
+
 			goon:
 				defer Info.Click.Save()
 				if cookieError != nil {
