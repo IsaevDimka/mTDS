@@ -97,6 +97,13 @@ func RedisSendOrSaveClicks() <-chan string {
 
 								utils.PrintError("Response", body.String(), sendModuelName)
 
+								if Cfg.Click.BackupClicks {
+									utils.CreateDirIfNotExist("backup")
+									f, _ := os.OpenFile("backup/"+utils.CURRENT_TIMESTAMP_FS+".json", os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
+									_, _ = f.WriteString(string(jsonData))
+									_ = f.Close()
+								}
+
 								if KeysToDelete != nil {
 									_ = Redisdb.MDel(KeysToDelete).Err()
 								}

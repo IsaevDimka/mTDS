@@ -91,6 +91,7 @@ func main() {
 	router.GET("/:flow_hash/:sub1/:sub2/:sub3/:sub4/:sub5", flowHandler)
 	router.GET("/:flow_hash/:sub1/:sub2/:sub3/:sub4/:sub5/", flowHandler)
 	// Routes
+	router.GET("/r", flowHandler)
 	router.GET("/r/", flowHandler)
 	router.GET("/r/:flow_hash", flowHandler)
 	router.GET("/r/:flow_hash/", flowHandler)
@@ -105,8 +106,14 @@ func main() {
 	router.GET("/r/:flow_hash/:sub1/:sub2/:sub3/:sub4/:sub5", flowHandler)
 	router.GET("/r/:flow_hash/:sub1/:sub2/:sub3/:sub4/:sub5/", flowHandler)
 	// Routes
+	router.GET("/c", clickBuild)
 	router.GET("/c/", clickBuild)
-	router.GET("/c/", clickBuild)
+	router.GET("/c/:flow_hash", clickBuild)
+	router.GET("/c/:flow_hash/", clickBuild)
+	router.GET("/c/:flow_hash/:click_hash", clickBuild)
+	router.GET("/c/:flow_hash/:click_hash/", clickBuild)
+	router.GET("/c/:flow_hash/:click_hash/:land_id", clickBuild)
+	router.GET("/c/:flow_hash/:click_hash/:land_id/", clickBuild)
 	router.GET("/c/:flow_hash/:click_hash/:land_id/:preland_id", clickBuild)
 	router.GET("/c/:flow_hash/:click_hash/:land_id/:preland_id/", clickBuild)
 	router.GET("/c/:flow_hash/:click_hash/:land_id/:preland_id/:sub1", clickBuild)
@@ -156,7 +163,7 @@ func main() {
 	}
 
 	// router.AutoTLSManager
-	if config.Cfg.General.OS != "windows" {
+	if config.Cfg.General.SSL {
 		go func() {
 			router.Logger.Fatal(router.StartTLS(":443", config.Cfg.General.SSLCert, config.Cfg.General.SSLKey))
 		}()
