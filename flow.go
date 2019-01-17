@@ -106,7 +106,7 @@ func flowHandler(c echo.Context) error {
 		Info.Click.IP = c.Request().RemoteAddr
 		Info.Click.Referer = c.Request().Referer()
 
-		fmt.Println("USER-AGENT: ", Info.Click.UserAgent)
+		//fmt.Println("USER-AGENT: ", Info.Click.UserAgent)
 
 		// грузим в клик все из потока
 		Info.Click.FlowHash = Info.Flow.Hash

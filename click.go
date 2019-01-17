@@ -145,9 +145,16 @@ func clickBuild(c echo.Context) error {
 			Click.OfferID = Flow.OfferID
 
 			Click.UserAgent = c.Request().UserAgent()
-			Click.Time = utils.CURRENT_TIMESTAMP
 
-			Click.IP = c.Request().RemoteAddr
+			// The req variable must be a pointer
+			XRealIP := c.Request().Header.Get("X-Real-IP")
+			if XRealIP != "" {
+				Click.IP = XRealIP
+			} else {
+				Click.IP = c.Request().RemoteAddr
+			}
+
+			Click.Time = utils.CURRENT_TIMESTAMP
 			Click.Referer = c.Request().Referer()
 
 			Click.Sub1 = strings.Join(resultMap["sub1"], "")
@@ -195,7 +202,7 @@ func clickBuild(c echo.Context) error {
 			Click.IsVisitedLP = 1
 
 			config.TDSStatistic.ClickBuildRequest++
-			fmt.Println("USER-AGENT 1: ", Click.UserAgent, Click)
+			//			fmt.Println("USER-AGENT 1: ", Click.UserAgent, Click)
 
 			Click.Save()
 		} else {
