@@ -92,7 +92,7 @@ func clickHandler(c echo.Context) error {
 
 		s := utils.JSONPretty(Click)
 
-		config.TDSStatistic.ClickInfoRequest++ // add counter tick
+		config.TDSStatistic.ClickBuildRequest++ // add counter tick
 		config.TDSStatistic.ProcessingTime += time.Since(start)
 
 		runtime.GC()
@@ -134,6 +134,8 @@ func clickBuild(c echo.Context) error {
 			Click.FlowHash = strings.Join(resultMap["flow_id"], "")
 		}
 
+		fmt.Println(Click.Hash, " ", Click.FlowHash)
+
 		if Click.Hash != "" && Click.FlowHash != "" {
 
 			Flow = Flow.GetInfo(Click.FlowHash) // получить всю инфу о потоке
@@ -144,8 +146,6 @@ func clickBuild(c echo.Context) error {
 
 			Click.UserAgent = c.Request().UserAgent()
 			Click.Time = utils.CURRENT_TIMESTAMP
-
-			//Click.URL = "http://" + config.Cfg.General.Host + c.Request().RequestURI
 
 			Click.IP = c.Request().RemoteAddr
 			Click.Referer = c.Request().Referer()
@@ -194,7 +194,10 @@ func clickBuild(c echo.Context) error {
 			Click.LandingID = convertedID
 			Click.IsVisitedLP = 1
 
-			defer Click.Save()
+			config.TDSStatistic.ClickBuildRequest++
+			fmt.Println("USER-AGENT 1: ", Click.UserAgent, Click)
+
+			Click.Save()
 		} else {
 			msg := []byte(`{"code":400, "message":"No flow or click hashes found"}`)
 			return c.JSONBlob(400, msg)
