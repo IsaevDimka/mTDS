@@ -23,6 +23,7 @@ import (
 	"math/rand"
 	"metatds/config"
 	"metatds/utils"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -134,10 +135,26 @@ func flowHandler(c echo.Context) error {
 			//------------------------------------------------------------------------------------------------------
 			// Выбор лендингов и прелендингов куда буем редиректить, если лендов нет, то вообще заканчиваем цирк
 			//------------------------------------------------------------------------------------------------------
+
+			if len(Info.Flow.Prelands) > 0 {
+				Random := rand.Intn(len(Info.Flow.Prelands))
+				PrelandingTemplate = Info.Flow.Prelands[Random].URL // получаем рандомный урл преленда
+				PrelandingTemplateID = Info.Flow.Prelands[Random].ID
+
+				for _, item := range keyMap {
+					PrelandingTemplate = strings.Replace(PrelandingTemplate, fmt.Sprintf("{%s}", item),
+						strings.Trim(fmt.Sprintf("%s", resultMap[item]), " ]["), 1)
+				}
+				Info.Flow.RandomPreland = PrelandingTemplate
+			}
+
 			if len(Info.Flow.Lands) > 0 {
 				Random := rand.Intn(len(Info.Flow.Lands))
 				LandingTemplate = Info.Flow.Lands[Random].URL // получаем рандомный урл ленда
 				LandingTemplateID = Info.Flow.Lands[Random].ID
+
+				resultMap["land_id"]    = append(resultMap["land_id"],    strconv.Itoa(LandingTemplateID))
+				resultMap["preland_id"] = append(resultMap["preland_id"], strconv.Itoa(PrelandingTemplateID))
 
 				for _, item := range keyMap {
 					LandingTemplate = strings.Replace(LandingTemplate, fmt.Sprintf("{%s}", item),
@@ -151,17 +168,6 @@ func flowHandler(c echo.Context) error {
 				return c.JSONBlob(400, msg)
 			}
 
-			if len(Info.Flow.Prelands) > 0 {
-				Random := rand.Intn(len(Info.Flow.Prelands))
-				PrelandingTemplate = Info.Flow.Prelands[Random].URL // получаем рандомный урл преленда
-				PrelandingTemplateID = Info.Flow.Prelands[Random].ID
-
-				for _, item := range keyMap {
-					PrelandingTemplate = strings.Replace(PrelandingTemplate, fmt.Sprintf("{%s}", item),
-						strings.Trim(fmt.Sprintf("%s", resultMap[item]), " ]["), 1)
-				}
-				Info.Flow.RandomPreland = PrelandingTemplate
-			}
 			//------------------------------------------------------------------------------------------------------
 
 			// Если дебаг то печатаем все это добро
