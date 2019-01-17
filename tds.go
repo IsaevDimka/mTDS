@@ -77,20 +77,6 @@ func main() {
 	})
 
 	// Routes
-	router.GET("/", flowHandler)
-	router.GET("/:flow_hash", flowHandler)
-	router.GET("/:flow_hash/", flowHandler)
-	router.GET("/:flow_hash/:sub1", flowHandler)
-	router.GET("/:flow_hash/:sub1/", flowHandler)
-	router.GET("/:flow_hash/:sub1/:sub2", flowHandler)
-	router.GET("/:flow_hash/:sub1/:sub2/", flowHandler)
-	router.GET("/:flow_hash/:sub1/:sub2/:sub3", flowHandler)
-	router.GET("/:flow_hash/:sub1/:sub2/:sub3/", flowHandler)
-	router.GET("/:flow_hash/:sub1/:sub2/:sub3/:sub4", flowHandler)
-	router.GET("/:flow_hash/:sub1/:sub2/:sub3/:sub4/", flowHandler)
-	router.GET("/:flow_hash/:sub1/:sub2/:sub3/:sub4/:sub5", flowHandler)
-	router.GET("/:flow_hash/:sub1/:sub2/:sub3/:sub4/:sub5/", flowHandler)
-	// Routes
 	router.GET("/r", flowHandler)
 	router.GET("/r/", flowHandler)
 	router.GET("/r/:flow_hash", flowHandler)
@@ -126,6 +112,21 @@ func main() {
 	router.GET("/c/:flow_hash/:click_hash/:land_id/:preland_id/:sub1/:sub2/:sub3/:sub4/", clickBuild)
 	router.GET("/c/:flow_hash/:click_hash/:land_id/:preland_id/:sub1/:sub2/:sub3/:sub4/:sub5", clickBuild)
 	router.GET("/c/:flow_hash/:click_hash/:land_id/:preland_id/:sub1/:sub2/:sub3/:sub4/:sub5/", clickBuild)
+
+	// Routes
+	router.GET("/", flowHandler)
+	router.GET("/:flow_hash", flowHandler)
+	router.GET("/:flow_hash/", flowHandler)
+	router.GET("/:flow_hash/:sub1", flowHandler)
+	router.GET("/:flow_hash/:sub1/", flowHandler)
+	router.GET("/:flow_hash/:sub1/:sub2", flowHandler)
+	router.GET("/:flow_hash/:sub1/:sub2/", flowHandler)
+	router.GET("/:flow_hash/:sub1/:sub2/:sub3", flowHandler)
+	router.GET("/:flow_hash/:sub1/:sub2/:sub3/", flowHandler)
+	router.GET("/:flow_hash/:sub1/:sub2/:sub3/:sub4", flowHandler)
+	router.GET("/:flow_hash/:sub1/:sub2/:sub3/:sub4/", flowHandler)
+	router.GET("/:flow_hash/:sub1/:sub2/:sub3/:sub4/:sub5", flowHandler)
+	router.GET("/:flow_hash/:sub1/:sub2/:sub3/:sub4/:sub5/", flowHandler)
 
 	// router.GET("/c/info/:click_hash", clickHandler)
 	// router.GET("/c/list", ListClickHandler)

@@ -87,7 +87,7 @@ func GetSystemStatistics() string {
 			avgReq = durafmt.Parse(dur).String(durafmt.DF_LONG)
 		}
 
-		uniqueRequests := (TDSStatistic.ClickInfoRequest + TDSStatistic.FlowInfoRequest + TDSStatistic.RedirectRequest) - TDSStatistic.CookieRequest // - TDSStatistic.IncorrectRequest
+		uniqueRequests := (TDSStatistic.ClickBuildRequest + TDSStatistic.FlowInfoRequest + TDSStatistic.RedirectRequest) - TDSStatistic.CookieRequest // - TDSStatistic.IncorrectRequest
 
 		//auto update statistics in graph
 		convertedID, _ := strconv.Atoi(StatisticCounter)
@@ -116,7 +116,7 @@ func GetSystemStatistics() string {
 			"\nFlow update request    : " + strconv.Itoa(TDSStatistic.UpdatedFlows) +
 			"\nFlow appended          : " + strconv.Itoa(TDSStatistic.AppendedFlows) +
 			//"\nPixel request          : " + strconv.Itoa(TDSStatistic.PixelRequest) +
-			"\nClick Info request     : " + humanize.Comma(int64(TDSStatistic.ClickInfoRequest)) + //strconv.Itoa(TDSStatistic.ClickInfoRequest) +
+			"\nClick build request    : " + humanize.Comma(int64(TDSStatistic.ClickBuildRequest)) + //strconv.Itoa(TDSStatistic.ClickInfoRequest) +
 			"\nFlow Info request      : " + humanize.Comma(int64(TDSStatistic.FlowInfoRequest)) + //strconv.Itoa(TDSStatistic.FlowInfoRequest) +
 			"\nRedirect request       : " + humanize.Comma(int64(TDSStatistic.RedirectRequest)) + //strconv.Itoa(TDSStatistic.RedirectRequest) +
 			//			"\nRedis Stat request     : " + strconv.Itoa(TDSStatistic.RedisStatRequest) +

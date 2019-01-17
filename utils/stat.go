@@ -11,7 +11,7 @@ type TDSStats struct {
 	UpdatedFlows      int
 	AppendedFlows     int
 	PixelRequest      int
-	ClickInfoRequest  int
+	ClickBuildRequest int
 	FlowInfoRequest   int
 	RedirectRequest   int
 	RedisStatRequest  int
@@ -26,7 +26,7 @@ func (tdstat TDSStats) Reset() {
 	tdstat.UpdatedFlows = 0
 	tdstat.AppendedFlows = 0
 	tdstat.PixelRequest = 0
-	tdstat.ClickInfoRequest = 0
+	tdstat.ClickBuildRequest = 0
 	tdstat.RedisStatRequest = 0
 	tdstat.FlowInfoRequest = 0
 	tdstat.RedirectRequest = 0
