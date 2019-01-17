@@ -107,7 +107,7 @@ func flowHandler(c echo.Context) error {
 		Info.Click.IP = c.Request().RemoteAddr
 		Info.Click.Referer = c.Request().Referer()
 
-		//fmt.Println("USER-AGENT: ", Info.Click.UserAgent)
+		fmt.Println("USER-AGENT: ", Info.Click.UserAgent, )
 
 		// грузим в клик все из потока
 		Info.Click.FlowHash = Info.Flow.Hash
@@ -281,13 +281,14 @@ func flowHandler(c echo.Context) error {
 				Info.Click.LocationPL = PrelandingTemplate
 				Info.Click.IsVisitedPL = 1
 
-				// TODO ???
-				//				if ClickID == "" && ClickHash == "" {
-				defer Info.Click.Save()
-				if cookieError != nil {
-					defer c.SetCookie(utils.SaveCookieToUser(Info.Click.Hash, Info.Click.LocationLP))
+				fmt.Println("1/0")
+
+				if ClickID == "" && ClickHash == "" {
+					defer Info.Click.Save()
+					if cookieError != nil {
+						defer c.SetCookie(utils.SaveCookieToUser(Info.Click.Hash, Info.Click.LocationLP))
+					}
 				}
-				//				}
 
 				// ----------------------------------------------------------------------------------------------------
 				// STATS
@@ -335,6 +336,9 @@ func flowHandler(c echo.Context) error {
 				}
 
 			goon:
+
+				fmt.Println("CLICK = ",Info.Click)
+
 				defer Info.Click.Save()
 				if cookieError != nil {
 					defer c.SetCookie(utils.SaveCookieToUser(Info.Click.Hash, Info.Click.LocationLP))

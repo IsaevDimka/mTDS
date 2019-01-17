@@ -134,7 +134,7 @@ func clickBuild(c echo.Context) error {
 			Click.FlowHash = strings.Join(resultMap["flow_id"], "")
 		}
 
-		fmt.Println(Click.Hash, " ", Click.FlowHash)
+		//fmt.Println(Click.Hash, " ", Click.FlowHash)
 
 		if Click.Hash != "" && Click.FlowHash != "" {
 
