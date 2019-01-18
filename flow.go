@@ -107,7 +107,7 @@ func flowHandler(c echo.Context) error {
 		Info.Click.IP = c.Request().RemoteAddr
 		Info.Click.Referer = c.Request().Referer()
 
-		fmt.Println("USER-AGENT: ", Info.Click.UserAgent, )
+		fmt.Println("USER-AGENT: ", Info.Click.UserAgent)
 
 		// грузим в клик все из потока
 		Info.Click.FlowHash = Info.Flow.Hash
@@ -153,8 +153,8 @@ func flowHandler(c echo.Context) error {
 				LandingTemplate = Info.Flow.Lands[Random].URL // получаем рандомный урл ленда
 				LandingTemplateID = Info.Flow.Lands[Random].ID
 
-				resultMap["land_id"]    = append(resultMap["land_id"],    strconv.Itoa(LandingTemplateID))
-				resultMap["preland_id"] = append(resultMap["preland_id"], strconv.Itoa(PrelandingTemplateID))
+				resultMap["landing_id"] = append(resultMap["landing_id"], strconv.Itoa(LandingTemplateID))
+				resultMap["prelanding_id"] = append(resultMap["prelanding_id"], strconv.Itoa(PrelandingTemplateID))
 
 				for _, item := range keyMap {
 					LandingTemplate = strings.Replace(LandingTemplate, fmt.Sprintf("{%s}", item),
@@ -337,7 +337,7 @@ func flowHandler(c echo.Context) error {
 
 			goon:
 
-				fmt.Println("CLICK = ",Info.Click)
+				//fmt.Println("CLICK = ",Info.Click)
 
 				defer Info.Click.Save()
 				if cookieError != nil {

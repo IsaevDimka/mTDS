@@ -115,8 +115,8 @@ func clickBuild(c echo.Context) error {
 
 	if config.IsRedisAlive { // собираем данные для сейва в базу
 
-		PrelandID := strings.Join(resultMap["preland_id"], "")
-		LandID := strings.Join(resultMap["land_id"], "")
+		PrelandID := strings.Join(resultMap["prelanding_id"], "")
+		LandID := strings.Join(resultMap["landing_id"], "")
 
 		// вот это место
 		Click.Hash = strings.Join(resultMap["click_hash"], "")
@@ -134,9 +134,8 @@ func clickBuild(c echo.Context) error {
 			Click.FlowHash = strings.Join(resultMap["flow_id"], "")
 		}
 
-		//fmt.Println(Click.Hash, " ", Click.FlowHash)
-
 		if Click.Hash != "" && Click.FlowHash != "" {
+			//fmt.Println(Click.Hash, " ", Click.FlowHash)
 
 			Flow = Flow.GetInfo(Click.FlowHash) // получить всю инфу о потоке
 			Click.FlowID = Flow.ID
@@ -165,6 +164,9 @@ func clickBuild(c echo.Context) error {
 
 			// TODO: Возможна оптимизация по прямому обращению к индексу искомого ленда или преленда
 			Prelands, _ := config.Redisdb.HGetAll(Click.FlowHash + ":prelands").Result()
+
+			//			fmt.Println(Prelands)
+
 			PrelandingTemplate := ""
 
 			for PrelandingTemplateID, key := range Prelands {
@@ -182,11 +184,18 @@ func clickBuild(c echo.Context) error {
 			Click.PrelandingID = convertedID
 			Click.IsVisitedPL = 1
 
+			//			fmt.Println(PrelandingTemplate)
+
 			// TODO: Возможна оптимизация по прямому обращению к индексу искомого ленда или преленда
 			Lands, _ := config.Redisdb.HGetAll(Click.FlowHash + ":lands").Result()
+
+			//			fmt.Println(Lands)
+
 			LandingTemplate := ""
 
 			for LandingTemplateID, key := range Lands {
+				//				fmt.Println(LandingTemplateID, " - " ,LandID)
+
 				if LandingTemplateID == LandID {
 					LandingTemplate = key
 					for _, item := range keyMap {
@@ -204,7 +213,9 @@ func clickBuild(c echo.Context) error {
 			config.TDSStatistic.ClickBuildRequest++
 			//			fmt.Println("USER-AGENT 1: ", Click.UserAgent, Click)
 
-			Click.Save()
+			//			fmt.Println("CLICK = ", Click)
+
+			defer Click.Save()
 		} else {
 			msg := []byte(`{"code":400, "message":"No flow or click hashes found"}`)
 			return c.JSONBlob(400, msg)
@@ -215,7 +226,7 @@ func clickBuild(c echo.Context) error {
 		return c.JSONBlob(400, msg)
 	}
 
-	//fmt.Println(resultMap)
+	//	fmt.Println(resultMap)
 
 	if strings.Join(resultMap["format"], "") == "lp" || strings.Join(resultMap["f"], "") == "lp" {
 		return c.Redirect(302, Click.LocationLP)
