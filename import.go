@@ -46,18 +46,27 @@ func ImportFlowsToRedis(jsonData []byte) (int, bool) {
 			_ = config.Redisdb.HMSet(item.Hash, params).Err()
 
 			if len(item.Lands) > 0 {
+				//performing delete to not overwrite hash table
+				_ = config.Redisdb.Del(item.Hash + ":lands").Err()
+				//appends new data
 				for _, lands := range item.Lands {
 					_ = config.Redisdb.HSet(item.Hash+":lands", strconv.Itoa(lands.ID), lands.URL).Err()
 				}
 			}
 
 			if len(item.Prelands) > 0 {
+				//performing delete to not overwrite hash table
+				_ = config.Redisdb.Del(item.Hash + ":prelands").Err()
+				//appends new data
 				for _, prelands := range item.Prelands {
 					_ = config.Redisdb.HSet(item.Hash+":prelands", strconv.Itoa(prelands.ID), prelands.URL).Err()
 				}
 			}
 
 			if len(item.Counters) > 0 {
+				//performing delete to not overwrite hash table
+				_ = config.Redisdb.Del(item.Hash + ":counters").Err()
+				//appends new data
 				for _, counters := range item.Counters {
 					_ = config.Redisdb.HSet(item.Hash+":counters", counters.Name, strconv.Itoa(counters.ID)).Err()
 				}

@@ -128,8 +128,7 @@ func main() {
 	router.GET("/:flow_hash/:sub1/:sub2/:sub3/:sub4/:sub5", flowHandler)
 	router.GET("/:flow_hash/:sub1/:sub2/:sub3/:sub4/:sub5/", flowHandler)
 
-	// router.GET("/c/info/:click_hash", clickHandler)
-	// router.GET("/c/list", ListClickHandler)
+	router.GET("/info/:click_hash", clickHandler)
 
 	router.GET("/stat", GetSystemStatHandler)
 	router.GET("/extstat", GetSystemExtendedStatHandler)
@@ -168,7 +167,6 @@ func main() {
 		go func() {
 			router.Logger.Fatal(router.StartTLS(":443", config.Cfg.General.SSLCert, config.Cfg.General.SSLKey))
 		}()
-		// go router.Logger.Fatal(router.StartAutoTLS(":443"))
 	}
 
 	// run router
@@ -220,71 +218,44 @@ func GetSystemStatHandler(c echo.Context) error {
 }
 
 func GetSystemExtendedStatHandler(c echo.Context) error {
-	//agent := c.Request().UserAgent()
-	// защита от долбоебов
-	//if agent == "MetaDevAgent" {
+	var dataForGraph string
+	var dataKeys []int
+
+	// Getting current stats 1 column
 	text := config.GetSystemStatistics()
 
+	// Reading file with template for graphic
 	w := bytes.NewBuffer(nil)
 	file, _ := os.Open("tmpl/sysstat.tmpl")
 	_, _ = io.Copy(w, file)
 	_ = file.Close()
 
-	s := w.String()
-
-	// increase by one
-
+	// Getting current stats from Redis saved before
 	dataFromRedis, _ := config.Redisdb.HGetAll("SystemStatistic").Result()
-
-	var dataForGraph string
-	var dataKeys []int
 
 	for i, _ := range dataFromRedis {
 		convertedID, _ := strconv.Atoi(i)
 		dataKeys = append(dataKeys, convertedID)
 	}
 
+	// needs to be sorted casue of HGetALL output issue
 	sort.Ints(dataKeys)
 
-	//	fmt.Println("KEYS  = ",dataKeys)
-
-	//ResultingMap:=make(map[int][]string)
-	var ResultingMap []string
-
 	for _, item := range dataKeys {
-		//fmt.Println(i,item,"\n")
 		convertedID := strconv.Itoa(item)
-		ResultingMap = append(ResultingMap, dataFromRedis[convertedID])
+		dataForGraph += dataFromRedis[convertedID] + ",\n"
 	}
 
-	//fmt.Println("KEYS  = ",ResultingMap)
-
-	//		spew.Dump(ResultingMap)
-
-	//		sort.Strings(dataFromRedis)
-
-	for _, item := range ResultingMap {
-		//			if i == "0" {
-		dataForGraph += item + ",\n"
-		//			} else {
-		//dataForGraph += ","+item + "\n"
-		//}
-	}
-
-	/*		data := "[0, 0, 3],   [1, 10, 6],  [2, 23, 23],  [3, 17, 232],  [4, 18, 23],  [5, 9, 23],"+
-	"[6, 11, 14],  [7, 27, 5],  [8, 33, 8],  [9, 40, 0],  [10, 32, 123], [11, 35, 40]"
-	*/
-
-	m := utils.MemMonitor()
 	// Just encode to json and print
-	memoryStats := utils.JSONPretty(m)
+	monitor := utils.MemMonitor()
+	memoryStats := utils.JSONPretty(monitor)
 
-	result := strings.Replace(s, "{{MEM}}", memoryStats, -1)
+	// getting template from var
+	template := w.String()
+	result := strings.Replace(template, "{{MEM}}", memoryStats, -1)
 	result = strings.Replace(result, "{{DATA}}", dataForGraph, -1)
 	result = strings.Replace(result, "{{SYSSTAT}}", text, -1)
-	return c.HTML(200, result)
 
-	// } else {
-	// 	return c.String(404, "Not found on server")
-	// }
+	// returning resulting page
+	return c.HTML(200, result)
 }

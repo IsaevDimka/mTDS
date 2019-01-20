@@ -82,7 +82,6 @@ func MemMonitor() Monitor {
 	m.GCSys = BToMb(rtm.GCSys)
 	m.OtherSys = BToMb(rtm.OtherSys)
 
-	// Live objects = Mallocs - Frees
 	m.LiveObjects = m.Mallocs - m.Frees
 
 	// GC Stats

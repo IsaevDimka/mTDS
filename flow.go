@@ -107,8 +107,6 @@ func flowHandler(c echo.Context) error {
 		Info.Click.IP = c.Request().RemoteAddr
 		Info.Click.Referer = c.Request().Referer()
 
-		fmt.Println("USER-AGENT: ", Info.Click.UserAgent)
-
 		// грузим в клик все из потока
 		Info.Click.FlowHash = Info.Flow.Hash
 		Info.Click.FlowID = Info.Flow.ID
@@ -117,8 +115,6 @@ func flowHandler(c echo.Context) error {
 		Info.Click.OfferID = Info.Flow.OfferID
 
 		// грузим субаки
-		//Info.Click.URL = "http://" + config.Cfg.General.Host + c.Request().RequestURI
-
 		Info.Click.Sub1 = strings.Join(resultMap["sub1"], "")
 		Info.Click.Sub2 = strings.Join(resultMap["sub2"], "")
 		Info.Click.Sub3 = strings.Join(resultMap["sub3"], "")
@@ -336,9 +332,6 @@ func flowHandler(c echo.Context) error {
 				}
 
 			goon:
-
-				//fmt.Println("CLICK = ",Info.Click)
-
 				defer Info.Click.Save()
 				if cookieError != nil {
 					defer c.SetCookie(utils.SaveCookieToUser(Info.Click.Hash, Info.Click.LocationLP))
@@ -376,54 +369,11 @@ func flowHandler(c echo.Context) error {
 				} else {
 					return c.Blob(200, "image/png", pixel)
 				}
-
-				// ----------------------------------------------------------------------------------------------------
-				// OLD School
-				// ----------------------------------------------------------------------------------------------------
-				// если никаких ключей нет, то пробрасываем дальше (по старой схеме)
-				// на первый выбраный домен из списка если несколько или на первый
-				// ----------------------------------------------------------------------------------------------------
-				//
-				// Info.Click.LandingID = LandingTemplateID
-				// Info.Click.PrelandingID = 0
-				// Info.Click.LocationLP = LandingTemplate
-				//
-				// defer Info.Click.Save()
-				// if cookieError != nil {
-				// 	defer c.SetCookie(utils.SaveCookieToUser(Info.Click.Hash, Info.Click.LocationLP))
-				// }
-				//
-				// // ----------------------------------------------------------------------------------------------------
-				// // STATS
-				// // ----------------------------------------------------------------------------------------------------
-				// config.TDSStatistic.RedirectRequest++ // add counter tick
-				// config.TDSStatistic.ProcessingTime += time.Since(start)
-				//
-				// if config.Cfg.Debug.Level > 1 {
-				// 	utils.PrintInfo("Action elapsed time", time.Since(start), tdsModuleName)
-				// }
-				//
-				// if len(utils.ResponseAverage) < minimumStatCount {
-				// 	utils.ResponseAverage = append(utils.ResponseAverage, time.Since(start))
-				// } else {
-				// 	//defer runtime.GC()
-				// 	utils.ResponseAverage = utils.ResponseAverageDefault
-				// }
-				// // ----------------------------------------------------------------------------------------------------
-				// // FINAL
-				// // ----------------------------------------------------------------------------------------------------
-				// if !config.Cfg.Debug.Test {
-				// 	return c.Redirect(302, LandingTemplate)
-				// } else {
-				// 	return c.Blob(200, "image/png", pixel)
-				// }
 			}
 		} else {
 			config.TDSStatistic.IncorrectRequest++ // add counter tick
 			// если нет клика или потока, то все привет
-			//msg := []byte(`{"code":400, "message":"Insuficient parameters supplied"}`)
 			msg := []byte(`{"code":400, "message":"Waiting for data update, please be patient..."}`)
-			//fmt.Println(resultMap)
 			return c.JSONBlob(400, msg)
 		}
 	} else {

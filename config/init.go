@@ -52,9 +52,6 @@ func init() {
 	tlgrm := Telegram.Init(tlgrmRecipients, Cfg.Telegram.Socks5User, Cfg.Telegram.Socks5Password,
 		Cfg.Telegram.Socks5Proxy, Cfg.Telegram.ApiURL, Cfg.Telegram.Token, Cfg.Telegram.UseProxy)
 
-	// timeStamp := fmt.Sprintf("%d-%02d-%02d %02d:%02d:%02d",
-	// 	UpTime.Year(), UpTime.Month(), UpTime.Day(), UpTime.Hour(), UpTime.Minute(), UpTime.Second())
-
 	Telegram.SendMessage("\n" + utils.CURRENT_TIMESTAMP + "\n" + Cfg.General.Name + "\nTDS Service started\n")
 
 	if tlgrm {
@@ -83,7 +80,6 @@ func init() {
 //
 func TDSStatisticChan() <-chan string {
 	c := make(chan string)
-
 	go func() {
 		for {
 
@@ -102,12 +98,10 @@ func TDSStatisticChan() <-chan string {
 				TDSStatistic.Reset()
 			}
 
-			//defer runtime.GC()
 			// +1 its to avoid dumbs with zero multiplication
 			time.Sleep(time.Duration(1+Cfg.Telegram.MsgInterval) * time.Second) // поспим чуть чуть
 		}
 	}()
-
 	return c
 }
 
@@ -129,6 +123,7 @@ func ReloadConfigChan() <-chan string {
 
 //
 // TimeStamp ticker
+// Всегда дает нам в любом месте текущий таймстемп, позволяет не копировать тучу вызовов
 //
 func CurrentTimeStampTicker() <-chan string {
 	c := make(chan string)
