@@ -52,7 +52,7 @@ func init() {
 	tlgrm := Telegram.Init(tlgrmRecipients, Cfg.Telegram.Socks5User, Cfg.Telegram.Socks5Password,
 		Cfg.Telegram.Socks5Proxy, Cfg.Telegram.ApiURL, Cfg.Telegram.Token, Cfg.Telegram.UseProxy)
 
-	Telegram.SendMessage("\n" + utils.CURRENT_TIMESTAMP + "\n" + Cfg.General.Name + "\nTDS Service started\n")
+	Telegram.SendMessage("\n" + utils.CURRENT_TIMESTAMP + "\n" + version + "\n" + Cfg.General.Name + " started\n")
 
 	if tlgrm {
 		if Cfg.Debug.Level > 0 {
