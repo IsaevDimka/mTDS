@@ -1,3 +1,14 @@
+/****************************************************************************************************
+*
+* System statistics module / visualization, special for Meta CPA, Ltd.
+* by Michael S. Merzlyakov AFKA predator_pc@09012019
+* version v2.0.5
+*
+* created at 04122018
+* last edit: 20012019
+*
+*****************************************************************************************************/
+
 package config
 
 import (
@@ -26,27 +37,32 @@ func GetSystemStatistics() string {
 	var uptime, processingTime, memoryUsageGeneral, memoryUsagePrivate, avgReq string
 	var openedFiles = "0"
 
+	// Setting up counter if not exists
 	StatisticCounter, err := Redisdb.Get("StatisticCounter").Result()
 	if err != nil {
 		_ = Redisdb.Set("StatisticCounter", 0, 0).Err()
 		StatisticCounter = "0"
 	}
 
-	currentRPSstart := TDSStatistic.RedirectRequest
-	time.Sleep(1 * time.Second)
-	currentRPS := TDSStatistic.RedirectRequest - currentRPSstart
-
-	if len(RPSStat) < minimumStatCountRPS {
-		RPSStat = append(RPSStat, currentRPS)
-	} else {
-		RPSStat = RPSStatDefault
-	}
-
-	averageRPS := RPSAverage(RPSStat)
-
+	// Если статистики нет, мы должны инициализировать структуру с ней
 	if TDSStatistic != (utils.TDSStats{}) {
-		duration = 60 * time.Minute
 
+		// AVERAGE RPS STATS  -------------------------------------------------------------------------------------------
+		//
+		currentRPSstart := TDSStatistic.RedirectRequest
+		time.Sleep(1 * time.Second)
+		currentRPS := TDSStatistic.RedirectRequest - currentRPSstart
+
+		if len(RPSStat) < minimumStatCountRPS {
+			RPSStat = append(RPSStat, currentRPS)
+		} else {
+			RPSStat = RPSStatDefault
+		}
+		averageRPS := RPSAverage(RPSStat)
+
+		// PROCESSING AND UPTIME ----------------------------------------------------------------------------------------
+		//
+		duration = 60 * time.Minute
 		if time.Since(UpTime) < duration {
 			uptime = durafmt.Parse(time.Since(UpTime)).String(durafmt.DF_LONG)
 			processingTime = durafmt.Parse(TDSStatistic.ProcessingTime).String(durafmt.DF_LONG)
@@ -55,14 +71,17 @@ func GetSystemStatistics() string {
 			processingTime = durafmt.Parse(TDSStatistic.ProcessingTime).String(durafmt.DF_MIDDLE)
 		}
 
+		// MEMORY USAGE -------------------------------------------------------------------------------------------------
+		//
 		runtime.ReadMemStats(&memory)
-
 		RealDetectedGeneral := memory.Sys + memory.HeapSys + memory.HeapAlloc + memory.HeapInuse - memory.Alloc
 		RealDetectedPrivate := memory.HeapSys - memory.Alloc
-
 		memoryUsageGeneral = strconv.FormatUint(utils.BToMb(RealDetectedGeneral), 10)
 		memoryUsagePrivate = strconv.FormatUint(utils.BToMb(RealDetectedPrivate), 10)
 
+		// GET OPENED SOCKET STATS ---------------------------------------------------------------------------------------
+		// no need to do this for windows becasue of WSA working differently
+		//
 		if Cfg.General.OS == "linux" || Cfg.General.OS == "unix" {
 
 			pid := strconv.Itoa(os.Getpid())
@@ -71,7 +90,9 @@ func GetSystemStatistics() string {
 			if e != nil && Cfg.Debug.Level > 0 {
 				utils.PrintError("Error", "reading process directory failed", sysstatModuleName)
 			} else {
-				//utils.PrintInfo("PID", pid, initModuleName)
+				if Cfg.Debug.Level > 1 {
+					utils.PrintInfo("Reding stats PID", pid, initModuleName)
+				}
 			}
 
 			if len(fds) > 0 {
@@ -79,17 +100,27 @@ func GetSystemStatistics() string {
 			}
 		}
 
+		// RESPONSE AVERAGE ----------------------------------------------------------------------------------------------
+		// Если среднее время ответа меньше чем миллисекунда так и напишем
+		//
 		dur := DurationAverage(utils.ResponseAverage)
-
-		if dur < time.Duration(1*time.Millisecond) { //|| dur < time.Duration(1 * time.Microsecond) || dur < time.Duration(1 * time.Nanosecond) {
+		if dur < time.Duration(1*time.Millisecond) {
 			avgReq = "< 1 msec"
-		} else {
+		} else { // иначе напишем по человечески
 			avgReq = durafmt.Parse(dur).String(durafmt.DF_LONG)
 		}
+		// ---------------------------------------------------------------------------------------------------------------
 
-		uniqueRequests := (TDSStatistic.ClickBuildRequest + TDSStatistic.FlowInfoRequest + TDSStatistic.RedirectRequest) - TDSStatistic.CookieRequest // - TDSStatistic.IncorrectRequest
+		// TODO: Тут надо думать как нам считать уники по первым запросам или нет
+		// TODO: очевидно что куки реквесты мы удаляем из уников остается
+		// TODO: Первыичный запрос и запрос JSON для потока, я думаю что первичный самый важный в итоге
+		// uniqueRequests := (TDSStatistic.ClickBuildRequest + TDSStatistic.FlowInfoRequest + TDSStatistic.RedirectRequest) - TDSStatistic.CookieRequest
+		uniqueRequests := TDSStatistic.RedirectRequest - TDSStatistic.CookieRequest
 
-		//auto update statistics in graph
+		//
+		// auto update statistics in graph
+		// and auto slide system stats removing first element when the count achieved `minimumStatCountRPS`
+		//
 		convertedID, _ := strconv.Atoi(StatisticCounter)
 		if convertedID < minimumStatCountRPS {
 			//			fmt.Println("Appending", convertedID)
@@ -98,13 +129,9 @@ func GetSystemStatistics() string {
 				strconv.Itoa(averageRPS)+","+strconv.Itoa(currentRPS)+"]").Err()
 		} else {
 			convertedID = convertedID - minimumStatCountRPS
-			//fmt.Println("Removing before this", convertedID)
-
 			for i := 0; i < convertedID; i++ {
 				_ = Redisdb.HDel("SystemStatistic", strconv.Itoa(i)).Err()
 			}
-
-			//			fmt.Println("Appending", StatisticCounter)
 			_ = Redisdb.HSet("SystemStatistic", StatisticCounter, "["+StatisticCounter+","+
 				fmt.Sprintf("%.0f", (math.Round(dur.Seconds()*1000)))+","+
 				strconv.Itoa(averageRPS)+","+strconv.Itoa(currentRPS)+"]").Err()
@@ -115,14 +142,14 @@ func GetSystemStatistics() string {
 			"\n\nINFO" +
 			"\nFlow update request    : " + strconv.Itoa(TDSStatistic.UpdatedFlows) +
 			"\nFlow appended          : " + strconv.Itoa(TDSStatistic.AppendedFlows) +
+			// TODO: для имплементации кода пикселя
 			//"\nPixel request          : " + strconv.Itoa(TDSStatistic.PixelRequest) +
-			"\nClick build request    : " + humanize.Comma(int64(TDSStatistic.ClickBuildRequest)) + //strconv.Itoa(TDSStatistic.ClickInfoRequest) +
-			"\nFlow Info request      : " + humanize.Comma(int64(TDSStatistic.FlowInfoRequest)) + //strconv.Itoa(TDSStatistic.FlowInfoRequest) +
-			"\nRedirect request       : " + humanize.Comma(int64(TDSStatistic.RedirectRequest)) + //strconv.Itoa(TDSStatistic.RedirectRequest) +
-			//			"\nRedis Stat request     : " + strconv.Itoa(TDSStatistic.RedisStatRequest) +
-			"\nIncorrect request      : " + humanize.Comma(int64(TDSStatistic.IncorrectRequest)) + //strconv.Itoa(TDSStatistic.IncorrectRequest) +
-			"\nCookies request        : " + humanize.Comma(int64(TDSStatistic.CookieRequest)) + //strconv.Itoa(TDSStatistic.CookieRequest) +
-			"\nUnique request (?)     : " + humanize.Comma(int64(uniqueRequests)) + //strconv.Itoa(uniqueRequests) +
+			"\nClick build request    : " + humanize.Comma(int64(TDSStatistic.ClickBuildRequest)) +
+			"\nFlow Info request      : " + humanize.Comma(int64(TDSStatistic.FlowInfoRequest)) +
+			"\nRedirect request       : " + humanize.Comma(int64(TDSStatistic.RedirectRequest)) +
+			"\nIncorrect request      : " + humanize.Comma(int64(TDSStatistic.IncorrectRequest)) +
+			"\nCookies request        : " + humanize.Comma(int64(TDSStatistic.CookieRequest)) +
+			"\nUnique request (?)     : " + humanize.Comma(int64(uniqueRequests)) +
 			"\n\nSYSTEM" +
 			"\nOperating system       : " + Cfg.General.OS +
 			"\nDebug level            : " + strconv.Itoa(Cfg.Debug.Level) +
@@ -130,15 +157,16 @@ func GetSystemStatistics() string {
 			"\nPrivate memory         : " + memoryUsagePrivate + " mb" +
 			"\nOpened files           : " + openedFiles +
 			"\nCurrent rate           : " + humanize.Comma(int64(currentRPS)) + " rps" +
-			"\nAverage rate           : " + humanize.Comma(int64(averageRPS)) + " rps" + //strconv.Itoa(averageRPS) + " rps" +
+			"\nAverage rate           : " + humanize.Comma(int64(averageRPS)) + " rps" +
 			"\nUptime                 : " + uptime +
 			"\nProcessing time        : " + processingTime +
 			"\nAverage response time  : " + avgReq +
 			"\n\nREDIS" +
 			"\nConnection             : " + strconv.FormatBool(IsRedisAlive) +
-			"\nClicks sent/saved      : " + humanize.Comma(int64(TDSStatistic.ClicksSentToRedis)) + //strconv.Itoa(TDSStatistic.ClicksSentToRedis) +
+			"\nClicks sent/saved      : " + humanize.Comma(int64(TDSStatistic.ClicksSentToRedis)) +
 			"\n"
 
+		// добавим ++ к счетчику
 		_ = Redisdb.Incr("StatisticCounter").Err()
 
 		return text

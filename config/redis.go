@@ -1,3 +1,14 @@
+/****************************************************************************************************
+*
+* Redis Initialization package, special for Meta CPA, Ltd.
+* by Michael S. Merzlyakov AFKA predator_pc@12122018
+* version v2.0.3
+*
+* created at 04122018
+* last edit: 16122018
+*
+*****************************************************************************************************/
+
 package config
 
 import (
@@ -24,7 +35,7 @@ func RedisDBChan() <-chan string {
 			DB:       0,                  // use default DB
 		})
 		defer Redisdb.Close() // Если редис отвалится, потом конекция не повиснет
-
+		// Поэтому хорошо тут использовать отложенный вызов
 		for {
 
 			// verifying config

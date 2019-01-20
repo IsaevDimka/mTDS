@@ -70,9 +70,9 @@ type Config struct {
 	}
 }
 
-var Cfg Config            // Конфиг инстанс
-var Redisdb *redis.Client // Редис
-var IsRedisAlive = false
+var Cfg Config                     // Конфиг инстанс
+var Redisdb *redis.Client          // Редис
+var IsRedisAlive = false           // Флаг живости редиса
 var Telegram utils.TelegramAdapter // инстанс бота
 var TDSStatistic utils.TDSStats    // Инстанс статистики
 
@@ -81,7 +81,9 @@ func InitConfig() {
 	var actionArg string
 	_ = actionArg
 
-	//fp, _ := filepath.Abs(configFileName)
+	// В настройках сервиса обязательно нужно указывать
+	// WorkingDir иначе не найдем мы файл никогда с настройками и поэтому не запустимся
+	//
 	err := gcfg.FatalOnly(gcfg.ReadFileInto(&Cfg, configFileName))
 
 	if len(os.Args) > 1 {
@@ -250,6 +252,10 @@ func InitConfig() {
 	}
 }
 
+//
+// Поскольку мы поддерживаем загрузку на ходу, то может случится, что конфиг
+// уже испортили, а продолжать работать надо, проверяем целостность данных
+//
 func ReloadConfig() {
 	err := gcfg.FatalOnly(gcfg.ReadFileInto(&Cfg, configFileName))
 

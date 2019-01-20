@@ -45,9 +45,9 @@ func SendFileToRecieveApi() <-chan string {
 					_, _ = io.Copy(w, file)
 					_ = file.Close()
 
-					url := Cfg.Click.ApiUrl                     // "http://116.202.27.130/set/hits"
-					token := Cfg.Click.ApiToken                 // "PaILgFTQQCvX9tzS"
-					req, err := http.NewRequest("POST", url, w) //bytes.NewBuffer(fileData))
+					url := Cfg.Click.ApiUrl
+					token := Cfg.Click.ApiToken
+					req, err := http.NewRequest("POST", url, w)
 
 					if err != nil {
 						recover()
