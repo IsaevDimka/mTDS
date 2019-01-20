@@ -138,8 +138,8 @@ func GetSystemStatistics() string {
 		}
 
 		// allow to overwrite statistics
-		text = "\n" + utils.CURRENT_TIMESTAMP + "\n" + Cfg.General.Name +
-			"\n\nINFO" +
+		text = "\n" + utils.CURRENT_TIMESTAMP + "\n" + version + "\n" + Cfg.General.Name +
+			"\n\nINFO " +
 			"\nFlow update request    : " + strconv.Itoa(TDSStatistic.UpdatedFlows) +
 			"\nFlow appended          : " + strconv.Itoa(TDSStatistic.AppendedFlows) +
 			// TODO: для имплементации кода пикселя
