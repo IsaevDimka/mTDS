@@ -194,6 +194,12 @@ __MetaTDS v.2 CHANGE LOG__
 + Preparing to release
 + fx settings
 
-__FEATURED TODO__
-+ Implementing pixel integration 
-+ Mass load testing 
+> __17.01.2019__
++ FX for landing_id/prelanding_id replace within template
+
+> __18.01.2019__
++ Testing some cases related c/build/click
++ Testing with some issues about X-Real-IP
+  User-Agent (non-saved fields)
++ Preparing to release
++ fx settings
