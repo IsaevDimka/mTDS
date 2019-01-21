@@ -90,8 +90,8 @@ func (Flow FlowData) GetInfo(FlowHash string) FlowData {
 
 	FlowCountersList, _ := config.Redisdb.HGetAll(FlowHash + ":counters").Result()
 	for i, item := range FlowCountersList {
-		convertedID, _ = strconv.Atoi(i)
-		Flow.Counters = append(Flow.Counters, Counters{item, convertedID})
+		convertedID, _ = strconv.Atoi(item)
+		Flow.Counters = append(Flow.Counters, Counters{i, convertedID})
 	}
 
 	return Flow
