@@ -277,8 +277,6 @@ func flowHandler(c echo.Context) error {
 				Info.Click.LocationPL = PrelandingTemplate
 				Info.Click.IsVisitedPL = 1
 
-				fmt.Println("1/0")
-
 				if ClickID == "" && ClickHash == "" {
 					defer Info.Click.Save()
 					if cookieError != nil {
