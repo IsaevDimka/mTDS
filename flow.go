@@ -100,7 +100,8 @@ func flowHandler(c echo.Context) error {
 
 		Info.Flow = Info.Flow.GetInfo(resultHash) // получить всю инфу о потоке
 		//------------------------------------------------------------------------------------------------------
-		Info.Click.Time = fmt.Sprintf("%d-%02d-%02d %02d:%02d:%02d", start.Year(), start.Month(), start.Day(), start.Hour(), start.Minute(), start.Second())
+		Info.Click.Time = fmt.Sprintf("%d-%02d-%02d %02d:%02d:%02d",
+			start.Year(), start.Month(), start.Day(), start.Hour(), start.Minute(), start.Second())
 
 		// _SERVER information
 		Info.Click.UserAgent = c.Request().UserAgent()
@@ -125,7 +126,7 @@ func flowHandler(c echo.Context) error {
 			writeFormat := strings.Join(resultMap["format"], "")
 			writeF := strings.Join(resultMap["f"], "")
 			utils.LogRequest(c.Request().RemoteAddr, writeFormat+" - "+writeF+" - "+
-				c.Request().URL.RequestURI()+" - "+c.Request().UserAgent())
+				c.Request().URL.RequestURI()+" - "+c.Request().Referer()+" - "+c.Request().UserAgent())
 		}
 
 		// если есть поток и есть клик, значит можно и дальше идти
