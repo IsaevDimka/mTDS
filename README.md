@@ -4,6 +4,11 @@ __FEATURED TODO__
 
 __LAST CHANGES__ (other changes see `docs/changelog.txt`)
 
+> __31.01.2019__
++ Appended Log request option to `settings.ini`
++ Deployment to SG TDS
++ Debug
+
 > __20.01.2019__
 + Testing some cases related c/build/click
 + Documentation for modules and thin places
