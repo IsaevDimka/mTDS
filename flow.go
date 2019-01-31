@@ -121,6 +121,13 @@ func flowHandler(c echo.Context) error {
 		Info.Click.Sub4 = strings.Join(resultMap["sub4"], "")
 		Info.Click.Sub5 = strings.Join(resultMap["sub5"], "")
 
+		if config.Cfg.Debug.LogRequests {
+			writeFormat := strings.Join(resultMap["format"], "")
+			writeF := strings.Join(resultMap["f"], "")
+			utils.LogRequest(c.Request().RemoteAddr, writeFormat+" - "+writeF+" - "+
+				c.Request().URL.RequestURI()+" - "+c.Request().UserAgent())
+		}
+
 		// если есть поток и есть клик, значит можно и дальше идти
 		//------------------------------------------------------------------------------------------------------
 		// Подготовка всей инфы

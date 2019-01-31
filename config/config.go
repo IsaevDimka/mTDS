@@ -57,8 +57,9 @@ type Config struct {
 		UpdateFlows int
 	}
 	Debug struct {
-		Test  bool
-		Level int
+		Test        bool
+		Level       int
+		LogRequests bool
 	}
 	Telegram struct {
 		MsgInterval    int
@@ -196,6 +197,9 @@ func InitConfig() {
 					fmt.Println("[ Debug ]")
 					if Cfg.Debug.Level != 0 {
 						fmt.Println("[ -- Debug level ]", Cfg.Debug.Level)
+					}
+					if Cfg.Debug.LogRequests != false {
+						fmt.Println("[ -- LogRequests ]", Cfg.Debug.LogRequests)
 					}
 					if Cfg.Debug.Test != false {
 						fmt.Println("[ -- Debug TEST mode]", Cfg.Debug.Test)

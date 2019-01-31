@@ -33,6 +33,7 @@ const charset = "abcdefghijklmnopqrstuvwxyz" +
 	"0123456789"
 const WriteToLogOnly = true
 const LogFileName = "metatds.log"
+const LogRequestFileName = "request.log"
 
 var CURRENT_TIMESTAMP string
 var CURRENT_UNIXTIME time.Time
@@ -94,6 +95,10 @@ func PrintDebug(header string, message interface{}, module string) {
 		_, _ = fmt.Fprintf(color.Output, "[ %s ]", color.YellowString(header))
 		fmt.Println(" ", message, " - ", module)
 	}
+}
+
+func LogRequest(header string, message string) {
+	WriteLog(LogRequestFileName, header, "", message)
 }
 
 // URIByMap Заполняем наш мап параметрами из УРИ
