@@ -120,6 +120,28 @@ func URIByMap(c echo.Context, keyMap []string) map[string][]string {
 	}
 	//-------------------------------------------
 
+	// Compatibility with other trackers
+	if strings.Join(resultMap["utm_source"], "") != "" {
+		resultMap["sub1"] = nil
+		resultMap["sub1"] = append(resultMap["sub1"], strings.Join(resultMap["utm_source"], ""))
+	}
+	if strings.Join(resultMap["utm_campaign"], "") != "" {
+		resultMap["sub2"] = nil
+		resultMap["sub2"] = append(resultMap["sub2"], strings.Join(resultMap["utm_campaign"], ""))
+	}
+	if strings.Join(resultMap["utm_medium"], "") != "" {
+		resultMap["sub3"] = nil
+		resultMap["sub3"] = append(resultMap["sub3"], strings.Join(resultMap["utm_medium"], ""))
+	}
+	if strings.Join(resultMap["utm_content"], "") != "" {
+		resultMap["sub4"] = nil
+		resultMap["sub4"] = append(resultMap["sub4"], strings.Join(resultMap["utm_content"], ""))
+	}
+	if strings.Join(resultMap["utm_term"], "") != "" {
+		resultMap["sub5"] = nil
+		resultMap["sub5"] = append(resultMap["sub5"], strings.Join(resultMap["utm_term"], ""))
+	}
+
 	return resultMap
 }
 
