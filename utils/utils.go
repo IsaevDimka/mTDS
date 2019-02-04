@@ -160,9 +160,6 @@ func URIByMap(c echo.Context, keyMap []string) (map[string][]string, string) {
 		foreignQueryParams = foreignQueryParams + "&" + key + "=" + strings.Join(value, "")
 	}
 
-	fmt.Println(" Foreign Keys = ", foreignQueryParams)
-	fmt.Println(" Result Map = ", resultMap)
-
 	if len(foreignQueryParams) > 0 {
 		return resultMap, foreignQueryParams
 	} else {
