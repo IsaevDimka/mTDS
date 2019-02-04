@@ -4,6 +4,22 @@ __FEATURED TODO__
 
 __LAST CHANGES__ (other changes see `docs/changelog.txt`)
 
+> __04.02.2019__
++ Forwarding additional GET params to Prelanding
+  and Landing pages
+
+> __03.02.2019__
++ Implementing prarmeters utm_* for backward
+  compatibility with outsource trackers
+
+> __01.01.2019__
++ tests to increase performance of randomization
++ additional configuration & management tools
++ memory profiling
++ cpu profiling
++ string generator fix
++ resend statistic send and file saving refactoring
+
 > __31.01.2019__
 + Appended Log request option to `settings.ini`
 + Deployment to SG TDS
