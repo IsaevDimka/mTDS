@@ -44,7 +44,7 @@ func flowHandler(c echo.Context) error {
 		//------------------------------------------------------------------------------------------------------
 		// Читаем параметры с которыми мы хотим редирект
 		//------------------------------------------------------------------------------------------------------
-		resultMap := utils.URIByMap(c, keyMap) // вот в этот массив
+		resultMap, foreignQueryParams := utils.URIByMap(c, keyMap) // вот в этот массив
 		//------------------------------------------------------------------------------------------------------
 		// Читаем куку
 		//------------------------------------------------------------------------------------------------------
@@ -149,6 +149,7 @@ func flowHandler(c echo.Context) error {
 					PrelandingTemplate = strings.Replace(PrelandingTemplate, fmt.Sprintf("{%s}", item),
 						strings.Trim(fmt.Sprintf("%s", resultMap[item]), " ]["), 1)
 				}
+				PrelandingTemplate += foreignQueryParams
 				Info.Flow.RandomPreland = PrelandingTemplate
 			}
 
@@ -164,6 +165,7 @@ func flowHandler(c echo.Context) error {
 					LandingTemplate = strings.Replace(LandingTemplate, fmt.Sprintf("{%s}", item),
 						strings.Trim(fmt.Sprintf("%s", resultMap[item]), " ]["), 1)
 				}
+				LandingTemplate += foreignQueryParams
 				Info.Flow.RandomLand = LandingTemplate
 
 			} else {

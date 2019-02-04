@@ -102,7 +102,8 @@ func LogRequest(header string, message string) {
 }
 
 // URIByMap Заполняем наш мап параметрами из УРИ
-func URIByMap(c echo.Context, keyMap []string) map[string][]string {
+func URIByMap(c echo.Context, keyMap []string) (map[string][]string, string) {
+	var foreignQueryParams string
 	resultMap := make(map[string][]string)
 	for _, item := range keyMap {
 		tmp := c.Param(item)
@@ -142,7 +143,32 @@ func URIByMap(c echo.Context, keyMap []string) map[string][]string {
 		resultMap["sub5"] = append(resultMap["sub5"], strings.Join(resultMap["utm_term"], ""))
 	}
 
-	return resultMap
+	keyMapMirror := keyMap
+	allParams := c.QueryParams()
+
+	// отсортируем все согласно нашей схеме
+	for key, _ := range allParams {
+		for _, keyMapItem := range keyMapMirror {
+			if key == keyMapItem {
+				delete(allParams, key)
+			}
+		}
+	}
+
+	// пройдемся по остаткам от сортировки
+	for key, value := range allParams {
+		foreignQueryParams = foreignQueryParams + "&" + key + "=" + strings.Join(value, "")
+	}
+
+	fmt.Println(" Foreign Keys = ", foreignQueryParams)
+	fmt.Println(" Result Map = ", resultMap)
+
+	if len(foreignQueryParams) > 0 {
+		return resultMap, foreignQueryParams
+	} else {
+		return resultMap, ""
+	}
+
 }
 
 func JSONMarshal(v interface{}, safeEncoding bool) ([]byte, error) {

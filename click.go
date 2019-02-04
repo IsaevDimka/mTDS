@@ -34,7 +34,7 @@ func clickHandler(c echo.Context) error {
 		var Click models.ClickData
 		start := time.Now()
 
-		resultMap := utils.URIByMap(c, keyMap)
+		resultMap, _ := utils.URIByMap(c, keyMap)
 		resultMap["click_hash"] = append(resultMap["click_hash"], Click.Hash) // запишем сразу в наш массив
 		resultMap["click_id"] = append(resultMap["click_id"], Click.Hash)     // support for old version TDS
 
@@ -66,7 +66,7 @@ func clickBuild(c echo.Context) error {
 	var Click models.ClickData
 	var Flow models.FlowData
 
-	resultMap := utils.URIByMap(c, keyMap) // вот в этот массив
+	resultMap, _ := utils.URIByMap(c, keyMap) // вот в этот массив
 	// если редис жив
 	if config.IsRedisAlive { // собираем данные для сейва в базу
 
