@@ -24,7 +24,7 @@ import (
 const configFileName = "settings.ini"
 const configModuleName = "config.go"
 
-const version = "MetaTDS v.2.0.9 (alpha) build 97"
+const version = "MetaTDS v.2.0.9 (alpha) build 98"
 
 // Config Тип для хранения конфига
 type Config struct {

@@ -282,10 +282,18 @@ func flowHandler(c echo.Context) error {
 				strings.Join(resultMap["format"], "") == "j" || strings.Join(resultMap["f"], "") == "j" {
 				Info.Click.LandingID = LandingTemplateID
 				Info.Click.LocationLP = LandingTemplate
+
 				Info.Click.IsVisitedLP = 0
+				Info.Click.IsVisitedPL = 0
+
+				if len(Info.Flow.Prelands) > 0 {
+					Info.Click.IsVisitedPL = 1
+				} else {
+					Info.Click.IsVisitedLP = 1
+				}
+
 				Info.Click.PrelandingID = PrelandingTemplateID
 				Info.Click.LocationPL = PrelandingTemplate
-				Info.Click.IsVisitedPL = 1
 
 				if ClickID == "" && ClickHash == "" {
 					defer Info.Click.Save()
