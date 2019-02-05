@@ -160,6 +160,8 @@ func flowHandler(c echo.Context) error {
 
 				resultMap["landing_id"] = append(resultMap["landing_id"], strconv.Itoa(LandingTemplateID))
 				resultMap["prelanding_id"] = append(resultMap["prelanding_id"], strconv.Itoa(PrelandingTemplateID))
+				resultMap["land_id"] = append(resultMap["land_id"], strconv.Itoa(LandingTemplateID))
+				resultMap["preland_id"] = append(resultMap["preland_id"], strconv.Itoa(PrelandingTemplateID))
 
 				for _, item := range keyMap {
 					LandingTemplate = strings.Replace(LandingTemplate, fmt.Sprintf("{%s}", item),
@@ -280,6 +282,7 @@ func flowHandler(c echo.Context) error {
 			// ----------------------------------------------------------------------------------------------------
 			if strings.Join(resultMap["format"], "") == "json" || strings.Join(resultMap["f"], "") == "json" ||
 				strings.Join(resultMap["format"], "") == "j" || strings.Join(resultMap["f"], "") == "j" {
+
 				Info.Click.LandingID = LandingTemplateID
 				Info.Click.LocationLP = LandingTemplate
 

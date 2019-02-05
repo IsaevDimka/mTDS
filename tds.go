@@ -42,7 +42,9 @@ const defaultStartOfEpoch = "946684800"
 // Карта ключей которые мы хотим получить
 var keyMap = []string{"flow_hash", "click_hash", "format", "f",
 	"click_id", "flow_id", // support for old version of TDS
-	"prelanding_id", "landing_id", "sub1", "sub2", "sub3", "sub4", "sub5",
+	"prelanding_id", "landing_id",
+	"preland_id", "land_id", // doubling params
+	"sub1", "sub2", "sub3", "sub4", "sub5",
 	"utm_source", "utm_campaign", "utm_medium", "utm_content", "utm_term"} // support for old version of TDS
 
 // пиксель для тестов
