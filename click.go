@@ -16,11 +16,15 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/labstack/echo"
+	"github.com/predatorpc/durafmt"
+	"io"
 	"metatds/config"
 	"metatds/models"
 	"metatds/utils"
+	"net/http"
 	"strconv"
 	"strings"
 	"time"
@@ -30,7 +34,9 @@ import (
 // Get Single Click from Redis
 //
 func clickHandler(c echo.Context) error {
+
 	if config.IsRedisAlive {
+
 		var Click models.ClickData
 		start := time.Now()
 
@@ -38,22 +44,56 @@ func clickHandler(c echo.Context) error {
 		resultMap["click_hash"] = append(resultMap["click_hash"], Click.Hash) // запишем сразу в наш массив
 		resultMap["click_id"] = append(resultMap["click_id"], Click.Hash)     // support for old version TDS
 
-		Click = Click.GetInfo(strings.Join(resultMap["click_hash"], ""))
+		if strings.Join(resultMap["format"], "") == "local" || strings.Join(resultMap["f"], "") == "local" {
+			Click = Click.GetInfo(strings.Join(resultMap["click_hash"], ""))
 
-		if Click != (models.ClickData{}) && config.Cfg.Debug.Level > 0 {
-			utils.PrintDebug("Click info", Click, tdsModuleName)
+			if Click != (models.ClickData{}) && config.Cfg.Debug.Level > 0 {
+				utils.PrintDebug("Click info", Click, tdsModuleName)
+			}
+
+			data := utils.JSONPretty(Click)
+
+			config.TDSStatistic.ClickBuildRequest++ // add counter tick
+			config.TDSStatistic.ProcessingTime += time.Since(start)
+
+			return c.String(200, data+"\nTotal elapsed: "+
+				durafmt.Parse(time.Since(start)).String(durafmt.DF_LONG))
 		}
+		if strings.Join(resultMap["format"], "") == "remote" || strings.Join(resultMap["f"], "") == "remote" {
 
-		data := utils.JSONPretty(Click)
+			body := bytes.NewBuffer(nil)
+			req, err := http.Get("http://116.202.27.130/hit/" + strings.Join(resultMap["click_hash"], ""))
 
-		config.TDSStatistic.ClickBuildRequest++ // add counter tick
-		config.TDSStatistic.ProcessingTime += time.Since(start)
+			if err != nil {
+				recover()
+				fmt.Println("[ ERROR] can't create request 0: ", err)
+			}
 
-		return c.String(200, data)
+			if req != nil {
+				// setting header in case of API request is not NIL
+				req.Header.Set("Connection", "close")
+				// reading the body
+				_, _ = io.Copy(body, req.Body)
+				// closing anyway now
+				// defer is not needed cause we get an exception before
+				_ = req.Body.Close()
+			}
+
+			config.TDSStatistic.ClickBuildRequest++ // add counter tick
+			config.TDSStatistic.ProcessingTime += time.Since(start)
+
+			return c.String(200, body.String()+"\nTotal elapsed: "+
+				durafmt.Parse(time.Since(start)).String(durafmt.DF_LONG))
+		} else {
+			config.TDSStatistic.IncorrectRequest++ // add counter tick
+			// если нет редиски, то все привет
+			msg := []byte(`{"code":400, "message":"Please specify format local/remote"}`)
+			return c.JSONBlob(400, msg)
+		}
 	} else {
 		config.TDSStatistic.IncorrectRequest++ // add counter tick
 		// если нет редиски, то все привет
-		msg := []byte(`{"code":500, "message":"No connection to RedisDB"}`)
+		msg := []byte(`{"code":400, "message":"No connection to RedisDB"}`)
 		return c.JSONBlob(400, msg)
 	}
 }
