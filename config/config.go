@@ -24,7 +24,7 @@ import (
 const configFileName = "settings.ini"
 const configModuleName = "config.go"
 
-const version = "MetaTDS v.2.0.10 (alpha) build 100"
+const version = "MetaTDS v.2.0.12 (alpha) build 102"
 
 //const version = "MetaTDS v2.0 (beta) build 10"
 
