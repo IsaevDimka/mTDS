@@ -118,7 +118,10 @@ func main() {
 	router.GET("/c/:flow_hash/:click_hash/:land_id/:preland_id/:sub1/:sub2/:sub3/:sub4/:sub5/", clickBuild)
 
 	// Routes
-	router.GET("/", flowHandler)
+	router.GET("/", func(c echo.Context) error {
+		return c.String(200, "")
+	})
+
 	router.GET("/:flow_hash", flowHandler)
 	router.GET("/:flow_hash/", flowHandler)
 	router.GET("/:flow_hash/:sub1", flowHandler)
